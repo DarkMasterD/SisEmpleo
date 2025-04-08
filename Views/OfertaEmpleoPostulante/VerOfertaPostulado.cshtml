@@ -1,0 +1,43 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div class="container">
+    <ul>
+        @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
+        {
+            <li>
+                <div class="mb-3 border border-dark border-end-0">
+                    <div class="row border border-dark border-bottom border-top-0 border-end border-start-0">
+                        <div class="col">
+                            <h4>
+                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = @oferta.Id })">
+                                    @oferta.Titulo
+                                </a>
+                            </h4>
+                        </div>
+                        <div class="col text-end">
+                            <h4>@oferta.Nombre_Empresa</h4>
+                        </div>
+                    </div>
+                    <div class="row border border-dark border-bottom-0 border-top-0 border-end border-start-0">
+                        <div class="col">
+                            <h5>@oferta.Salario</h5>
+                        </div>
+                        <div class="col">
+                            <h5>@oferta.Vacantes</h5>
+                        </div>
+                        <div class="col">
+                            <h5>@oferta.Duracion_Contrato</h5>
+                        </div>
+                        <div class="col">
+                            <h5>@oferta.Fecha_Publicacion</h5>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+</div>

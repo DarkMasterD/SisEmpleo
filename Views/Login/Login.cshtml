@@ -1,0 +1,30 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+
+}
+
+<h1 class="text-center">Login</h1>
+
+<form action="/Login/Login" method="post">
+    <div class="form-group">
+        <label>Correo electronico: </label>
+        @Html.TextBox("email", "", new { @class = "form-control" })
+    </div>
+    <div>
+        <label>Contraseña: </label>
+        @Html.Password("contrasenia", "", new { @class = "form-control" })
+    </div>
+    <button type="submit" class="btn btn-primary">Iniciar sesion</button>
+</form>
+<div>
+    <h5>No tienes una cuenta para aplicar a trabajos? Registrate <a asp-area="" asp-controller="Login" asp-action="RegistrarsePostulante">Aqui</a></h5>
+    <h5>No tienes una cuenta como empresa? Registrate <a asp-area="" asp-controller="Login" asp-action="RegistrarseEmpresa">Aqui</a></h5>
+</div>
+@if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
+{
+    <div class="alert alert-danger">
+        @ViewData["ErrorMessage"]
+    </div>
+}

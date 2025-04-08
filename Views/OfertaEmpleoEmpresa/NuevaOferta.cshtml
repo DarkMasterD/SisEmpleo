@@ -1,0 +1,215 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<div>
+    <form asp-action="NuevaOferta" method="post">
+        <label>Pais</label>
+        @Html.DropDownList("id_pais", ViewBag.Pais as SelectList, "Seleccione un pais", new { @class = "form-control", id = "cboPais" })
+
+        <label>Provincia:</label>
+        <select id="cboProvincia" name="id_provincia" class="form-control">
+            <option value="">Seleccione una provincia</option>
+        </select>
+
+        <label>Titulo</label>
+        @Html.TextBox("titulo", "", new { @class = "form-control" })
+        <label>Descripcion</label>
+        @Html.TextArea("descripcion", "", new { @class = "form-control", id = "direccion" })
+        <label>Vacantes</label>
+        @Html.TextBox("vacantes", "", new { @class = "form-control", type = "number", step = "1", min = "0" })
+        <label>Salario</label>
+        @Html.TextBox("salario", "", new { @class = "form-control", type = "number", step = "1", min = "0" })
+        <h3>Horario</h3>
+        <label>Lunes</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("lunes1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("lunes2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("lunes3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("lunes4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Martes</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("martes1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("martes2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("martes3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("martes4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Miercoles</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("miercoles1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("miercoles2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("miercoles3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("miercoles4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Jueves</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("jueves1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("jueves2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("jueves3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("jueves4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Viernes</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("viernes1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("viernes2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("viernes3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("viernes4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Sabado</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("sabado1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("sabado2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("sabado3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("sabado4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Domingo</label>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("domingo1", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("domingo2", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                @Html.TextBox("domingo3", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+            <div class="col-6">
+                @Html.TextBox("domingo4", "00:00", new { @class = "form-control", type = "time" })
+            </div>
+        </div>
+        <label>Duracion Contrato</label>
+        @Html.TextBox("duracion_contrato", "", new { @class = "form-control"})
+        <input type="hidden" id="horario" name="horario">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </form>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#cboPais").change(function () {
+            var paisId = $(this).val();
+            $("#cboProvincia").empty().append('<option value="">Cargando...</option>');
+
+            if (paisId != 0) {
+                $.getJSON('/OfertaEmpleoEmpresa/ObtenerProvincia', { id_pais: paisId }, function (data) {
+                    $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+                    $.each(data, function (i, item) {
+                        $("#cboProvincia").append('<option value="' + item.id_provincia + '">' + item.nombre + '</option>');
+                    });
+                });
+            } else {
+                $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+            }
+        });
+
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const lunes1 = document.getElementById('lunes1').value;
+            const lunes2 = document.getElementById('lunes2').value;
+            const lunes3 = document.getElementById('lunes3').value;
+            const lunes4 = document.getElementById('lunes4').value;
+
+            const martes1 = document.getElementById('martes1').value;
+            const martes2 = document.getElementById('martes2').value;
+            const martes3 = document.getElementById('martes3').value;
+            const martes4 = document.getElementById('martes4').value;
+
+            const miercoles1 = document.getElementById('miercoles1').value;
+            const miercoles2 = document.getElementById('miercoles2').value;
+            const miercoles3 = document.getElementById('miercoles3').value;
+            const miercoles4 = document.getElementById('miercoles4').value;
+
+            const jueves1 = document.getElementById('jueves1').value;
+            const jueves2 = document.getElementById('jueves2').value;
+            const jueves3 = document.getElementById('jueves3').value;
+            const jueves4 = document.getElementById('jueves4').value;
+
+            const viernes1 = document.getElementById('viernes1').value;
+            const viernes2 = document.getElementById('viernes2').value;
+            const viernes3 = document.getElementById('viernes3').value;
+            const viernes4 = document.getElementById('viernes4').value;
+
+            const sabado1 = document.getElementById('sabado1').value;
+            const sabado2 = document.getElementById('sabado2').value;
+            const sabado3 = document.getElementById('sabado3').value;
+            const sabado4 = document.getElementById('sabado4').value;
+
+            const domingo1 = document.getElementById('domingo1').value;
+            const domingo2 = document.getElementById('domingo2').value;
+            const domingo3 = document.getElementById('domingo3').value;
+            const domingo4 = document.getElementById('domingo4').value;
+
+            const horario = `${lunes1};${lunes2};${lunes3};${lunes4};${martes1};${martes2};${martes3};${martes4};` +
+                `${miercoles1};${miercoles2};${miercoles3};${miercoles4};${jueves1};${jueves2};${jueves3};${jueves4};` + 
+                `${viernes1};${viernes2};${viernes3};${viernes4};${sabado1};${sabado2};${sabado3};${sabado4};${domingo1};${domingo2};${domingo3};${domingo4}`;
+
+            const horarioField = document.getElementById('horario');
+            horarioField.value = horario;
+        });
+    });
+</script>

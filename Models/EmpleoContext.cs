@@ -1,0 +1,33 @@
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SisEmpleo.Models
+{
+    public class EmpleoContext : DbContext
+    {
+        public EmpleoContext(DbContextOptions<EmpleoContext> options) : base(options) 
+        {
+        
+        }
+
+        public DbSet<CategoriaProfesional> CategoriaProfesional {  get; set; }
+        public DbSet<Contacto> Contacto {  get; set; }
+        public DbSet<Curriculum> Curriculum {  get; set; }
+        public DbSet<Empresa> Empresa {  get; set; }
+        public DbSet<Especialidad> Especialidad {  get; set; }
+        public DbSet<ExperienciaProfesional> ExperienciaProfesional {  get; set; }
+        public DbSet<FormacionAcademica> FormacionAcademica {  get; set; }
+        public DbSet<Institucion> Institucion {  get; set; }
+        public DbSet<OfertaCandidatos> OfertaCandidatos {  get; set; }
+        public DbSet<OfertaCategoria> OfertaCategoria {  get; set; }
+        public DbSet<OfertaEmpleo> OfertaEmpleo {  get; set; }
+        public DbSet<Pais> Pais {  get; set; }
+        public DbSet<Postulante> Postulante {  get; set; }
+        public DbSet<Provincia> Provincia {  get; set; }
+        public DbSet<Requisito> Requisito {  get; set; }
+        public DbSet<RequisitoOferta> RequisitoOferta {  get; set; }
+        public DbSet<SubcategoriaProfesional> SubcategoriaProfesional {  get; set; }
+        public DbSet<SuscripcionCategoria> SuscripcionCategoria {  get; set; }
+        public DbSet<Titulo> Titulo {  get; set; }
+        public DbSet<Usuario> Usuario {  get; set; }
+    }
+}
