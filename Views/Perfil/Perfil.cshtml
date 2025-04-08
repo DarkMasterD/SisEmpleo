@@ -1,0 +1,57 @@
+﻿@model SisEmpleo.Models.PostulanteViewModel
+
+@{
+    ViewData["Title"] = "Perfil de Postulante";
+}
+
+<div class="container mt-4">
+    <h2>Perfil de Postulante</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>@Model.Postulante.nombre</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Dirección:</strong> @Model.Postulante.direccion</p>
+
+            <h4>Contacto</h4>
+            <p><strong>Email:</strong> @Model.Contacto?.email</p>
+            <p><strong>Teléfono:</strong> @Model.Contacto?.telefono</p>
+
+            <h4>Currículum</h4>
+            @if (Model.Curriculum != null)
+            {
+                <p><strong>Habilidades:</strong> @Model.Curriculum.habilidades</p>
+                <p><strong>Idiomas:</strong> @Model.Curriculum.idiomas</p>
+                <p><strong>Certificaciones:</strong> @Model.Curriculum.certificaciones</p>
+
+                <h4>Formación Académica</h4>
+                <ul class="list-group">
+                    @foreach (var formacion in Model.Formaciones)
+                    {
+                        <li class="list-group-item">
+                            @formacion.Titulo.nombre - @formacion.Institucion.nombre (Fecha: @formacion.fecha)
+                        </li>
+                    }
+                </ul>
+
+                <h4>Experiencia Profesional</h4>
+                <ul class="list-group">
+                    @foreach (var experiencia in Model.Experiencias)
+                    {
+                        <li class="list-group-item">
+                            @experiencia.puesto - @experiencia.empresa (Desde: @experiencia.fecha_inicio - Hasta: @experiencia.fecha_fin)
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No tiene un currículum registrado.</p>
+            }
+        </div>
+    </div>
+
+    <!-- Botón de Editar -->
+    <a href="@Url.Action("Edit", "Perfil", new { id = Model.Postulante.id_postulante })" class="btn btn-primary">Editar</a>
+</div>
