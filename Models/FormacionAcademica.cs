@@ -11,5 +11,10 @@ namespace SisEmpleo.Models
         public int id_titulo { get; set; }
         public int id_institucion { get; set; }
         public DateTime fecha { get; set; }
+
+
+        public virtual Especialidad Especialidad { get; set; }
+        public virtual Titulo Titulo { get; set; }
+        public virtual Institucion Institucion { get; set; }
     }
 }
