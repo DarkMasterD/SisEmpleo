@@ -77,8 +77,7 @@ namespace SisEmpleo.Controllers
             return View("/Views/Perfil/Perfil.cshtml",perfil);  // Se pasa el modelo directamente a la vista
         }
 
-        [HttpGet]
-        public IActionResult Edit(int id)
+        public IActionResult EditarPerfil()
         {
             // Obtener el id_usuario desde la sesión
             int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
@@ -89,9 +88,9 @@ namespace SisEmpleo.Controllers
                 return RedirectToAction("Login", "Account"); // Redirige al login si no hay sesión
             }
 
-            // Consulta para obtener el perfil y los datos relacionados
+            // Obtener el perfil y devolver la vista de edición
             var perfil = (from p in _context.Postulante
-                          where p.id_postulante == id && p.id_usuario == idUsuario
+                          where p.id_usuario == idUsuario
                           join u in _context.Usuario on p.id_usuario equals u.id_usuario
                           join c in _context.Contacto on u.id_usuario equals c.id_usuario into contactos
                           from contacto in contactos.DefaultIfEmpty()
@@ -132,23 +131,68 @@ namespace SisEmpleo.Controllers
             // Verificar si no se encontró el perfil
             if (perfil == null)
             {
-                return NotFound(); // Si no se encuentra el perfil, muestra una página de error 404
+                return NotFound();  // Si no se encuentra el perfil, muestra una página de error 404
             }
 
-            // Crear el modelo con los datos cargados
-            var model = new PostulanteViewModel
-            {
-                Postulante = perfil.Postulante,
-                Usuario = perfil.Usuario,
-                Contacto = perfil.Contacto,
-                Curriculum = perfil.Curriculum,
-                Formaciones = perfil.Formaciones,
-                Experiencias = perfil.Experiencias
-            };
-
-            // Retornar la vista con el modelo cargado
-            return View(model);
+            return View("/Views/Perfil/EditarPerfil.cshtml", perfil);  // Mostrar la vista de edición
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult EditarPerfil(PostulanteViewModel model)
+        {
+            
+            
+
+                // Obtener el id_usuario desde la sesión
+                int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+
+                // Verificar si el idUsuario es null
+                if (idUsuario == null)
+                {
+                    return RedirectToAction("Login", "Account"); // Redirige al login si no hay sesión
+                }
+
+                var postulante = (from p in _context.Postulante
+                                  where p.id_usuario == idUsuario
+                                  select p).FirstOrDefault();
+
+
+                // Actualizar los datos del postulante
+                postulante.nombre = model.Postulante.nombre;
+                postulante.direccion = model.Postulante.direccion;
+
+                // Buscar y actualizar los datos de contacto
+                var contacto = _context.Contacto
+                    .FirstOrDefault(c => c.id_usuario == idUsuario);
+
+                if (contacto != null)
+                {
+                    contacto.email = model.Contacto?.email;
+                    contacto.telefono = model.Contacto?.telefono;
+                }
+
+                var curriculum = (from c in _context.Curriculum
+                                  where c.id_postulante == postulante.id_postulante
+                                  select c).FirstOrDefault();
+
+
+                if (curriculum != null)
+                {
+                    curriculum.habilidades = model.Curriculum?.habilidades;
+                    curriculum.idiomas = model.Curriculum?.idiomas;
+                    curriculum.certificaciones = model.Curriculum?.certificaciones;
+                }
+
+                // Guardar los cambios en la base de datos
+                _context.SaveChanges();
+
+            // Redirigir a la vista de perfil actualizado
+            return RedirectToAction("Index");
+            //return View(model); // Si el modelo no es válido, mostrar de nuevo el formulario con errores
+        }
+
+
     }
+
 }

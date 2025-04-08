@@ -49,9 +49,8 @@
             {
                 <p>No tiene un currículum registrado.</p>
             }
+
+            <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-primary">Editar Perfil</a>
         </div>
     </div>
-
-    <!-- Botón de Editar -->
-    <a href="@Url.Action("Edit", "Perfil", new { id = Model.Postulante.id_postulante })" class="btn btn-primary">Editar</a>
 </div>

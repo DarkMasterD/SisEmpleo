@@ -1,0 +1,57 @@
+﻿@model SisEmpleo.Models.PostulanteViewModel
+
+@{
+    ViewData["Title"] = "Editar Perfil de Postulante";
+}
+
+<div class="container mt-4">
+    <h2>Editar Perfil de Postulante</h2>
+
+    <form asp-action="EditarPerfil" method="post">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>@Model.Postulante.nombre</h3>
+            </div>
+            <div class="card-body">
+                <!-- Datos del postulante -->
+                <div class="mb-3">
+                    <label for="Nombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="Nombre" name="Postulante.nombre" value="@Model.Postulante.nombre" required />
+                </div>
+                <div class="mb-3">
+                    <label for="Direccion" class="form-label">Dirección</label>
+                    <input type="text" class="form-control" id="Direccion" name="Postulante.direccion" value="@Model.Postulante.direccion" required />
+                </div>
+
+                <!-- Datos de contacto -->
+                <h4>Contacto</h4>
+                <div class="mb-3">
+                    <label for="Email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="Email" name="Contacto.email" value="@Model.Contacto?.email" />
+                </div>
+                <div class="mb-3">
+                    <label for="Telefono" class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" id="Telefono" name="Contacto.telefono" value="@Model.Contacto?.telefono" />
+                </div>
+
+                <!-- Información del currículum -->
+                <h4>Currículum</h4>
+                <div class="mb-3">
+                    <label for="Habilidades" class="form-label">Habilidades</label>
+                    <input type="text" class="form-control" id="Habilidades" name="Curriculum.habilidades" value="@Model.Curriculum?.habilidades" />
+                </div>
+                <div class="mb-3">
+                    <label for="Idiomas" class="form-label">Idiomas</label>
+                    <input type="text" class="form-control" id="Idiomas" name="Curriculum.idiomas" value="@Model.Curriculum?.idiomas" />
+                </div>
+                <div class="mb-3">
+                    <label for="Certificaciones" class="form-label">Certificaciones</label>
+                    <input type="text" class="form-control" id="Certificaciones" name="Curriculum.certificaciones" value="@Model.Curriculum?.certificaciones" />
+                </div>
+
+                <!-- Botón para guardar los cambios -->
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </div>
+    </form>
+</div>
