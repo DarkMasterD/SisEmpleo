@@ -9,83 +9,144 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workeen - Lista de Ofertas de Empleo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background-color: #F4F6F9;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
         }
 
         .navbar {
             background-color: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 1rem 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .navbar-brand img {
-            width: 40px;
-            margin-right: 0.5rem;
+            width: 45px;
+            margin-right: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1);
         }
 
         .navbar-brand {
             color: #1E3A8A;
-            font-weight: bold;
-            font-size: 1.5rem;
+            font-weight: 700;
+            font-size: 1.6rem;
+            text-decoration: none;
         }
 
         .btn-profile {
             background-color: #1E3A8A;
             border: none;
             color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
+            padding: 0.6rem 1.8rem;
             font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
             .btn-profile:hover {
                 background-color: #152A66;
+                transform: translateY(-2px);
             }
 
         .btn-logout {
             background-color: #F97316;
             border: none;
             color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
+            padding: 0.6rem 1.8rem;
             font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
             .btn-logout:hover {
                 background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+            margin-right: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+            .notification-badge:hover {
+                transform: scale(1.1);
+            }
+
+            .notification-badge .bi-bell {
+                font-size: 1.6rem;
+                color: #1E3A8A;
+                transition: color 0.3s ease;
+            }
+
+            .notification-badge:hover .bi-bell {
+                color: #F97316;
+            }
+
+            .notification-badge .badge {
+                position: absolute;
+                top: -12px;
+                right: -12px;
+                background-color: #F97316;
+                color: #FFFFFF;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border-radius: 50%;
+                padding: 0.4rem 0.7rem;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s ease;
+            }
+
+            .notification-badge:hover .badge {
+                background-color: #E86100;
             }
 
         .jobs-section {
-            padding: 3rem 2rem;
+            padding: 5rem 2rem;
             background-color: #FFFFFF;
+            min-height: 100vh;
         }
 
             .jobs-section h2 {
                 color: #1E3A8A;
-                font-weight: bold;
-                margin-bottom: 2rem;
+                font-weight: 700;
+                margin-bottom: 3rem;
                 text-align: center;
+                font-size: 2.5rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             }
 
         .job-card {
             background-color: #FFFFFF;
-            padding: 1.5rem;
             border-radius: 15px;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
             .job-card:hover {
-                transform: translateY(-5px);
+                transform: translateY(-8px);
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
             }
 
             .job-card h4 {
                 color: #1E3A8A;
-                font-size: 1.3rem;
-                margin-bottom: 0.5rem;
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -94,6 +155,7 @@
                 .job-card h4 a {
                     color: #1E3A8A;
                     text-decoration: none;
+                    transition: color 0.3s ease;
                 }
 
                     .job-card h4 a:hover {
@@ -103,31 +165,35 @@
 
             .job-card .company {
                 color: #374151;
-                font-size: 1.1rem;
+                font-size: 1.15rem;
                 font-weight: 500;
+                margin-bottom: 0.5rem;
             }
 
             .job-card .details {
                 color: #6B7280;
-                font-size: 0.95rem;
+                font-size: 1rem;
                 margin-top: 0.75rem;
             }
 
                 .job-card .details span {
-                    margin-right: 1rem;
+                    margin-right: 1.2rem;
                 }
 
         .btn-details {
             background-color: #F97316;
-            color: #FFFFFF;
             border: none;
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-            border-radius: 5px;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
             .btn-details:hover {
                 background-color: #E86100;
+                transform: translateY(-2px);
             }
 
         .container {
@@ -139,19 +205,30 @@
             padding: 0;
         }
 
+        .no-offers {
+            text-align: center;
+            color: #6B7280;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+        }
+
         .footer {
             background-color: #1E3A8A;
             color: #FFFFFF;
-            padding: 2rem;
+            padding: 3rem;
             text-align: center;
+            font-size: 1.1rem;
         }
 
             .footer a {
                 color: #F97316;
                 text-decoration: none;
+                margin: 0 0.75rem;
+                transition: color 0.3s ease;
             }
 
                 .footer a:hover {
+                    color: #FFFFFF;
                     text-decoration: underline;
                 }
     </style>
@@ -163,7 +240,11 @@
             <a class="navbar-brand" href="/">
                 <img src="/img/logo.png" alt="Logo Workeen"> Workeen
             </a>
-            <div>
+            <div class="d-flex align-items-center">
+                <a href="/Notifications" class="notification-badge me-3">
+                    <i class="bi bi-bell"></i>
+                    <span id="Notificaciones" class="badge">0</span>
+                </a>
                 <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                 <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
             </div>
@@ -191,7 +272,7 @@
                                 <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn btn-details">Ver Detalles</a>
                             </div>
                             <div class="details">
-                                <span><strong>Salario:</strong> $/ @oferta.Salario</span>
+                                <span><strong>Salario:</strong> S/ @oferta.Salario</span>
                                 <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
                                 <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
                                 <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
@@ -202,7 +283,7 @@
             </ul>
             @if (!((IEnumerable<dynamic>)ViewBag.ofertas).Any())
             {
-                <p class="text-center">No se encontraron ofertas.</p>
+                <p class="no-offers">No se encontraron ofertas.</p>
             }
         </div>
     </section>
@@ -210,9 +291,38 @@
     <!-- Footer -->
     <footer class="footer">
         <p>© 2025 Workeen. Todos los derechos reservados.</p>
-        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
+        <p>
+            <a href="/contacto">Contacto</a> |
+            <a href="/terminos">Términos y Condiciones</a> |
+            <a href="/privacidad">Política de Privacidad</a>
+        </p>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            VerNoti();
+        });
+
+        setInterval(function () {
+            VerNoti();
+        }, 300000);
+
+        function VerNoti() {
+            $.ajax({
+                url: '/Home/CantNotificaciones',
+                type: 'POST',
+                success: function (data) {
+                    $('#Notificaciones').text(data.cantidad);
+                },
+                error: function () {
+                    console.error("Error al obtener las notificaciones");
+                    $('#Notificaciones').text('0');
+                }
+            });
+        }
+    </script>
 </body>
 </html>
