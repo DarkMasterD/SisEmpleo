@@ -123,5 +123,86 @@ namespace SisEmpleo.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+        [HttpGet]
+        public IActionResult VerPostulantesEmpresa(int id_ofertaempleo, string nivelExperiencia = null)
+        {
+            var query = (from oc in _EmpleoContext.OfertaCandidatos
+                         join u in _EmpleoContext.Usuario on oc.id_usuario equals u.id_usuario
+                         join p in _EmpleoContext.Postulante on u.id_usuario equals p.id_usuario
+                         join c in _EmpleoContext.Contacto on u.id_usuario equals c.id_usuario
+                         join cur in _EmpleoContext.Curriculum on p.id_postulante equals cur.id_postulante
+                         join exp in _EmpleoContext.ExperienciaProfesional on cur.id_curriculum equals exp.id_curriculum into experiencias
+                         from exp in experiencias.DefaultIfEmpty()
+                         where oc.id_ofertaempleo == id_ofertaempleo
+                         select new
+                         {
+                             IdPostulante = p.id_postulante,
+                             Nombre = p.nombre,
+                             Email = c.email,
+                             Telefono = c.telefono,
+                             IdUsuario = u.id_usuario,
+                             FechaInicioExperiencia = exp != null ? exp.fecha_inicio : (DateTime?)null,
+                             FechaFinExperiencia = exp != null ? exp.fecha_fin : (DateTime?)null
+                         }).AsEnumerable(); // Traemos los datos a memoria para procesar
+
+            // Agrupa por postulante y sumamos todos los años 
+            var postulantes = query
+                .GroupBy(p => new { p.IdPostulante, p.Nombre, p.Email, p.Telefono, p.IdUsuario })
+                .Select(g =>
+                {
+                    var totalAnios = g.Sum(p => CalcularAniosExperiencia(p.FechaInicioExperiencia, p.FechaFinExperiencia));
+                    return new
+                    {
+                        g.Key.IdPostulante,
+                        g.Key.Nombre,
+                        g.Key.Email,
+                        g.Key.Telefono,
+                        g.Key.IdUsuario,
+                        Experiencia = ClasificarExperiencia(totalAnios)
+                    };
+                })
+                .ToList();
+
+            // Filtrar por nivel de experiencia 
+            if (!string.IsNullOrEmpty(nivelExperiencia))
+            {
+                postulantes = postulantes.Where(p => p.Experiencia == nivelExperiencia).ToList();
+            }
+
+            var oferta = _EmpleoContext.OfertaEmpleo
+                .FirstOrDefault(o => o.id_ofertaempleo == id_ofertaempleo)?.titulo;
+
+            ViewBag.OfertaTitulo = oferta;
+            ViewBag.IdOferta = id_ofertaempleo;
+            ViewBag.NivelesExperiencia = new List<string> { "Sin experiencia", "1-3 años", "3-5 años", "Más de 5 años" };
+            ViewBag.NivelSeleccionado = nivelExperiencia;
+            ViewData["Postulantes"] = postulantes;
+
+            return View();
+        }
+
+        // Método para calcular años de experiencia entre dos fechas
+        private double CalcularAniosExperiencia(DateTime? fechaInicio, DateTime? fechaFin)
+        {
+            if (!fechaInicio.HasValue) return 0;
+            DateTime fin = fechaFin ?? DateTime.Now;
+            return (fin - fechaInicio.Value).TotalDays / 365.25;
+        }
+
+        // Método para clasificar el nivel de experiencia
+        private string ClasificarExperiencia(double anios)
+        {
+            if (anios < 1)
+                return "Sin experiencia";
+            else if (anios >= 1 && anios <= 3)
+                return "1-3 años";
+            else if (anios > 3 && anios <= 5)
+                return "3-5 años";
+            else
+                return "Más de 5 años";
+        }
+
+
+
     }
 }

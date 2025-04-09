@@ -18,4 +18,6 @@ namespace SisEmpleo.Models
         public DateTime fecha_publicacion { get; set; }
         public char estado { get; set; }
     }
+
+    
 }

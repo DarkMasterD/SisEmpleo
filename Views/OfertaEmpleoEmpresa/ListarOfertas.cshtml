@@ -4,7 +4,7 @@
 @{
 }
 
-<div>
+@* <div>
     @foreach (var oferta in (IEnumerable<dynamic>)ViewData["listOfertas"])
     {
         <label>@oferta.Titulo</label>
@@ -24,3 +24,184 @@
         </form>
     }
 </div>
+ *@
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+    <div class="ofertas-container">
+        <div class="action-buttons-top">
+            <button type="button" onclick="handleAction('editar')" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Editar Oferta
+            </button>
+            <button type="button" onclick="handleAction('categoria')" class="btn btn-secondary">
+                <i class="fas fa-tags"></i> Categoría
+            </button>
+            <form id="postulantesForm" asp-action="VerPostulantesEmpresa" method="get">
+                <input type="hidden" name="id_ofertaempleo" id="postulantesOfertaId" />
+                <button type="button" onclick="handleAction('postulantes')" class="btn btn-info">
+                    <i class="fas fa-users"></i> Ver Postulantes
+                </button>
+            </form>
+        </div>
+
+        <div class="ofertas-list-container">
+            <h4>Listado de Ofertas</h4>
+            <div class="ofertas-scrollable">
+                @foreach (var oferta in (IEnumerable<dynamic>)ViewData["listOfertas"])
+                {
+                    <div class="oferta-item" data-oferta-id="@oferta.Id" onclick="selectOferta(this)">
+                        <div class="oferta-header">
+                            <h5>@oferta.Titulo</h5>
+                            <span class="badge bg-primary">@oferta.Vacantes vacante(s)</span>
+                        </div>
+                        <div class="oferta-details">
+                            <div><strong>Salario:</strong> @oferta.Salario</div>
+                            <div><strong>Duración:</strong> @oferta.Duracion_Contrato</div>
+                            <div><strong>Publicado:</strong> @oferta.Fecha_Publicacion</div>
+                            <div><strong>Ubicación:</strong> @oferta.Ubi_Pais, @oferta.Ubi_Pro</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <form id="editarForm" asp-action="EditarOferta" method="get">
+        <input type="hidden" name="id_ofertaempleo" id="editarOfertaId" />
+    </form>
+
+    <form id="categoriaForm" asp-action="CategoriaOferta" method="get">
+        <input type="hidden" name="id_ofertaempleo" id="categoriaOfertaId" />
+    </form>
+
+    <form id="postulantesForm" asp-action="VerPostulantesEmpresa" method="get">
+        <input type="hidden" name="id_ofertaempleo" id="postulantesOfertaId" />
+    </form>
+
+    <script>
+        let selectedOfertaId = null;
+
+        function selectOferta(element) {
+            // Remover selección previa
+            document.querySelectorAll('.oferta-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Marcar como seleccionado
+            element.classList.add('selected');
+            selectedOfertaId = element.getAttribute('data-oferta-id');
+        }
+
+        function handleAction(action) {
+            if (!selectedOfertaId) {
+                alert('Por favor seleccione una oferta primero');
+                return;
+            }
+
+            switch (action) {
+                case 'editar':
+                    document.getElementById('editarOfertaId').value = selectedOfertaId;
+                    document.getElementById('editarForm').submit();
+                    break;
+                case 'categoria':
+                    document.getElementById('categoriaOfertaId').value = selectedOfertaId;
+                    document.getElementById('categoriaForm').submit();
+                    break;
+                case 'postulantes':
+                    document.getElementById('postulantesOfertaId').value = selectedOfertaId;
+                    document.getElementById('postulantesForm').submit();
+                    break;
+            }
+        }
+    </script>
+
+    <style>
+        .ofertas-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .action-buttons-top {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ofertas-list-container {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .ofertas-scrollable {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .oferta-item {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+            .oferta-item:hover {
+                background: #f1f8ff;
+            }
+
+            .oferta-item.selected {
+                border-left: 3px solid #0d6efd;
+                background: #e7f1ff;
+            }
+
+        .oferta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+            .oferta-header h5 {
+                margin: 0;
+                color: #333;
+            }
+
+        .oferta-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Scrollbar styling */
+        .ofertas-scrollable::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .ofertas-scrollable::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .ofertas-scrollable::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+            .ofertas-scrollable::-webkit-scrollbar-thumb:hover {
+                background: #a8a8a8;
+            }
+    </style>

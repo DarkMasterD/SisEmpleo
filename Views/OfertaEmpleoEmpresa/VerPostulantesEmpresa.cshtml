@@ -1,0 +1,242 @@
+﻿@{
+    ViewData["Title"] = "Postulantes";
+}
+
+<div class="container">
+    <!-- Mensajes de depuración -->
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger">
+            <h4>Error</h4>
+            <p>@ViewBag.Error</p>
+        </div>
+    }
+
+    @if (ViewBag.DebugInfo != null)
+    {
+        <div class="alert alert-info">
+            <h4>Información de Depuración</h4>
+            <p>@ViewBag.DebugInfo</p>
+            @if (ViewBag.OfertaDetalle != null)
+            {
+                <p>
+                    <strong>Detalles Oferta:</strong><br>
+                    Título: @ViewBag.OfertaDetalle.titulo<br>
+                    País: @ViewBag.OfertaDetalle.Pais?.nombre<br>
+                    Provincia: @ViewBag.OfertaDetalle.Provincia?.nombre
+                </p>
+            }
+        </div>
+    }
+
+    @if (ViewBag.ErrorAdicional != null)
+    {
+        <div class="alert alert-warning">
+            <h4>Inconsistencia detectada</h4>
+            <p>@ViewBag.ErrorAdicional</p>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Postulantes para: @ViewBag.OfertaTitulo</h2>
+        <button id="toggleFiltros" class="btn btn-outline-primary">
+            <i class="fas fa-filter"></i> Mostrar Filtros
+        </button>
+    </div>
+
+    <!-- Panel de Filtros (inicialmente oculto) -->
+    <div id="filtrosPanel" class="card mb-4" style="display: none;">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filtrar Postulantes</h5>
+        </div>
+        <div class="card-body">
+            <form id="filtroForm" class="row g-3">
+                <div class="col-md-3">
+                    <label for="filtroNombre" class="form-label">Nombre</label>
+                    <input type="text" class="form-control" id="filtroNombre" placeholder="Buscar por nombre">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroEmail" class="form-label">Email</label>
+                    <input type="text" class="form-control" id="filtroEmail" placeholder="Buscar por email">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroTelefono" class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" id="filtroTelefono" placeholder="Buscar por teléfono">
+                </div>
+                <div class="col-md-3">
+                    <label for="filtroExperiencia" class="form-label">Nivel de Experiencia</label>
+                    <select class="form-select" id="filtroExperiencia">
+                        <option value="">Todos los niveles</option>
+                        @foreach (var nivel in ViewBag.NivelesExperiencia)
+                        {
+                            <option value="@nivel" selected="@(nivel == ViewBag.NivelSeleccionado)">@nivel</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" id="limpiarFiltros" class="btn btn-outline-secondary">
+                            <i class="fas fa-broom"></i> Limpiar
+                        </button>
+                        <button type="button" id="aplicarFiltros" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Postulantes -->
+    <div class="table-responsive">
+        <table id="tablaPostulantes" class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Experiencia</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewData["Postulantes"] != null && ((IEnumerable<dynamic>)ViewData["Postulantes"]).Any())
+                {
+                    foreach (var postulante in (IEnumerable<dynamic>)ViewData["Postulantes"])
+                    {
+                        <tr class="postulante-row">
+                            <td class="postulante-nombre">@postulante.Nombre</td>
+                            <td class="postulante-email">@postulante.Email</td>
+                            <td class="postulante-telefono">@postulante.Telefono</td>
+                            <td class="postulante-experiencia">@postulante.Experiencia</td>
+                            <td>
+                                <a href="@Url.Action("VerCurriculum", "Postulante", new { idPostulante = postulante.IdPostulante })"
+                                   class="btn btn-sm btn-info">
+                                    <i class="fas fa-file-alt"></i> Ver CV
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center">No se encontraron postulantes</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-action="ListarOfertas" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Volver a ofertas
+    </a>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Toggle para mostrar/ocultar filtros
+            $('#toggleFiltros').click(function() {
+                $('#filtrosPanel').slideToggle();
+                $(this).find('i').toggleClass('fa-filter fa-times');
+                $(this).toggleClass('btn-outline-primary btn-primary');
+            });
+
+            // Aplicar filtros
+            $('#aplicarFiltros').click(function() {
+                aplicarFiltros();
+            });
+
+            // Limpiar filtros
+            $('#limpiarFiltros').click(function() {
+                $('#filtroNombre, #filtroEmail, #filtroTelefono').val('');
+                $('#filtroExperiencia').val('');
+                aplicarFiltros();
+                // Actualizar la URL sin parámetros de filtro
+                history.pushState(null, '', window.location.pathname);
+            });
+
+            // Función para aplicar filtros
+            function aplicarFiltros() {
+                const nombre = $('#filtroNombre').val().toLowerCase();
+                const email = $('#filtroEmail').val().toLowerCase();
+                const telefono = $('#filtroTelefono').val().toLowerCase();
+                const experiencia = $('#filtroExperiencia').val();
+
+                // Actualizar la URL con los parámetros de filtro
+                const params = new URLSearchParams();
+                if (nombre) params.set('nombre', nombre);
+                if (email) params.set('email', email);
+                if (telefono) params.set('telefono', telefono);
+                if (experiencia) params.set('nivelExperiencia', experiencia);
+                
+                history.pushState(null, '', window.location.pathname + '?' + params.toString());
+
+                $('.postulante-row').each(function() {
+                    const rowNombre = $(this).find('.postulante-nombre').text().toLowerCase();
+                    const rowEmail = $(this).find('.postulante-email').text().toLowerCase();
+                    const rowTelefono = $(this).find('.postulante-telefono').text().toLowerCase();
+                    const rowExperiencia = $(this).find('.postulante-experiencia').text();
+
+                    const nombreMatch = rowNombre.includes(nombre) || !nombre;
+                    const emailMatch = rowEmail.includes(email) || !email;
+                    const telefonoMatch = rowTelefono.includes(telefono) || !telefono;
+                    const experienciaMatch = rowExperiencia === experiencia || !experiencia;
+
+                    if (nombreMatch && emailMatch && telefonoMatch && experienciaMatch) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                // Mostrar mensaje si no hay resultados
+                if ($('.postulante-row:visible').length === 0) {
+                    if ($('#no-results').length === 0) {
+                        $('#tablaPostulantes tbody').append(
+                            '<tr id="no-results"><td colspan="5" class="text-center">No se encontraron postulantes con los filtros aplicados</td></tr>'
+                        );
+                    }
+                } else {
+                    $('#no-results').remove();
+                }
+            }
+
+            // Permitir filtrar con Enter
+            $('#filtroNombre, #filtroEmail, #filtroTelefono').keypress(function(e) {
+                if (e.which === 13) {
+                    aplicarFiltros();
+                    return false;
+                }
+            });
+
+            // Filtrado dinámico al cambiar el select de experiencia
+            $('#filtroExperiencia').change(function() {
+                aplicarFiltros();
+            });
+        });
+    </script>
+
+    <style>
+        #filtrosPanel {
+            transition: all 0.3s ease;
+        }
+
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 10;
+        }
+
+        #toggleFiltros i {
+            transition: transform 0.2s ease;
+        }
+    </style>
+}
