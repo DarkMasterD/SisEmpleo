@@ -123,10 +123,10 @@ namespace SisEmpleo.Controllers
         public IActionResult Notificaciones()
         {
             int id_usuario = Convert.ToInt32(HttpContext.Session.GetInt32("id_usuario"));
-            var ofertas = (from sc in _empleoContext.SuscripcionCategoria
-                           join oc in _empleoContext.OfertaCategoria
+            var ofertas = (from sc in _EmpleoContext.SuscripcionCategoria
+                           join oc in _EmpleoContext.OfertaCategoria
                            on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
-                           join o in _empleoContext.OfertaEmpleo
+                           join o in _EmpleoContext.OfertaEmpleo
                            on oc.id_ofertaempleo equals o.id_ofertaempleo
                            where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                            && sc.id_usuario == id_usuario
@@ -141,8 +141,8 @@ namespace SisEmpleo.Controllers
                .Select(g => g.Key)
                .ToList();
 
-            var categoriasubs = (from sc in _empleoContext.SuscripcionCategoria
-                                 join c in _empleoContext.CategoriaProfesional
+            var categoriasubs = (from sc in _EmpleoContext.SuscripcionCategoria
+                                 join c in _EmpleoContext.CategoriaProfesional
                                  on sc.id_categoriaprofesional equals c.id_categoriaprofesional
                                  where sc.id_usuario == id_usuario
                                  select new
@@ -160,10 +160,10 @@ namespace SisEmpleo.Controllers
         public IActionResult NotificacionesFiltro(int id_categoria, int id_subcategoria)
         {
             int id_usuario = Convert.ToInt32(HttpContext.Session.GetInt32("id_usuario"));
-            var ofertas = (from sc in _empleoContext.SuscripcionCategoria
-                           join oc in _empleoContext.OfertaCategoria
+            var ofertas = (from sc in _EmpleoContext.SuscripcionCategoria
+                           join oc in _EmpleoContext.OfertaCategoria
                            on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
-                           join o in _empleoContext.OfertaEmpleo
+                           join o in _EmpleoContext.OfertaEmpleo
                            on oc.id_ofertaempleo equals o.id_ofertaempleo
                            where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                            && sc.id_usuario == id_usuario && sc.id_categoriaprofesional == id_categoria
@@ -187,8 +187,8 @@ namespace SisEmpleo.Controllers
         public JsonResult ObtenerSubCategoriaSubs(int id_categoria)
         {
             int id_usuario = Convert.ToInt32(HttpContext.Session.GetInt32("id_usuario"));
-            var subcategoriasubs = (from sc in _empleoContext.SuscripcionCategoria
-                                    join scp in _empleoContext.SubcategoriaProfesional
+            var subcategoriasubs = (from sc in _EmpleoContext.SuscripcionCategoria
+                                    join scp in _EmpleoContext.SubcategoriaProfesional
                                     on sc.id_subcategoriaprofesional equals scp.id_subcategoriaprofesional
                                     where sc.id_usuario == id_usuario &&
                                     scp.id_categoriaprofesional == id_categoria
@@ -205,10 +205,10 @@ namespace SisEmpleo.Controllers
         public JsonResult CantNotificaciones()
         {
             int id_usuario = Convert.ToInt32(HttpContext.Session.GetInt32("id_usuario"));
-            var cantOfertas = (from sc in _empleoContext.SuscripcionCategoria
-                               join oc in _empleoContext.OfertaCategoria
+            var cantOfertas = (from sc in _EmpleoContext.SuscripcionCategoria
+                               join oc in _EmpleoContext.OfertaCategoria
                                on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
-                               join o in _empleoContext.OfertaEmpleo
+                               join o in _EmpleoContext.OfertaEmpleo
                                on oc.id_ofertaempleo equals o.id_ofertaempleo
                                where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                                && sc.id_usuario == id_usuario
