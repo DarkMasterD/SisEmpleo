@@ -1,227 +1,434 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model SisEmpleo.Models.OfertaEmpleo
+
 @{
+    Layout = null;
     var ofertaEmp = ViewBag.Oferta as OfertaEmpleo;
     var horario = ViewBag.Horario as string[];
 }
 
-<div>
-    <form asp-action="EditarOferta" method="post">
-        <label>Estado</label>
-        @Html.DropDownList("opcEstado", (IEnumerable<SelectListItem>)ViewBag.OpcEstado, new { @class = "form-control", id= "cboEstado" })
-        <label>Pais</label>
-        @Html.DropDownList("id_pais", ViewBag.Pais as SelectList, "Seleccione un pais", new { @class = "form-control", id = "cboPais" })
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - Editar Oferta de Empleo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-        <label>Provincia:</label>
-        <select id="cboProvincia" name="id_provincia" class="form-control">
-            <option value="">Seleccione una provincia</option>
-        </select>
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+        }
 
-        <label>Titulo</label>
-        @Html.TextBox("titulo", ofertaEmp.titulo, new { @class = "form-control" })
-        <label>Descripcion</label>
-        @Html.TextArea("descripcion", ofertaEmp.descripcion, new { @class = "form-control", id = "direccion" })
-        <label>Vacantes</label>
-        @Html.TextBox("vacantes", ofertaEmp.vacantes, new { @class = "form-control", type = "number", step = "1", min = "0" })
-        <label>Salario</label>
-        @Html.TextBox("salario", ofertaEmp.salario, new { @class = "form-control", type = "number", step = "1", min = "0" })
-        <h3>Horario</h3>
-        <label>Lunes</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("lunes1", horario[0], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("lunes2", horario[1], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("lunes3", horario[2], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("lunes4", horario[3], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Martes</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("martes1", horario[4], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("martes2", horario[5], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("martes3", horario[6], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("martes4", horario[7], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Miercoles</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("miercoles1", horario[8], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("miercoles2", horario[9], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("miercoles3", horario[10], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("miercoles4", horario[11], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Jueves</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("jueves1", horario[12], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("jueves2", horario[13], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("jueves3", horario[14], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("jueves4", horario[15], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Viernes</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("viernes1", horario[16], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("viernes2", horario[17], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("viernes3", horario[18], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("viernes4", horario[19], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Sabado</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("sabado1", horario[20], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("sabado2", horario[21], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("sabado3", horario[22], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("sabado4", horario[23], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Domingo</label>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("domingo1", horario[24], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("domingo2", horario[25], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                @Html.TextBox("domingo3", horario[26], new { @class = "form-control", type = "time" })
-            </div>
-            <div class="col-6">
-                @Html.TextBox("domingo4", horario[27], new { @class = "form-control", type = "time" })
-            </div>
-        </div>
-        <label>Duracion Contrato</label>
-        @Html.TextBox("duracion_contrato", ofertaEmp.duracion_contrato, new { @class = "form-control" })
-        <input type="hidden" id="horario" name="horario">
-        <input type="hidden" id="estado" name="estado"/>
-        <input type="hidden" value=@ofertaEmp.id_ofertaempleo name="id_ofertaempleo" />
-        <button type="submit" class="btn btn-primary">Guardar</button>
-    </form>
-</div>
+        .navbar-brand img {
+            width: 40px;
+            margin-right: 0.5rem;
+        }
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $("#cboPais").change(function () {
-            var paisId = $(this).val();
-            $("#cboProvincia").empty().append('<option value="">Cargando...</option>');
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
 
-            if (paisId != 0) {
-                $.getJSON('/OfertaEmpleoEmpresa/ObtenerProvincia', { id_pais: paisId }, function (data) {
-                    $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
-                    $.each(data, function (i, item) {
-                        $("#cboProvincia").append('<option value="' + item.id_provincia + '">' + item.nombre + '</option>');
-                    });
-                });
-            } else {
-                $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66; 
             }
+
+        .btn-logout {
+            background-color: #F97316; 
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+            .btn-logout:hover {
+                background-color: #E86100;
+            }
+
+        .edit-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background-color: #FFFFFF;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+            .edit-container h2 {
+                color: #1E3A8A;
+                text-align: center;
+                margin-bottom: 1.5rem;
+                font-weight: bold;
+            }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #D1D5DB;
+            padding: 0.75rem;
+        }
+
+            .form-control:focus {
+                border-color: #1E3A8A;
+                box-shadow: 0 0 5px rgba(30, 58, 138, 0.3);
+            }
+
+        .btn-primary {
+            background-color: #F97316;
+            border: none;
+            width: 100%;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            .btn-primary:hover {
+                background-color: #E86100;
+            }
+
+        .btn-secondary {
+            background-color: #6B7280;
+            border: none;
+            width: 100%;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            .btn-secondary:hover {
+                background-color: #4B5563;
+            }
+
+        .day-schedule {
+            margin-bottom: 1.5rem;
+        }
+
+            .day-schedule h4 {
+                color: #374151;
+                margin-bottom: 0.5rem;
+            }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+            }
+
+                .footer a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
+            </a>
+            <div>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Formulario de Edición -->
+    <div class="edit-container">
+        <h2>Editar Oferta de Empleo</h2>
+        <form asp-action="EditarOferta" method="post">
+            <div class="form-group">
+                <label for="opcEstado">Estado</label>
+                @Html.DropDownList("opcEstado", (IEnumerable<SelectListItem>)ViewBag.OpcEstado, new { @class = "form-control", id = "cboEstado" })
+            </div>
+            <div class="form-group">
+                <label for="id_pais">País</label>
+                @Html.DropDownList("id_pais", ViewBag.Pais as SelectList, "Seleccione un país", new { @class = "form-control", id = "cboPais" })
+            </div>
+            <div class="form-group">
+                <label for="id_provincia">Provincia</label>
+                <select id="cboProvincia" name="id_provincia" class="form-control">
+                    <option value="">Seleccione una provincia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="titulo">Título</label>
+                @Html.TextBox("titulo", ofertaEmp.titulo, new { @class = "form-control", required = "required" })
+            </div>
+            <div class="form-group">
+                <label for="descripcion">Descripción</label>
+                @Html.TextArea("descripcion", ofertaEmp.descripcion, new { @class = "form-control", id = "direccion", rows = "4", required = "required" })
+            </div>
+            <div class="form-group">
+                <label for="vacantes">Vacantes</label>
+                @Html.TextBox("vacantes", ofertaEmp.vacantes, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+            </div>
+            <div class="form-group">
+                <label for="salario">Salario</label>
+                @Html.TextBox("salario", ofertaEmp.salario, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+            </div>
+            <div class="form-group">
+                <label for="duracion_contrato">Duración del Contrato</label>
+                @Html.TextBox("duracion_contrato", ofertaEmp.duracion_contrato, new { @class = "form-control", required = "required" })
+            </div>
+
+            <!-- Horario -->
+            <h3 class="mt-4">Horario</h3>
+            <div class="day-schedule">
+                <h4>Lunes</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("lunes1", horario[0], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("lunes2", horario[1], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("lunes3", horario[2], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("lunes4", horario[3], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Martes</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("martes1", horario[4], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("martes2", horario[5], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("martes3", horario[6], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("martes4", horario[7], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Miércoles</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("miercoles1", horario[8], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("miercoles2", horario[9], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("miercoles3", horario[10], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("miercoles4", horario[11], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Jueves</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("jueves1", horario[12], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("jueves2", horario[13], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("jueves3", horario[14], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("jueves4", horario[15], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Viernes</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("viernes1", horario[16], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("viernes2", horario[17], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("viernes3", horario[18], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("viernes4", horario[19], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Sábado</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("sabado1", horario[20], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("sabado2", horario[21], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("sabado3", horario[22], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("sabado4", horario[23], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+            <div class="day-schedule">
+                <h4>Domingo</h4>
+                <div class="row">
+                    <div class="col-6">
+                        @Html.TextBox("domingo1", horario[24], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("domingo2", horario[25], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-6">
+                        @Html.TextBox("domingo3", horario[26], new { @class = "form-control", type = "time" })
+                    </div>
+                    <div class="col-6">
+                        @Html.TextBox("domingo4", horario[27], new { @class = "form-control", type = "time" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campos ocultos -->
+            <input type="hidden" id="horario" name="horario">
+            <input type="hidden" id="estado" name="estado" />
+            <input type="hidden" value="@ofertaEmp.id_ofertaempleo" name="id_ofertaempleo" />
+
+            <!-- Botones -->
+            <div class="row mt-4">
+                <div class="col-6">
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+                <div class="col-6">
+                    <a href="/Home/Index" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Workeen. Todos los derechos reservados.</p>
+        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#cboPais").change(function () {
+                var paisId = $(this).val();
+                $("#cboProvincia").empty().append('<option value="">Cargando...</option>');
+
+                if (paisId != 0) {
+                    $.getJSON('/OfertaEmpleoEmpresa/ObtenerProvincia', { id_pais: paisId }, function (data) {
+                        $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+                        $.each(data, function (i, item) {
+                            $("#cboProvincia").append('<option value="' + item.id_provincia + '">' + item.nombre + '</option>');
+                        });
+                    });
+                } else {
+                    $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+                }
+            });
+
+            document.querySelector('form').addEventListener('submit', function (e) {
+                const estadoValue = document.querySelector('#cboEstado').value;
+                const estadoChar = document.getElementById('estado');
+                estadoChar.value = estadoValue.charAt(0);
+
+                const lunes1 = document.getElementById('lunes1').value;
+                const lunes2 = document.getElementById('lunes2').value;
+                const lunes3 = document.getElementById('lunes3').value;
+                const lunes4 = document.getElementById('lunes4').value;
+
+                const martes1 = document.getElementById('martes1').value;
+                const martes2 = document.getElementById('martes2').value;
+                const martes3 = document.getElementById('martes3').value;
+                const martes4 = document.getElementById('martes4').value;
+
+                const miercoles1 = document.getElementById('miercoles1').value;
+                const miercoles2 = document.getElementById('miercoles2').value;
+                const miercoles3 = document.getElementById('miercoles3').value;
+                const miercoles4 = document.getElementById('miercoles4').value;
+
+                const jueves1 = document.getElementById('jueves1').value;
+                const jueves2 = document.getElementById('jueves2').value;
+                const jueves3 = document.getElementById('jueves3').value;
+                const jueves4 = document.getElementById('jueves4').value;
+
+                const viernes1 = document.getElementById('viernes1').value;
+                const viernes2 = document.getElementById('viernes2').value;
+                const viernes3 = document.getElementById('viernes3').value;
+                const viernes4 = document.getElementById('viernes4').value;
+
+                const sabado1 = document.getElementById('sabado1').value;
+                const sabado2 = document.getElementById('sabado2').value;
+                const sabado3 = document.getElementById('sabado3').value;
+                const sabado4 = document.getElementById('sabado4').value;
+
+                const domingo1 = document.getElementById('domingo1').value;
+                const domingo2 = document.getElementById('domingo2').value;
+                const domingo3 = document.getElementById('domingo3').value;
+                const domingo4 = document.getElementById('domingo4').value;
+
+                const horario = `${lunes1};${lunes2};${lunes3};${lunes4};${martes1};${martes2};${martes3};${martes4};` +
+                    `${miercoles1};${miercoles2};${miercoles3};${miercoles4};${jueves1};${jueves2};${jueves3};${jueves4};` +
+                    `${viernes1};${viernes2};${viernes3};${viernes4};${sabado1};${sabado2};${sabado3};${sabado4};${domingo1};${domingo2};${domingo3};${domingo4}`;
+
+                const horarioField = document.getElementById('horario');
+                horarioField.value = horario;
+            });
         });
-
-        document.querySelector('form').addEventListener('submit', function (e) {
-
-            const estadoValue = document.querySelector('#cboEstado').value;
-            const estadoChar = document.getElementById('estado');
-            estadoChar.value = estadoValue.charAt(0);
-
-            const lunes1 = document.getElementById('lunes1').value;
-            const lunes2 = document.getElementById('lunes2').value;
-            const lunes3 = document.getElementById('lunes3').value;
-            const lunes4 = document.getElementById('lunes4').value;
-
-            const martes1 = document.getElementById('martes1').value;
-            const martes2 = document.getElementById('martes2').value;
-            const martes3 = document.getElementById('martes3').value;
-            const martes4 = document.getElementById('martes4').value;
-
-            const miercoles1 = document.getElementById('miercoles1').value;
-            const miercoles2 = document.getElementById('miercoles2').value;
-            const miercoles3 = document.getElementById('miercoles3').value;
-            const miercoles4 = document.getElementById('miercoles4').value;
-
-            const jueves1 = document.getElementById('jueves1').value;
-            const jueves2 = document.getElementById('jueves2').value;
-            const jueves3 = document.getElementById('jueves3').value;
-            const jueves4 = document.getElementById('jueves4').value;
-
-            const viernes1 = document.getElementById('viernes1').value;
-            const viernes2 = document.getElementById('viernes2').value;
-            const viernes3 = document.getElementById('viernes3').value;
-            const viernes4 = document.getElementById('viernes4').value;
-
-            const sabado1 = document.getElementById('sabado1').value;
-            const sabado2 = document.getElementById('sabado2').value;
-            const sabado3 = document.getElementById('sabado3').value;
-            const sabado4 = document.getElementById('sabado4').value;
-
-            const domingo1 = document.getElementById('domingo1').value;
-            const domingo2 = document.getElementById('domingo2').value;
-            const domingo3 = document.getElementById('domingo3').value;
-            const domingo4 = document.getElementById('domingo4').value;
-
-            const horario = `${lunes1};${lunes2};${lunes3};${lunes4};${martes1};${martes2};${martes3};${martes4};` +
-                `${miercoles1};${miercoles2};${miercoles3};${miercoles4};${jueves1};${jueves2};${jueves3};${jueves4};` +
-                `${viernes1};${viernes2};${viernes3};${viernes4};${sabado1};${sabado2};${sabado3};${sabado4};${domingo1};${domingo2};${domingo3};${domingo4}`;
-
-            const horarioField = document.getElementById('horario');
-            horarioField.value = horario;
-        });
-    });
-</script>
-
+    </script>
+</body>
+</html>
