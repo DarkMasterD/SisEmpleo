@@ -10,6 +10,6 @@ namespace SisEmpleo.Models
         public string nombre { get; set; }
         public string direccion {  get; set; }
 
-        public string NivelExperiencia { get; set; }
+        
     }
 }
