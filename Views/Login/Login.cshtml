@@ -1,30 +1,112 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-
+﻿@{
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Workeen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9; /* Fondo gris claro para suavidad */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
 
-<h1 class="text-center">Login</h1>
+        .login-container {
+            background-color: #FFFFFF;
+            padding: 2.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+            max-width: 400px;
+            width: 100%;
+        }
 
-<form action="/Login/Login" method="post">
-    <div class="form-group">
-        <label>Correo electronico: </label>
-        @Html.TextBox("email", "", new { @class = "form-control" })
+        .login-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-logo {
+            width: 40px; /* Tamaño ajustado para el logo */
+            margin-right: 1rem;
+        }
+
+        .login-title {
+            color: #1E3A8A; /* Azul oscuro profesional */
+            font-weight: bold;
+            font-size: 1.8rem;
+        }
+
+        .btn-custom {
+            background-color: #F97316; /* Naranja vibrante */
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+            width: 100%;
+        }
+
+            .btn-custom:hover {
+                background-color: #E86100; /* Naranja más oscuro al hover */
+            }
+
+        .form-label {
+            color: #374151; /* Gris oscuro para etiquetas */
+            font-weight: 500;
+        }
+
+        .register-links {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #6B7280; /* Gris suave */
+        }
+
+            .register-links a {
+                color: #1E3A8A;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+                .register-links a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            
+            <h1 class="login-title">Iniciar Sesión <br /> Workeen</h1>
+            
+        </div>
+        <form action="/Login/Login" method="post">
+            <div class="mb-3">
+                <label class="form-label">Correo Electrónico</label>
+                @Html.TextBox("email", "", new { @class = "form-control", @placeholder = "ejemplo@correo.com" })
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contraseña</label>
+                @Html.Password("contrasenia", "", new { @class = "form-control", @placeholder = "••••••••" })
+            </div>
+            <button type="submit" class="btn btn-custom">Iniciar Sesión</button>
+        </form>
+        <div class="register-links text-center">
+            <p>¿No tienes cuenta para aplicar a trabajos? <a asp-area="" asp-controller="Login" asp-action="RegistrarsePostulante">Regístrate aquí</a></p>
+            <p>¿Eres una empresa? <a asp-area="" asp-controller="Login" asp-action="RegistrarseEmpresa">Regístrate aquí</a></p>
+        </div>
+        @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
+        {
+            <div class="alert alert-danger mt-3">
+                @ViewData["ErrorMessage"]
+            </div>
+        }
     </div>
-    <div>
-        <label>Contraseña: </label>
-        @Html.Password("contrasenia", "", new { @class = "form-control" })
-    </div>
-    <button type="submit" class="btn btn-primary">Iniciar sesion</button>
-</form>
-<div>
-    <h5>No tienes una cuenta para aplicar a trabajos? Registrate <a asp-area="" asp-controller="Login" asp-action="RegistrarsePostulante">Aqui</a></h5>
-    <h5>No tienes una cuenta como empresa? Registrate <a asp-area="" asp-controller="Login" asp-action="RegistrarseEmpresa">Aqui</a></h5>
-</div>
-@if (!string.IsNullOrEmpty(ViewData["ErrorMessage"]?.ToString()))
-{
-    <div class="alert alert-danger">
-        @ViewData["ErrorMessage"]
-    </div>
-}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
