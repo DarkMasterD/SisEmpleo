@@ -1,155 +1,408 @@
 ﻿@{
     ViewData["Title"] = "Postulantes";
+    Layout = null;
 }
 
-<div class="container">
-    <!-- Mensajes de depuración -->
-    @if (ViewBag.Error != null)
-    {
-        <div class="alert alert-danger">
-            <h4>Error</h4>
-            <p>@ViewBag.Error</p>
-        </div>
-    }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - Postulantes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
 
-    @if (ViewBag.DebugInfo != null)
-    {
-        <div class="alert alert-info">
-            <h4>Información de Depuración</h4>
-            <p>@ViewBag.DebugInfo</p>
-            @if (ViewBag.OfertaDetalle != null)
-            {
-                <p>
-                    <strong>Detalles Oferta:</strong><br>
-                    Título: @ViewBag.OfertaDetalle.titulo<br>
-                    País: @ViewBag.OfertaDetalle.Pais?.nombre<br>
-                    Provincia: @ViewBag.OfertaDetalle.Provincia?.nombre
-                </p>
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand img {
+            width: 40px;
+            margin-right: 0.5rem;
+        }
+
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66;
             }
-        </div>
-    }
 
-    @if (ViewBag.ErrorAdicional != null)
-    {
-        <div class="alert alert-warning">
-            <h4>Inconsistencia detectada</h4>
-            <p>@ViewBag.ErrorAdicional</p>
-        </div>
-    }
+        .btn-logout {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Postulantes para: @ViewBag.OfertaTitulo</h2>
-        <button id="toggleFiltros" class="btn btn-outline-primary">
-            <i class="fas fa-filter"></i> Mostrar Filtros
-        </button>
-    </div>
+            .btn-logout:hover {
+                background-color: #E86100;
+            }
 
-    <!-- Panel de Filtros (inicialmente oculto) -->
-    <div id="filtrosPanel" class="card mb-4" style="display: none;">
-        <div class="card-header bg-light">
-            <h5 class="mb-0">Filtrar Postulantes</h5>
-        </div>
-        <div class="card-body">
-            <form id="filtroForm" class="row g-3">
-                <div class="col-md-3">
-                    <label for="filtroNombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="filtroNombre" placeholder="Buscar por nombre">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroEmail" class="form-label">Email</label>
-                    <input type="text" class="form-control" id="filtroEmail" placeholder="Buscar por email">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroTelefono" class="form-label">Teléfono</label>
-                    <input type="text" class="form-control" id="filtroTelefono" placeholder="Buscar por teléfono">
-                </div>
-                <div class="col-md-3">
-                    <label for="filtroExperiencia" class="form-label">Nivel de Experiencia</label>
-                    <select class="form-select" id="filtroExperiencia">
-                        <option value="">Todos los niveles</option>
-                        @foreach (var nivel in ViewBag.NivelesExperiencia)
-                        {
-                            <option value="@nivel" selected="@(nivel == ViewBag.NivelSeleccionado)">@nivel</option>
-                        }
-                    </select>
-                </div>
-                <div class="col-12">
-                    <div class="d-flex justify-content-end gap-2">
-                        <button type="button" id="limpiarFiltros" class="btn btn-outline-secondary">
-                            <i class="fas fa-broom"></i> Limpiar
-                        </button>
-                        <button type="button" id="aplicarFiltros" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Aplicar Filtros
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 20px;
+        }
 
-    <!-- Tabla de Postulantes -->
-    <div class="table-responsive">
-        <table id="tablaPostulantes" class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Experiencia</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (ViewData["Postulantes"] != null && ((IEnumerable<dynamic>)ViewData["Postulantes"]).Any())
+        .alert {
+            border-radius: 5px;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+
+        h2 {
+            color: #1E3A8A;
+            font-weight: bold;
+        }
+
+        #toggleFiltros {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            #toggleFiltros:hover {
+                background-color: #152A66;
+            }
+
+            #toggleFiltros i {
+                transition: transform 0.2s ease;
+            }
+
+        #filtrosPanel {
+            transition: all 0.3s ease;
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: #F4F6F9 !important;
+            color: #1E3A8A;
+            font-weight: bold;
+        }
+
+        .form-label {
+            color: #374151;
+        }
+
+        .form-control, .form-select {
+            border-radius: 5px;
+            border: 1px solid #D1D5DB;
+            padding: 0.75rem;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #1E3A8A;
+                box-shadow: 0 0 5px rgba(30, 58, 138, 0.3);
+            }
+
+        #aplicarFiltros {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            #aplicarFiltros:hover {
+                background-color: #E86100;
+            }
+
+        #limpiarFiltros {
+            background-color: #6B7280;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            #limpiarFiltros:hover {
+                background-color: #4B5563;
+            }
+
+        .table-responsive {
+            max-height: 600px;
+            overflow-y: auto;
+            background: #FFFFFF;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #F4F6F9;
+            color: #1E3A8A;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        td {
+            color: #374151;
+        }
+
+        .btn-info {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            .btn-info:hover {
+                background-color: #152A66;
+            }
+
+        .btn-secondary {
+            background-color: #6B7280;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            border-radius: 5px;
+        }
+
+            .btn-secondary:hover {
+                background-color: #4B5563;
+            }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 2rem;
+            text-align: center;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+            }
+
+                .footer a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
+            </a>
+            <div>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <div class="container">
+        <!-- Mensajes de depuración -->
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger">
+                <h4>Error</h4>
+                <p>@ViewBag.Error</p>
+            </div>
+        }
+
+        @if (ViewBag.DebugInfo != null)
+        {
+            <div class="alert alert-info">
+                <h4>Información de Depuración</h4>
+                <p>@ViewBag.DebugInfo</p>
+                @if (ViewBag.OfertaDetalle != null)
                 {
-                    foreach (var postulante in (IEnumerable<dynamic>)ViewData["Postulantes"])
+                    <p>
+                        <strong>Detalles Oferta:</strong><br>
+                        Título: @ViewBag.OfertaDetalle.titulo<br>
+                        País: @ViewBag.OfertaDetalle.Pais?.nombre<br>
+                        Provincia: @ViewBag.OfertaDetalle.Provincia?.nombre
+                    </p>
+                }
+            </div>
+        }
+
+        @if (ViewBag.ErrorAdicional != null)
+        {
+            <div class="alert alert-warning">
+                <h4>Inconsistencia detectada</h4>
+                <p>@ViewBag.ErrorAdicional</p>
+            </div>
+        }
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Postulantes para: @ViewBag.OfertaTitulo</h2>
+            <button id="toggleFiltros" class="btn">
+                <i class="fas fa-filter"></i> Mostrar Filtros
+            </button>
+        </div>
+
+        <!-- Panel de Filtros (inicialmente oculto) -->
+        <div id="filtrosPanel" class="card mb-4" style="display: none;">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Filtrar Postulantes</h5>
+            </div>
+            <div class="card-body">
+                <form id="filtroForm" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="filtroNombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="filtroNombre" placeholder="Buscar por nombre">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroEmail" class="form-label">Email</label>
+                        <input type="text" class="form-control" id="filtroEmail" placeholder="Buscar por email">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroTelefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="filtroTelefono" placeholder="Buscar por teléfono">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filtroExperiencia" class="form-label">Nivel de Experiencia</label>
+                        <select class="form-select" id="filtroExperiencia">
+                            <option value="">Todos los niveles</option>
+                            @foreach (var nivel in ViewBag.NivelesExperiencia)
+                            {
+                                <option value="@nivel" selected="@(nivel == ViewBag.NivelSeleccionado)">@nivel</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex justify-content-end gap-2">
+                            <button type="button" id="limpiarFiltros" class="btn">
+                                <i class="fas fa-broom"></i> Limpiar
+                            </button>
+                            <button type="button" id="aplicarFiltros" class="btn">
+                                <i class="fas fa-search"></i> Aplicar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla de Postulantes -->
+        <div class="table-responsive">
+            <table id="tablaPostulantes" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Experiencia</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (ViewData["Postulantes"] != null && ((IEnumerable<dynamic>)ViewData["Postulantes"]).Any())
                     {
-                        <tr class="postulante-row">
-                            <td class="postulante-nombre">@postulante.Nombre</td>
-                            <td class="postulante-email">@postulante.Email</td>
-                            <td class="postulante-telefono">@postulante.Telefono</td>
-                            <td class="postulante-experiencia">@postulante.Experiencia</td>
-                            <td>
-                                <a href="@Url.Action("VerCurriculum", "Postulante", new { idPostulante = postulante.IdPostulante })"
-                                   class="btn btn-sm btn-info">
-                                    <i class="fas fa-file-alt"></i> Ver CV
-                                </a>
-                            </td>
+                        foreach (var postulante in (IEnumerable<dynamic>)ViewData["Postulantes"])
+                        {
+                            <tr class="postulante-row">
+                                <td class="postulante-nombre">@postulante.Nombre</td>
+                                <td class="postulante-email">@postulante.Email</td>
+                                <td class="postulante-telefono">@postulante.Telefono</td>
+                                <td class="postulante-experiencia">@postulante.Experiencia</td>
+                                <td>
+                                    <a href="@Url.Action("VerCurriculum", "Postulante", new { idPostulante = postulante.IdPostulante })"
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-file-alt"></i> Ver CV
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center">No se encontraron postulantes</td>
                         </tr>
                     }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center">No se encontraron postulantes</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+
+        <a asp-action="ListarOfertas" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver a ofertas
+        </a>
     </div>
 
-    <a asp-action="ListarOfertas" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Volver a ofertas
-    </a>
-</div>
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Workeen. Todos los derechos reservados.</p>
+        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
+    </footer>
 
-@section Scripts {
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Toggle para mostrar/ocultar filtros
-            $('#toggleFiltros').click(function() {
+            $('#toggleFiltros').click(function () {
                 $('#filtrosPanel').slideToggle();
                 $(this).find('i').toggleClass('fa-filter fa-times');
                 $(this).toggleClass('btn-outline-primary btn-primary');
             });
 
             // Aplicar filtros
-            $('#aplicarFiltros').click(function() {
+            $('#aplicarFiltros').click(function () {
                 aplicarFiltros();
             });
 
             // Limpiar filtros
-            $('#limpiarFiltros').click(function() {
+            $('#limpiarFiltros').click(function () {
                 $('#filtroNombre, #filtroEmail, #filtroTelefono').val('');
                 $('#filtroExperiencia').val('');
                 aplicarFiltros();
@@ -170,10 +423,10 @@
                 if (email) params.set('email', email);
                 if (telefono) params.set('telefono', telefono);
                 if (experiencia) params.set('nivelExperiencia', experiencia);
-                
+
                 history.pushState(null, '', window.location.pathname + '?' + params.toString());
 
-                $('.postulante-row').each(function() {
+                $('.postulante-row').each(function () {
                     const rowNombre = $(this).find('.postulante-nombre').text().toLowerCase();
                     const rowEmail = $(this).find('.postulante-email').text().toLowerCase();
                     const rowTelefono = $(this).find('.postulante-telefono').text().toLowerCase();
@@ -204,7 +457,7 @@
             }
 
             // Permitir filtrar con Enter
-            $('#filtroNombre, #filtroEmail, #filtroTelefono').keypress(function(e) {
+            $('#filtroNombre, #filtroEmail, #filtroTelefono').keypress(function (e) {
                 if (e.which === 13) {
                     aplicarFiltros();
                     return false;
@@ -212,31 +465,10 @@
             });
 
             // Filtrado dinámico al cambiar el select de experiencia
-            $('#filtroExperiencia').change(function() {
+            $('#filtroExperiencia').change(function () {
                 aplicarFiltros();
             });
         });
     </script>
-
-    <style>
-        #filtrosPanel {
-            transition: all 0.3s ease;
-        }
-
-        .table-responsive {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        th {
-            position: sticky;
-            top: 0;
-            background-color: white;
-            z-index: 10;
-        }
-
-        #toggleFiltros i {
-            transition: transform 0.2s ease;
-        }
-    </style>
-}
+</body>
+</html>

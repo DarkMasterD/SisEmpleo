@@ -1,43 +1,211 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = null;
 }
 
-<div class="container">
-    <ul>
-        @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
-        {
-            <li>
-                <div class="mb-3 border border-dark border-end-0">
-                    <div class="row border border-dark border-bottom border-top-0 border-end border-start-0">
-                        <div class="col">
-                            <h4>
-                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = @oferta.Id })">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - Lista de Ofertas de Empleo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+        }
+
+        .navbar-brand img {
+            width: 40px;
+            margin-right: 0.5rem;
+        }
+
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66;
+            }
+
+        .btn-logout {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+        }
+
+            .btn-logout:hover {
+                background-color: #E86100;
+            }
+
+        .jobs-section {
+            padding: 3rem 2rem;
+            background-color: #FFFFFF;
+        }
+
+            .jobs-section h2 {
+                color: #1E3A8A;
+                font-weight: bold;
+                margin-bottom: 2.5rem;
+                text-align: center;
+                font-size: 2rem;
+            }
+
+        .job-card {
+            background-color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .job-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            }
+
+            .job-card h3 {
+                color: #1E3A8A;
+                font-size: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
+
+                .job-card h3 a {
+                    color: #1E3A8A;
+                    text-decoration: none;
+                }
+
+                    .job-card h3 a:hover {
+                        color: #F97316;
+                        text-decoration: underline;
+                    }
+
+            .job-card p {
+                color: #6B7280;
+                margin: 0.3rem 0;
+                font-size: 0.95rem;
+            }
+
+            .job-card .details span {
+                margin-right: 1rem;
+                color: #374151;
+            }
+
+            .job-card .btn-details {
+                background-color: #F97316;
+                border: none;
+                color: #FFFFFF;
+                padding: 0.6rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 600;
+                text-decoration: none;
+                font-size: 0.9rem;
+                transition: background-color 0.2s ease;
+            }
+
+                .job-card .btn-details:hover {
+                    background-color: #E86100;
+                }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 2rem;
+            text-align: center;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+            }
+
+                .footer a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
+            </a>
+            <div>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Lista de Ofertas -->
+    <section class="jobs-section">
+        <h2>Todas las Ofertas de Empleo</h2>
+        <div class="container">
+            @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+            {
+                foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
+                {
+                    <div class="job-card">
+                        <div>
+                            <h3>
+                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
                                     @oferta.Titulo
                                 </a>
-                            </h4>
+                            </h3>
+                            <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
+                            <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
+                            <div class="details">
+                                <span><strong>Salario:</strong> @oferta.Salario</span>
+                                <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
+                                <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
+                                <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
+                            </div>
                         </div>
-                        <div class="col text-end">
-                            <h4>@oferta.Nombre_Empresa</h4>
-                        </div>
+                        <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
                     </div>
-                    <div class="row border border-dark border-bottom-0 border-top-0 border-end border-start-0">
-                        <div class="col">
-                            <h5>@oferta.Salario</h5>
-                        </div>
-                        <div class="col">
-                            <h5>@oferta.Vacantes</h5>
-                        </div>
-                        <div class="col">
-                            <h5>@oferta.Duracion_Contrato</h5>
-                        </div>
-                        <div class="col">
-                            <h5>@oferta.Fecha_Publicacion</h5>
-                        </div>
-                    </div>
-                </div>
-            </li>
-        }
-    </ul>
-</div>
+                }
+            }
+            else
+            {
+                <p class="text-center" style="color: #6B7280; font-size: 1.1rem;">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
+            }
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Workeen. Todos los derechos reservados.</p>
+        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
