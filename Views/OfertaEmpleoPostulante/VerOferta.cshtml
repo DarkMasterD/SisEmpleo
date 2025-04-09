@@ -9,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workeen - @ViewBag.Oferta.Titulo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background-color: #F4F6F9;
@@ -73,8 +74,47 @@
                 transform: translateY(-2px);
             }
 
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+            margin-right: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+            .notification-badge:hover {
+                transform: scale(1.1);
+            }
+
+            .notification-badge .bi-bell {
+                font-size: 1.6rem;
+                color: #1E3A8A;
+                transition: color 0.3s ease;
+            }
+
+            .notification-badge:hover .bi-bell {
+                color: #F97316;
+            }
+
+            .notification-badge .badge {
+                position: absolute;
+                top: -12px;
+                right: -12px;
+                background-color: #F97316;
+                color: #FFFFFF;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border-radius: 50%;
+                padding: 0.4rem 0.7rem;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s ease;
+            }
+
+            .notification-badge:hover .badge {
+                background-color: #E86100;
+            }
+
         .job-detail-section {
-            padding: 4rem 2rem;
+            padding: 5rem 2rem;
             background-color: #FFFFFF;
             min-height: 100vh;
         }
@@ -82,36 +122,37 @@
             .job-detail-section h2 {
                 color: #1E3A8A;
                 font-weight: 700;
-                margin-bottom: 2.5rem;
+                margin-bottom: 3rem;
                 text-align: center;
-                font-size: 2.2rem;
+                font-size: 2.5rem;
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             }
 
         .job-card {
             background-color: #FFFFFF;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: transform 0.3s ease;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
             .job-card:hover {
-                transform: translateY(-5px);
+                transform: translateY(-8px);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
             }
 
             .job-card h3 {
                 color: #374151;
-                font-size: 1.8rem;
+                font-size: 2rem;
                 font-weight: 600;
-                margin-bottom: 1.5rem;
+                margin-bottom: 1.8rem;
             }
 
             .job-card p {
                 color: #6B7280;
-                font-size: 1.1rem;
-                margin-bottom: 0.75rem;
+                font-size: 1.15rem;
+                margin-bottom: 0.85rem;
                 line-height: 1.6;
             }
 
@@ -123,7 +164,7 @@
                 background-color: #F97316;
                 border: none;
                 color: #FFFFFF;
-                padding: 0.75rem 2rem;
+                padding: 0.85rem 2.5rem;
                 font-weight: 600;
                 border-radius: 8px;
                 transition: background-color 0.3s ease, transform 0.2s ease;
@@ -147,42 +188,43 @@
 
             .schedule-list li {
                 background-color: #F9FAFB;
-                padding: 1.2rem;
-                border-radius: 8px;
-                margin-bottom: 1rem;
+                padding: 1.5rem;
+                border-radius: 10px;
+                margin-bottom: 1.2rem;
                 box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-                transition: background-color 0.3s ease;
+                transition: background-color 0.3s ease, transform 0.3s ease;
             }
 
                 .schedule-list li:hover {
                     background-color: #F1F5F9;
+                    transform: translateY(-3px);
                 }
 
             .schedule-list h4 {
                 color: #374151;
-                font-size: 1.2rem;
+                font-size: 1.3rem;
                 font-weight: 600;
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.75rem;
             }
 
             .schedule-list p {
                 color: #6B7280;
-                font-size: 1rem;
+                font-size: 1.05rem;
                 margin: 0;
             }
 
         .footer {
             background-color: #1E3A8A;
             color: #FFFFFF;
-            padding: 2.5rem;
+            padding: 3rem;
             text-align: center;
-            font-size: 1rem;
+            font-size: 1.1rem;
         }
 
             .footer a {
                 color: #F97316;
                 text-decoration: none;
-                margin: 0 0.5rem;
+                margin: 0 0.75rem;
                 transition: color 0.3s ease;
             }
 
@@ -199,7 +241,11 @@
             <a class="navbar-brand" href="/">
                 <img src="/img/logo.png" alt="Logo Workeen"> Workeen
             </a>
-            <div>
+            <div class="d-flex align-items-center">
+                <a href="/Notifications" class="notification-badge me-3">
+                    <i class="bi bi-bell"></i>
+                    <span id="Notificaciones" class="badge">0</span>
+                </a>
                 <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                 <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
             </div>
@@ -215,7 +261,7 @@
                 <p><strong>Empresa:</strong> @ViewBag.Oferta.Nombre_Empresa</p>
                 <p><strong>Ubicación:</strong> @ViewBag.Oferta.Ubi_Pro, @ViewBag.Oferta.Ubi_Pais</p>
                 <p><strong>Vacantes:</strong> @ViewBag.Oferta.Vacantes</p>
-                <p><strong>Salario:</strong> $/ @ViewBag.Oferta.Salario</p>
+                <p><strong>Salario:</strong> S/ @ViewBag.Oferta.Salario</p>
                 <p><strong>Duración del Contrato:</strong> @ViewBag.Oferta.Duracion_Contrato</p>
                 <p><strong>Fecha de Publicación:</strong> @ViewBag.Oferta.Fecha_Publicacion</p>
                 <button id="btnPostularse" class="btn-primary" data-id="@ViewBag.Oferta.Id" @(ViewBag.HasApplied == true ? "disabled" : "")>
@@ -247,8 +293,9 @@
         </p>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
             $("#btnPostularse").click(function () {
@@ -268,7 +315,27 @@
                     }
                 });
             });
+
+            VerNoti();
         });
+
+        setInterval(function () {
+            VerNoti();
+        }, 300000);
+
+        function VerNoti() {
+            $.ajax({
+                url: '/Home/CantNotificaciones',
+                type: 'POST',
+                success: function (data) {
+                    $('#Notificaciones').text(data.cantidad);
+                },
+                error: function () {
+                    console.error("Error al obtener las notificaciones");
+                    $('#Notificaciones').text('0');
+                }
+            });
+        }
     </script>
 </body>
 </html>
