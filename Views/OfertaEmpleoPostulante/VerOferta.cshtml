@@ -1,50 +1,274 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = null;
 }
 
-<div class="container">
-    <button id="btnPostularse" class="btn-primary" data-id=@ViewBag.Oferta.Id>Postularse</button>
-    <label>@ViewBag.Oferta.Titulo</label>
-    <label>@ViewBag.Oferta.Vacantes</label>
-    <label>@ViewBag.Oferta.Salario</label>
-    <label>@ViewBag.Oferta.Duracion_Contrato</label>
-    <label>@ViewBag.Oferta.Fecha_Publicacion</label>
-    <label>@ViewBag.Oferta.Nombre_Empresa</label>
-    <label>@ViewBag.Oferta.Ubi_Pais</label>
-    <label>@ViewBag.Oferta.Ubi_Pro</label>
-    <ul>
-        @foreach (var dia in (List<Dictionary<string, string>>)ViewBag.Horario)
-        {
-            <li>
-                <h4>@dia["Dia"]</h4>
-                <p>Primer horario: @dia["Horario1"]</p>
-                <p>Segundo horario: @dia["Horario2"]</p>
-            </li>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - @ViewBag.Oferta.Titulo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
         }
-    </ul>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $(document).ready(function () {
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
 
-        $("#btnPostularse").click(function () {
+        .navbar-brand img {
+            width: 45px;
+            margin-right: 0.75rem;
+            transition: transform 0.3s ease;
+        }
 
-            let Id = $(this).data("id");
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
 
-            $.ajax({
-                url: "/OfertaEmpleoPostulante/PostularseOferta",
-                type: "POST",
-                data: { id_ofertaempleo: Id },
-                success: function (response) {
-                    alert("Usted se ha postulado a la oferta de trabajo");
-                },
-                error: function () {
-                    alert("Error al postularse");
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: 700;
+            font-size: 1.6rem;
+            text-decoration: none;
+        }
+
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66;
+                transform: translateY(-2px);
+            }
+
+        .btn-logout {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-logout:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .job-detail-section {
+            padding: 4rem 2rem;
+            background-color: #FFFFFF;
+            min-height: 100vh;
+        }
+
+            .job-detail-section h2 {
+                color: #1E3A8A;
+                font-weight: 700;
+                margin-bottom: 2.5rem;
+                text-align: center;
+                font-size: 2.2rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+        .job-card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+            .job-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .job-card h3 {
+                color: #374151;
+                font-size: 1.8rem;
+                font-weight: 600;
+                margin-bottom: 1.5rem;
+            }
+
+            .job-card p {
+                color: #6B7280;
+                font-size: 1.1rem;
+                margin-bottom: 0.75rem;
+                line-height: 1.6;
+            }
+
+                .job-card p strong {
+                    color: #374151;
                 }
+
+            .job-card .btn-primary {
+                background-color: #F97316;
+                border: none;
+                color: #FFFFFF;
+                padding: 0.75rem 2rem;
+                font-weight: 600;
+                border-radius: 8px;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .job-card .btn-primary:hover {
+                    background-color: #E86100;
+                    transform: translateY(-2px);
+                }
+
+                .job-card .btn-primary:disabled {
+                    background-color: #D1D5DB;
+                    cursor: not-allowed;
+                    transform: none;
+                }
+
+        .schedule-list {
+            list-style: none;
+            padding: 0;
+        }
+
+            .schedule-list li {
+                background-color: #F9FAFB;
+                padding: 1.2rem;
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                transition: background-color 0.3s ease;
+            }
+
+                .schedule-list li:hover {
+                    background-color: #F1F5F9;
+                }
+
+            .schedule-list h4 {
+                color: #374151;
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .schedule-list p {
+                color: #6B7280;
+                font-size: 1rem;
+                margin: 0;
+            }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 2.5rem;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+                margin: 0 0.5rem;
+                transition: color 0.3s ease;
+            }
+
+                .footer a:hover {
+                    color: #FFFFFF;
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
+            </a>
+            <div>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Job Detail Section -->
+    <section class="job-detail-section">
+        <h2>Detalles de la Oferta</h2>
+        <div class="container">
+            <div class="job-card">
+                <h3>@ViewBag.Oferta.Titulo</h3>
+                <p><strong>Empresa:</strong> @ViewBag.Oferta.Nombre_Empresa</p>
+                <p><strong>Ubicación:</strong> @ViewBag.Oferta.Ubi_Pro, @ViewBag.Oferta.Ubi_Pais</p>
+                <p><strong>Vacantes:</strong> @ViewBag.Oferta.Vacantes</p>
+                <p><strong>Salario:</strong> $/ @ViewBag.Oferta.Salario</p>
+                <p><strong>Duración del Contrato:</strong> @ViewBag.Oferta.Duracion_Contrato</p>
+                <p><strong>Fecha de Publicación:</strong> @ViewBag.Oferta.Fecha_Publicacion</p>
+                <button id="btnPostularse" class="btn-primary" data-id="@ViewBag.Oferta.Id" @(ViewBag.HasApplied == true ? "disabled" : "")>
+                    @(ViewBag.HasApplied == true ? "Ya Postulado" : "Postularse")
+                </button>
+            </div>
+
+            <h2>Horario</h2>
+            <ul class="schedule-list">
+                @foreach (var dia in (List<Dictionary<string, string>>)ViewBag.Horario)
+                {
+                    <li>
+                        <h4>@dia["Dia"]</h4>
+                        <p>Primer horario: @dia["Horario1"]</p>
+                        <p>Segundo horario: @dia["Horario2"]</p>
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Workeen. Todos los derechos reservados.</p>
+        <p>
+            <a href="/contacto">Contacto</a> |
+            <a href="/terminos">Términos y Condiciones</a> |
+            <a href="/privacidad">Política de Privacidad</a>
+        </p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#btnPostularse").click(function () {
+                if ($(this).prop("disabled")) return; // Prevent action if button is disabled
+
+                let Id = $(this).data("id");
+                $.ajax({
+                    url: "/OfertaEmpleoPostulante/PostularseOferta",
+                    type: "POST",
+                    data: { id_ofertaempleo: Id },
+                    success: function (response) {
+                        alert("Usted se ha postulado a la oferta de trabajo");
+                        $("#btnPostularse").prop("disabled", true).text("Ya Postulado");
+                    },
+                    error: function () {
+                        alert("Error al postularse");
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
+</body>
+</html>

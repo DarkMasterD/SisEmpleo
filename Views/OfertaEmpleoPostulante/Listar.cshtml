@@ -13,7 +13,7 @@
         body {
             background-color: #F4F6F9;
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
         }
 
         .navbar {
@@ -65,49 +65,74 @@
             .jobs-section h2 {
                 color: #1E3A8A;
                 font-weight: bold;
-                margin-bottom: 2rem;
+                margin-bottom: 2.5rem;
                 text-align: center;
+                font-size: 2rem;
             }
 
         .job-card {
-            background-color: #F4F6F9;
+            background-color: #FFFFFF;
             padding: 1.5rem;
-            border-radius: 10px;
+            border-radius: 12px;
             margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: transform 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
             .job-card:hover {
                 transform: translateY(-5px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
             }
 
             .job-card h3 {
-                color: #374151;
-                font-size: 1.2rem;
+                color: #1E3A8A;
+                font-size: 1.3rem;
                 margin-bottom: 0.5rem;
             }
 
+                .job-card h3 a {
+                    color: #1E3A8A;
+                    text-decoration: none;
+                }
+
+                    .job-card h3 a:hover {
+                        color: #F97316;
+                        text-decoration: underline;
+                    }
+
             .job-card p {
                 color: #6B7280;
-                margin: 0;
+                margin: 0.3rem 0;
+                font-size: 0.95rem;
             }
 
-            .job-card a {
+            .job-card .details span {
+                margin-right: 1rem;
+                color: #374151;
+            }
+
+            .job-card .btn-details {
                 background-color: #F97316;
                 border: none;
                 color: #FFFFFF;
-                padding: 0.5rem 1.5rem;
-                border-radius: 5px;
+                padding: 0.6rem 1.5rem;
+                border-radius: 8px;
                 font-weight: 600;
                 text-decoration: none;
+                font-size: 0.9rem;
+                transition: background-color 0.2s ease;
             }
 
-                .job-card a:hover {
+                .job-card .btn-details:hover {
                     background-color: #E86100;
                 }
+
+        .container {
+            max-width: 1200px;
+        }
 
         .footer {
             background-color: #1E3A8A;
@@ -134,7 +159,7 @@
                 <img src="/img/logo.png" alt="Logo Workeen"> Workeen
             </a>
             <div>
-                <a href="/Perfil" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                 <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
             </div>
         </div>
@@ -151,20 +176,26 @@
                     <div class="job-card">
                         <div>
                             <h3>
-                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" style="text-decoration: none; color: #374151;">
+                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
                                     @oferta.Titulo
                                 </a>
                             </h3>
-                            <p>@oferta.Nombre_Empresa - @oferta.Ubi_Pro, @oferta.Ubi_Pais - @oferta.Vacantes vacante(s)</p>
-                            <p>Salario: @oferta.Salario | Duración: @oferta.Duracion_Contrato | Publicado: @oferta.Fecha_Publicacion</p>
+                            <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
+                            <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
+                            <div class="details">
+                                <span><strong>Salario:</strong> @oferta.Salario</span>
+                                <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
+                                <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
+                                <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
+                            </div>
                         </div>
-                        <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">Ver Detalles</a>
+                        <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
                     </div>
                 }
             }
             else
             {
-                <p class="text-center">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
+                <p class="text-center" style="color: #6B7280; font-size: 1.1rem;">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
             }
         </div>
     </section>

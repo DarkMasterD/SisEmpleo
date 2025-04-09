@@ -4,7 +4,6 @@ using SisEmpleo.Services;
 
 namespace SisEmpleo.Controllers
 {
-    [AutenticacionPostulante]
     public class OfertaEmpleoPostulanteController : Controller
     {
         private readonly EmpleoContext _EmpleoContext;
@@ -23,19 +22,12 @@ namespace SisEmpleo.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Obtener las categorías a las que está suscrito el postulante
-            int idUsuario = HttpContext.Session.GetInt32("id_usuario") ?? 0;
-            var categoriasSuscritas = (from sc in _EmpleoContext.SuscripcionCategoria
-                                       where sc.id_usuario == idUsuario
-                                       select sc.id_categoriaprofesional).ToList();
-
-            // Obtener las ofertas que coincidan con las categorías suscritas
+            // Obtener todas las ofertas activas, sin filtrar por categorías suscritas
             var ofertas = (from o in _EmpleoContext.OfertaEmpleo
                            join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
                            join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
                            join e in _EmpleoContext.Empresa on o.id_empresa equals e.id_empresa
-                           join oc in _EmpleoContext.OfertaCategoria on o.id_ofertaempleo equals oc.id_ofertaempleo
-                           where categoriasSuscritas.Contains(oc.id_categoriaprofesional) && o.estado == 'A' // Solo ofertas activas
+                           where o.estado == 'A' // Solo ofertas activas
                            orderby o.fecha_publicacion descending
                            select new
                            {
@@ -166,6 +158,45 @@ namespace SisEmpleo.Controllers
 
             ViewBag.ofertas = oferta;
             return View();
+        }
+
+        [HttpGet]
+        public IActionResult Search(string query)
+        {
+            if (HttpContext.Session.GetString("tipo_usuario") != "P")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            int idUsuario = HttpContext.Session.GetInt32("id_usuario") ?? 0;
+            var categoriasSuscritas = (from sc in _EmpleoContext.SuscripcionCategoria
+                                       where sc.id_usuario == idUsuario
+                                       select sc.id_categoriaprofesional).ToList();
+
+            var ofertas = (from o in _EmpleoContext.OfertaEmpleo
+                           join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
+                           join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
+                           join e in _EmpleoContext.Empresa on o.id_empresa equals e.id_empresa
+                           join oc in _EmpleoContext.OfertaCategoria on o.id_ofertaempleo equals oc.id_ofertaempleo
+                           where categoriasSuscritas.Contains(oc.id_categoriaprofesional) && o.estado == 'A' // Solo ofertas activas
+                           && (o.titulo.Contains(query) || e.nombre.Contains(query) || p.nombre.Contains(query) || pro.nombre.Contains(query))
+                           orderby o.fecha_publicacion descending
+                           select new
+                           {
+                               Id = o.id_ofertaempleo,
+                               Titulo = o.titulo,
+                               Vacantes = o.vacantes,
+                               Salario = o.salario,
+                               Duracion_Contrato = o.duracion_contrato,
+                               Fecha_Publicacion = o.fecha_publicacion,
+                               Nombre_Empresa = e.nombre,
+                               Ubi_Pais = p.nombre,
+                               Ubi_Pro = pro.nombre
+                           }).ToList();
+
+            ViewBag.ofertas = ofertas;
+            ViewBag.SearchQuery = query;
+            return View("Listar");
         }
     }
 }

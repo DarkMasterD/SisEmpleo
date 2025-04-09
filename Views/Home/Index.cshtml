@@ -1,4 +1,4 @@
-﻿@model SisEmpleo.Controllers.HomeViewModel
+﻿@model SisEmpleo.Models.Dashboard
 
 @{
     Layout = null;
@@ -119,33 +119,6 @@
                 margin-bottom: 2rem;
             }
 
-        .search-bar {
-            max-width: 600px;
-            margin: 0 auto;
-            display: flex;
-            gap: 1rem;
-        }
-
-            .search-bar input {
-                flex: 1;
-                padding: 0.75rem;
-                border: none;
-                border-radius: 5px;
-            }
-
-            .search-bar button {
-                background-color: #F97316;
-                border: none;
-                color: #FFFFFF;
-                padding: 0.75rem 2rem;
-                border-radius: 5px;
-                font-weight: 600;
-            }
-
-                .search-bar button:hover {
-                    background-color: #E86100;
-                }
-
         .categories-section {
             padding: 3rem 2rem;
             text-align: center;
@@ -163,6 +136,12 @@
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
 
             .category-card:hover {
@@ -178,6 +157,9 @@
                 color: #374151;
                 font-size: 1.2rem;
                 margin-bottom: 0.5rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
         .jobs-section {
@@ -200,29 +182,39 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 120px;
+            overflow: hidden;
         }
 
             .job-card h3 {
                 color: #374151;
                 font-size: 1.2rem;
                 margin-bottom: 0.5rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             .job-card p {
                 color: #6B7280;
                 margin: 0;
+                font-size: 0.9rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
-            .job-card button {
+            .job-card a.btn {
                 background-color: #F97316;
                 border: none;
                 color: #FFFFFF;
                 padding: 0.5rem 1.5rem;
                 border-radius: 5px;
                 font-weight: 600;
+                text-decoration: none;
             }
 
-                .job-card button:hover {
+                .job-card a.btn:hover {
                     background-color: #E86100;
                 }
 
@@ -244,7 +236,7 @@
     </style>
 </head>
 <body>
-    <!-- El Header -->
+    <!-- Header -->
     <nav class="navbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">
@@ -257,11 +249,12 @@
                 }
                 <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                 <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+                
+                
             </div>
         </div>
     </nav>
 
-    <!-- El Hero -->
     <section class="hero-section">
         <div class="hero-content">
             @if (Model.TipoUsuario == "E")
@@ -272,28 +265,27 @@
             else
             {
                 <h1>¡Hola, @Model.Nombre! Encuentra tu Próximo Empleo</h1>
-                <p>Explora oportunidades que se ajustan a tu perfil en Workeen</p>
-                <div class="search-bar">
-                    <input type="text" placeholder="Busca por puesto, empresa o ubicación">
-                    <button>Buscar Empleos</button>
+                <div class="mt-3">
+                    <a href="@Url.Action("Listar", "OfertaEmpleoPostulante")" class="btn btn-list-offers">Ver Todos los Empleos</a>
                 </div>
             }
         </div>
     </section>
 
+    <!-- Categories (Postulante) -->
     @if (Model.TipoUsuario == "P")
     {
         <section class="categories-section">
-            <h2>Explora por Categorías</h2>
+            <h2>Observa todas nuestras categorías</h2>
             <div class="container">
                 <div class="row">
                     @foreach (var categoria in Model.Categorias)
                     {
                         <div class="col-md-3 col-sm-6 mb-4">
                             <div class="category-card">
-                                <img src="/img/@(categoria.Nombre.ToLower())-icon.png" alt="@categoria.Nombre">
-                                <h3>@categoria.Nombre</h3>
-                                <p>Explora empleos en @categoria.Nombre</p>
+                                <img src="/img/@(categoria.nombre.ToLower())-icon.png" alt="@categoria.nombre">
+                                <h3>@categoria.nombre</h3>
+                                <p>Explora empleos en @categoria.nombre</p>
                             </div>
                         </div>
                     }
@@ -302,7 +294,7 @@
         </section>
     }
 
-    <!-- Ofertas Recientes (para Empresas) -->
+    <!-- Jobs -->
     <section class="jobs-section">
         @if (Model.TipoUsuario == "E")
         {
@@ -313,15 +305,13 @@
             <div class="container">
                 @if (Model.Ofertas != null && Model.Ofertas.Any())
                 {
-                    foreach (var oferta in Model.Ofertas)
+                    foreach (var oferta in Model.Ofertas.Take(3))
                     {
                         <div class="job-card">
                             <div>
-                                <h3>@oferta.Titulo</h3>
-                                <p>@oferta.Provincia, @oferta.Pais - @oferta.Vacantes vacantes</p>
+                                <h3>@oferta.titulo</h3>
+                                <p>@oferta.ProvinciaNombre, @oferta.PaisNombre - @oferta.vacantes vacantes</p>
                             </div>
-                            <!--Dejo esta parte aunque preferiria quitarla solo que fueran las cards-->
-                            <!-- <a href="/Oferta/Editar/@oferta.IdOfertaEmpleo" class="btn btn-primary">Editar</a> -->
                         </div>
                     }
                 }
@@ -333,27 +323,28 @@
         }
         else
         {
-            <h2>Empleos Recomendados para Ti</h2>
+            <h2> Empleos</h2>
             <div class="text-center mb-3">
-                <a href="@Url.Action("Listar", "OfertaEmpleoPostulante")" class="btn btn-list-offers">Ver Todas las Ofertas</a>
+                <a href="@Url.Action("Listar", "OfertaEmpleoPostulante")" class="btn btn-list-offers me-2">Ver Todos los Empleos</a>
+                <a href="@Url.Action("VerOfertaPostulado", "OfertaEmpleoPostulante")" class="btn btn-list-offers">Ver Todas las Postulaciones</a>
             </div>
             <div class="container">
                 @if (Model.Ofertas != null && Model.Ofertas.Any())
                 {
-                    foreach (var oferta in Model.Ofertas)
+                    foreach (var oferta in Model.Ofertas.Take(3))
                     {
                         <div class="job-card">
                             <div>
-                                <h3>@oferta.Titulo</h3>
-                                <p>@oferta.Empresa - @oferta.Provincia, @oferta.Pais - @oferta.Vacantes vacantes</p>
+                                <h3>@oferta.titulo</h3>
+                                <p>@oferta.EmpresaNombre - @oferta.ProvinciaNombre, @oferta.PaisNombre - @oferta.vacantes vacantes</p>
                             </div>
-                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.IdOfertaEmpleo })" class="btn btn-primary">Aplicar</a>
+                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.id_ofertaempleo })" class="btn btn-primary">Aplicar</a>
                         </div>
                     }
                 }
                 else
                 {
-                    <p class="text-center">No hay empleos recomendados. Suscríbete a más categorías para ver más opciones.</p>
+                    <p class="text-center">Mirá tus postulaciones y los empleos que ofrecemos</p>
                 }
             </div>
         }

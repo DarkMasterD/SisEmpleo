@@ -3,7 +3,6 @@ using SisEmpleo.Models;
 using SisEmpleo.Services;
 using System.Diagnostics;
 using System.Linq;
-using System.Collections.Generic;
 
 namespace SisEmpleo.Controllers
 {
@@ -29,77 +28,85 @@ namespace SisEmpleo.Controllers
                 return RedirectToAction("Login", "Login");
             }
 
-            var model = new HomeViewModel
+            var model = new Dashboard
             {
                 IdUsuario = idUsuario.Value,
-                TipoUsuario = tipoUsuario
+                TipoUsuario = tipoUsuario,
+                Nombre = string.Empty,
+                Categorias = _EmpleoContext.CategoriaProfesional.ToList(),
+                Ofertas = new List<OfertaEmpleo>()
             };
+
+            Console.WriteLine($"Home - TipoUsuario: {tipoUsuario}, IdUsuario: {idUsuario}");
 
             if (tipoUsuario == "E")
             {
-                var empresa = (from e in _EmpleoContext.Empresa
-                               where e.id_usuario == idUsuario
-                               select e.nombre).FirstOrDefault();
+                var empresa = _EmpleoContext.Empresa
+                    .Where(e => e.id_usuario == idUsuario)
+                    .Select(e => e.nombre)
+                    .FirstOrDefault();
                 model.Nombre = empresa ?? "Empresa";
 
                 int idEmpresa = HttpContext.Session.GetInt32("id_empresa") ?? 0;
 
                 model.Ofertas = (from oe in _EmpleoContext.OfertaEmpleo
                                  join p in _EmpleoContext.Pais on oe.id_pais equals p.id_pais
-                                 join pr in _EmpleoContext.Provincia on oe.id_provincia equals pr.id_provincia
-                                 where oe.id_empresa == idEmpresa
+                                 join pro in _EmpleoContext.Provincia on oe.id_provincia equals pro.id_provincia
+                                 where oe.id_empresa == idEmpresa && oe.estado == 'A'
                                  orderby oe.fecha_publicacion descending
-                                 select new OfertaEmpleoViewModel
+                                 select new OfertaEmpleo
                                  {
-                                     IdOfertaEmpleo = oe.id_ofertaempleo,
-                                     Titulo = oe.titulo,
-                                     Descripcion = oe.descripcion,
-                                     Pais = p.nombre,
-                                     Provincia = pr.nombre,
-                                     Vacantes = oe.vacantes
+                                     id_ofertaempleo = oe.id_ofertaempleo,
+                                     id_pais = oe.id_pais,
+                                     id_provincia = oe.id_provincia,
+                                     id_empresa = oe.id_empresa,
+                                     titulo = oe.titulo,
+                                     vacantes = oe.vacantes,
+                                     PaisNombre = p.nombre,
+                                     ProvinciaNombre = pro.nombre
                                  }).Take(3).ToList();
+
+                Console.WriteLine($"Ofertas Count (Empresa): {model.Ofertas.Count}");
             }
             else if (tipoUsuario == "P")
             {
-                var postulante = (from p in _EmpleoContext.Postulante
-                                  where p.id_usuario == idUsuario
-                                  select p.nombre).FirstOrDefault();
+                var postulante = _EmpleoContext.Postulante
+                    .Where(p => p.id_usuario == idUsuario)
+                    .Select(p => p.nombre)
+                    .FirstOrDefault();
                 model.Nombre = postulante ?? "Postulante";
 
-
-                var categoriasSuscritas = (from sc in _EmpleoContext.SuscripcionCategoria
-                                           where sc.id_usuario == idUsuario
-                                           select sc.id_categoriaprofesional).ToList();
+                var categoriasSuscritas = _EmpleoContext.SuscripcionCategoria
+                    .Where(sc => sc.id_usuario == idUsuario)
+                    .Select(sc => sc.id_categoriaprofesional)
+                    .ToList();
+                Console.WriteLine($"Categorias Suscritas: {string.Join(", ", categoriasSuscritas)}");
 
                 model.Ofertas = (from oe in _EmpleoContext.OfertaEmpleo
                                  join oc in _EmpleoContext.OfertaCategoria on oe.id_ofertaempleo equals oc.id_ofertaempleo
                                  join p in _EmpleoContext.Pais on oe.id_pais equals p.id_pais
-                                 join pr in _EmpleoContext.Provincia on oe.id_provincia equals pr.id_provincia
+                                 join pro in _EmpleoContext.Provincia on oe.id_provincia equals pro.id_provincia
                                  join e in _EmpleoContext.Empresa on oe.id_empresa equals e.id_empresa
-                                 where categoriasSuscritas.Contains(oc.id_categoriaprofesional)
+                                 where categoriasSuscritas.Contains(oc.id_categoriaprofesional) && oe.estado == 'A'
                                  orderby oe.fecha_publicacion descending
-                                 select new OfertaEmpleoViewModel
+                                 select new OfertaEmpleo
                                  {
-                                     IdOfertaEmpleo = oe.id_ofertaempleo,
-                                     Titulo = oe.titulo,
-                                     Descripcion = oe.descripcion,
-                                     Pais = p.nombre,
-                                     Provincia = pr.nombre,
-                                     Empresa = e.nombre,
-                                     Vacantes = oe.vacantes
+                                     id_ofertaempleo = oe.id_ofertaempleo,
+                                     id_pais = oe.id_pais,
+                                     id_provincia = oe.id_provincia,
+                                     id_empresa = oe.id_empresa,
+                                     titulo = oe.titulo,
+                                     vacantes = oe.vacantes,
+                                     PaisNombre = p.nombre,
+                                     ProvinciaNombre = pro.nombre,
+                                     EmpresaNombre = e.nombre
                                  }).Take(3).ToList();
-            }
 
-            model.Categorias = (from cp in _EmpleoContext.CategoriaProfesional
-                                select new CategoriaViewModel
-                                {
-                                    IdCategoriaProfesional = cp.id_categoriaprofesional,
-                                    Nombre = cp.nombre
-                                }).ToList();
+                Console.WriteLine($"Ofertas Count (Postulante): {model.Ofertas.Count}");
+            }
 
             return View(model);
         }
-
         public IActionResult Privacy()
         {
             return View();
@@ -110,31 +117,5 @@ namespace SisEmpleo.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-    }
-
-    public class HomeViewModel
-    {
-        public int IdUsuario { get; set; }
-        public string TipoUsuario { get; set; }
-        public string Nombre { get; set; }
-        public List<CategoriaViewModel> Categorias { get; set; }
-        public List<OfertaEmpleoViewModel> Ofertas { get; set; }
-    }
-
-    public class CategoriaViewModel
-    {
-        public int IdCategoriaProfesional { get; set; }
-        public string Nombre { get; set; }
-    }
-
-    public class OfertaEmpleoViewModel
-    {
-        public int IdOfertaEmpleo { get; set; }
-        public string Titulo { get; set; }
-        public string Descripcion { get; set; }
-        public string Pais { get; set; }
-        public string Provincia { get; set; }
-        public string Empresa { get; set; }
-        public int Vacantes { get; set; }
     }
 }
