@@ -2,11 +2,11 @@
 {
     public class PostulanteViewModel
     {
-        public int IdPostulante { get; set; }
-        public string Nombre { get; set; }
-        public string Email { get; set; }
-        public string Telefono { get; set; }
-        public int IdUsuario { get; set; }
-        public string NivelExperiencia { get; set; }
+        public Postulante Postulante { get; set; }
+        public Usuario Usuario { get; set; }
+        public Contacto Contacto { get; set; }
+        public Curriculum Curriculum { get; set; }
+        public List<FormacionAcademica> Formaciones { get; set; }
+        public List<ExperienciaProfesional> Experiencias { get; set; }
     }
 }

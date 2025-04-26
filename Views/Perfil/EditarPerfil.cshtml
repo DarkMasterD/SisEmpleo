@@ -1,0 +1,283 @@
+﻿@model SisEmpleo.Models.PostulanteViewModel
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - Editar Perfil de Postulante</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand img {
+            width: 45px;
+            margin-right: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
+
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: 700;
+            font-size: 1.6rem;
+            text-decoration: none;
+        }
+
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66;
+                transform: translateY(-2px);
+            }
+
+        .btn-logout {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-logout:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .hero-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(249, 115, 22, 0.7)), url('/img/hero-bg.jpg') no-repeat center center;
+            background-size: cover;
+            color: #FFFFFF;
+            text-align: center;
+            padding: 6rem 2rem;
+            position: relative;
+        }
+
+        .hero-content h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+
+        .edit-profile-section {
+            padding: 4rem 2rem;
+            background-color: #FFFFFF;
+            min-height: 100vh;
+        }
+
+        .profile-card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            transition: transform 0.3s ease;
+        }
+
+            .profile-card:hover {
+                transform: translateY(-5px);
+            }
+
+        .card-header {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 12px 12px 0 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+            .card-body h4 {
+                color: #1E3A8A;
+                font-weight: 600;
+                margin-top: 1.5rem;
+                margin-bottom: 1rem;
+                border-bottom: 2px solid #F97316;
+                display: inline-block;
+                padding-bottom: 0.3rem;
+            }
+
+        .form-label {
+            color: #374151;
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #D1D5DB;
+            padding: 0.75rem;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .form-control:focus {
+                border-color: #F97316;
+                box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
+                outline: none;
+            }
+
+        .btn-primary {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-primary:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 2.5rem;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+                margin: 0 0.5rem;
+                transition: color 0.3s ease;
+            }
+
+                .footer a:hover {
+                    color: #FFFFFF;
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
+            </a>
+            <div>
+                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
+                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>¡Hola, @Model.Postulante.nombre!</h1>
+            <p>Actualiza tu perfil para destacar entre los empleadores</p>
+        </div>
+    </section>
+
+    <!-- Edit Profile Section -->
+    <section class="edit-profile-section">
+        <div class="container">
+            <form asp-action="EditarPerfil" method="post">
+                <div class="profile-card mb-4">
+                    <div class="card-header">
+                        <h3>@Model.Postulante.nombre</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Datos del postulante -->
+                        <div class="mb-4">
+                            <label for="Nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="Nombre" name="Postulante.nombre" value="@Model.Postulante.nombre" required />
+                        </div>
+                        <div class="mb-4">
+                            <label for="Direccion" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="Direccion" name="Postulante.direccion" value="@Model.Postulante.direccion" required />
+                        </div>
+
+                        <!-- Datos de contacto -->
+                        <h4>Contacto</h4>
+                        <div class="mb-4">
+                            <label for="Email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="Email" name="Contacto.email" value="@Model.Contacto?.email" />
+                        </div>
+                        <div class="mb-4">
+                            <label for="Telefono" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="Telefono" name="Contacto.telefono" value="@Model.Contacto?.telefono" />
+                        </div>
+
+                        <!-- Información del currículum -->
+                        <h4>Currículum</h4>
+                        <div class="mb-4">
+                            <label for="Habilidades" class="form-label">Habilidades</label>
+                            <input type="text" class="form-control" id="Habilidades" name="Curriculum.habilidades" value="@Model.Curriculum?.habilidades" placeholder="Ej: Diseño gráfico, UX/UI" />
+                        </div>
+                        <div class="mb-4">
+                            <label for="Idiomas" class="form-label">Idiomas</label>
+                            <input type="text" class="form-control" id="Idiomas" name="Curriculum.idiomas" value="@Model.Curriculum?.idiomas" placeholder="Ej: Español, Inglés" />
+                        </div>
+                        <div class="mb-4">
+                            <label for="Certificaciones" class="form-label">Certificaciones</label>
+                            <input type="text" class="form-control" id="Certificaciones" name="Curriculum.certificaciones" value="@Model.Curriculum?.certificaciones" placeholder="Ej: Certificado en Adobe XD" />
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>© 2025 Workeen. Todos los derechos reservados.</p>
+        <p>
+            <a href="/contacto">Contacto</a> |
+            <a href="/terminos">Términos y Condiciones</a> |
+            <a href="/privacidad">Política de Privacidad</a>
+        </p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@ namespace SisEmpleo.Models
         public string puesto { get; set; }
         public string descripciones_responsabilidades { get; set; }
         public string empresa { get; set; }
-        public DateTime fecha_inicio { get; set; }
-        public DateTime fecha_fin {  get; set; }
+        public DateTime? fecha_inicio { get; set; }
+        public DateTime? fecha_fin {  get; set; }
     }
 }

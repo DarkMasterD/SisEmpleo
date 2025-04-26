@@ -1,33 +1,111 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = null;
 }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Empresa - Workeen</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-<form method="post">
-    <div class="form-group">
-        <label>Correo electronico: </label>
-        @Html.TextBox("email", "", new { @class = "form-control" })
+        .register-container {
+            background-color: #FFFFFF;
+            padding: 3rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            margin: 2rem 0;
+        }
+
+        .register-title {
+            color: #1E3A8A;
+            font-weight: bold;
+            margin-bottom: 2rem;
+        }
+
+        .btn-custom {
+            background-color: #F97316;
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+            width: 100%;
+        }
+
+            .btn-custom:hover {
+                background-color: #E86100;
+            }
+
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .register-links {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+
+            .register-links a {
+                color: #1E3A8A;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+                .register-links a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1 class="register-title text-center">Registro de Empresa</h1>
+        <form method="post">
+            <div class="form-group">
+                <label class="form-label">Correo Electrónico</label>
+                @Html.TextBox("email", "", new { @class = "form-control", @placeholder = "ejemplo@correo.com" })
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                @Html.Password("contrasenia", "", new { @class = "form-control", @placeholder = "••••••••" })
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nombre de la Empresa</label>
+                @Html.TextBox("nombre", "", new { @class = "form-control", @placeholder = "Ej: Workeen Solutions" })
+            </div>
+            <div class="form-group">
+                <label class="form-label">Dirección</label>
+                @Html.TextBox("direccion", "", new { @class = "form-control", @placeholder = "Ej: Av. Principal 123" })
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción de su Área de Trabajo</label>
+                @Html.TextBox("descripcion_empresa", "", new { @class = "form-control", @placeholder = "Ej: Desarrollo de software" })
+            </div>
+            <div class="form-group">
+                <label class="form-label">Sector de Trabajo</label>
+                @Html.TextBox("sector_empresa", "", new { @class = "form-control", @placeholder = "Ej: Tecnología" })
+            </div>
+            <button type="submit" class="btn btn-custom">Registrarse</button>
+        </form>
+        <div class="register-links text-center">
+            <p>¿Ya tienes una cuenta? <a asp-area="" asp-controller="Login" asp-action="Login">Inicia sesión aquí</a></p>
+        </div>
     </div>
-    <div>
-        <label>Contraseña: </label>
-        @Html.Password("contrasenia", "", new { @class = "form-control" })
-    </div>
-    <div>
-        <label>Empresa: </label>
-        @Html.TextBox("nombre", "", new { @class = "form-control" })
-    </div>
-    <div>
-        <label>Direccion: </label>
-        @Html.TextBox("direccion", "", new { @class = "form-control" })
-    </div>
-    <div>
-        <label>Descripcion de su area de trabajo: </label>
-        @Html.TextBox("descripcion_empresa", "", new { @class = "form-control" })
-    </div>
-    <div>
-        <label>Sector de trabajo: </label>
-        @Html.TextBox("sector_empresa", "", new { @class = "form-control" })
-    </div>
-    <button type="submit" class="btn btn-primary">Registrarse</button>
-</form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
