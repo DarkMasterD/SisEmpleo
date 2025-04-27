@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SisEmpleo.Models
 {
@@ -19,9 +20,11 @@ namespace SisEmpleo.Models
         public char estado { get; set; }
 
         //
-
+        [NotMapped]
         public string PaisNombre { get; set; }
+        [NotMapped]
         public string ProvinciaNombre { get; set; }
+        [NotMapped]
         public string EmpresaNombre { get; set; }
     }
 

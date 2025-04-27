@@ -1,5 +1,4 @@
 ﻿@{
-    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -15,23 +14,6 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        .navbar {
-            background-color: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 1rem 2rem;
-        }
-
-        .navbar-brand img {
-            width: 40px;
-            margin-right: 0.5rem;
-        }
-
-        .navbar-brand {
-            color: #1E3A8A; /* Azul oscuro */
-            font-weight: bold;
-            font-size: 1.5rem;
         }
 
         .btn-profile {
@@ -129,39 +111,10 @@
                 margin-bottom: 0.5rem;
             }
 
-        .footer {
-            background-color: #1E3A8A;
-            color: #FFFFFF;
-            padding: 2rem;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-        }
 
-            .footer a {
-                color: #F97316;
-                text-decoration: none;
-            }
-
-                .footer a:hover {
-                    text-decoration: underline;
-                }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <nav class="navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
-            </a>
-            <div>
-                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
-                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
-            </div>
-        </div>
-    </nav>
 
     <!-- Formulario de Nueva Oferta -->
     <div class="edit-container">
@@ -348,12 +301,6 @@
             </div>
         </form>
     </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 Workeen. Todos los derechos reservados.</p>
-        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
-    </footer>
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
