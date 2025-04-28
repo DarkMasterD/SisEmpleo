@@ -67,12 +67,15 @@
                 <img src="/img/logo.png" alt="Logo Workeen"> Workeen
             </a>
             <div class="d-flex align-items-center">
-                @if (Model.TipoUsuario == "P")
+                @if (Model != null && Model.TipoUsuario == "P")
                 {
-                    <a href="/Home/Notificaciones" class="notification-badge me-3"> <i class="bi bi-bell"></i> <span id="Notificaciones" class="badge">0</span> </a>
+                    <a href="/Home/Notificaciones" class="notification-badge me-3">
+                        <i class="bi bi-bell"></i>
+                        <span id="Notificaciones" class="badge">0</span>
+                    </a>
                 }
 
-                @if (Model.TipoUsuario == "E")
+                @if (Model != null && Model.TipoUsuario == "E")
                 {
                     <a href="/OfertaEmpleoEmpresa/NuevaOferta" class="btn btn-post-offer me-2">Publicar Oferta</a>
                 }
