@@ -1,15 +1,8 @@
 ﻿@{
-
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workeen - Lista de Ofertas de Empleo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+@section Styles {
     <style>
         body {
             background-color: #F4F6F9;
@@ -18,90 +11,20 @@
             color: #333;
         }
 
-        
-        .btn-profile {
-            background-color: #1E3A8A;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .btn-profile:hover {
-            background-color: #152A66;
-            transform: translateY(-2px);
-        }
-
-        .btn-logout {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        .btn-logout:hover {
-            background-color: #E86100;
-            transform: translateY(-2px);
-        }
-
-        .notification-badge {
-            position: relative;
-            display: inline-block;
-            margin-right: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-        .notification-badge:hover {
-            transform: scale(1.1);
-        }
-
-        .notification-badge .bi-bell {
-            font-size: 1.6rem;
-            color: #1E3A8A;
-            transition: color 0.3s ease;
-        }
-
-        .notification-badge:hover .bi-bell {
-            color: #F97316;
-        }
-
-        .notification-badge .badge {
-            position: absolute;
-            top: -12px;
-            right: -12px;
-            background-color: #F97316;
-            color: #FFFFFF;
-            font-size: 0.85rem;
-            font-weight: 600;
-            border-radius: 50%;
-            padding: 0.4rem 0.7rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease;
-        }
-
-        .notification-badge:hover .badge {
-            background-color: #E86100;
-        }
-
         .jobs-section {
             padding: 5rem 2rem;
             background-color: #FFFFFF;
             min-height: 100vh;
         }
 
-        .jobs-section h2 {
-            color: #1E3A8A;
-            font-weight: 700;
-            margin-bottom: 3rem;
-            text-align: center;
-            font-size: 2.5rem;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-        }
+            .jobs-section h2 {
+                color: #1E3A8A;
+                font-weight: 700;
+                margin-bottom: 3rem;
+                text-align: center;
+                font-size: 2.5rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
 
         .job-card {
             background-color: #FFFFFF;
@@ -115,62 +38,62 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .job-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-        }
+            .job-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+            }
 
-        .job-card h3 {
-            color: #1E3A8A;
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
+            .job-card h3 {
+                color: #1E3A8A;
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+            }
 
-        .job-card h3 a {
-            color: #1E3A8A;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
+                .job-card h3 a {
+                    color: #1E3A8A;
+                    text-decoration: none;
+                    transition: color 0.3s ease;
+                }
 
-        .job-card h3 a:hover {
-            color: #F97316;
-            text-decoration: underline;
-        }
+                    .job-card h3 a:hover {
+                        color: #F97316;
+                        text-decoration: underline;
+                    }
 
-        .job-card p {
-            color: #6B7280;
-            font-size: 1rem;
-            margin: 0.3rem 0;
-            line-height: 1.5;
-        }
+            .job-card p {
+                color: #6B7280;
+                font-size: 1rem;
+                margin: 0.3rem 0;
+                line-height: 1.5;
+            }
 
-        .job-card p strong {
-            color: #374151;
-        }
+                .job-card p strong {
+                    color: #374151;
+                }
 
-        .job-card .details span {
-            margin-right: 1.2rem;
-            color: #374151;
-            font-size: 0.95rem;
-        }
+            .job-card .details span {
+                margin-right: 1.2rem;
+                color: #374151;
+                font-size: 0.95rem;
+            }
 
-        .job-card .btn-details {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
+            .job-card .btn-details {
+                background-color: #F97316;
+                border: none;
+                color: #FFFFFF;
+                padding: 0.6rem 1.8rem;
+                font-weight: 600;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 0.95rem;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
 
-        .job-card .btn-details:hover {
-            background-color: #E86100;
-            transform: translateY(-2px);
-        }
+                .job-card .btn-details:hover {
+                    background-color: #E86100;
+                    transform: translateY(-2px);
+                }
 
         .container {
             max-width: 1200px;
@@ -182,50 +105,45 @@
             font-size: 1.2rem;
             margin-top: 2rem;
         }
-
-        
     </style>
-</head>
-<body>
+}
 
-
-    <!-- Lista de Ofertas -->
-    <section class="jobs-section">
-        <h2>Todas las Ofertas de Empleo</h2>
-        <div class="container">
-            @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+<!-- Lista de Ofertas -->
+<section class="jobs-section">
+    <h2>Todas las Ofertas de Empleo</h2>
+    <div class="container">
+        @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+        {
+            foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
             {
-                foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
-                {
-                            <div class="job-card">
-                                <div>
-                                    <h3>
-                                        <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
-                                    @oferta.Titulo
-                                        </a>
-                                    </h3>
-                                    <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
-                                    <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
-                                    <div class="details">
-                                        <span><strong>Salario:</strong> @oferta.Salario</span>
-                                        <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
-                                        <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
-                                        <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
-                                    </div>
-                                </div>
-                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
-                            </div>
-                }
+                <div class="job-card">
+                    <div>
+                        <h3>
+                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
+                                @oferta.Titulo
+                            </a>
+                        </h3>
+                        <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
+                        <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
+                        <div class="details">
+                            <span><strong>Salario:</strong> @oferta.Salario</span>
+                            <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
+                            <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
+                            <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
+                        </div>
+                    </div>
+                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
+                </div>
             }
-            else
-            {
-                    <p class="no-offers">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
-            }
-        </div>
-    </section>
+        }
+        else
+        {
+            <p class="no-offers">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
+        }
+    </div>
+</section>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
@@ -250,5 +168,4 @@
             });
         }
     </script>
-</body>
-</html>
+}
