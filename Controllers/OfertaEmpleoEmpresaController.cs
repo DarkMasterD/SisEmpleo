@@ -20,7 +20,7 @@ namespace SisEmpleo.Controllers
         public IActionResult NuevaOferta()
         {
             List<Pais> paises = (from p in _EmpleoContext.Pais
-                        select p).ToList();
+                                 select p).ToList();
 
             ViewBag.Pais = new SelectList(paises, "id_pais", "nombre");
 
@@ -40,7 +40,7 @@ namespace SisEmpleo.Controllers
         public IActionResult NuevaOferta([FromForm] OfertaEmpleo oferta)
         {
             oferta.id_empresa = Convert.ToInt32(HttpContext.Session.GetInt32("id_empresa"));
-            oferta.estado = 'A';
+            oferta.estado.Equals(true);
             oferta.fecha_publicacion = DateTime.Now;
 
             _EmpleoContext.OfertaEmpleo.Add(oferta);
@@ -65,7 +65,7 @@ namespace SisEmpleo.Controllers
                            {
                                Id = o.id_ofertaempleo,
                                Titulo = o.titulo,
-                               Vacantes = o.vacantes,
+                               Vacantes = o.vacante,
                                Salario = o.salario,
                                Duracion_Contrato = o.duracion_contrato,
                                Fecha_Publicacion = o.fecha_publicacion,
@@ -105,14 +105,14 @@ namespace SisEmpleo.Controllers
         public IActionResult EditarOferta([FromForm] OfertaEmpleo ofertaMod)
         {
             OfertaEmpleo? ofertaAct = (from o in _EmpleoContext.OfertaEmpleo
-                                    where o.id_ofertaempleo == ofertaMod.id_ofertaempleo
-                                    select o).FirstOrDefault();
+                                       where o.id_ofertaempleo == ofertaMod.id_ofertaempleo
+                                       select o).FirstOrDefault();
 
             ofertaAct.id_pais = ofertaMod.id_pais;
             ofertaAct.id_provincia = ofertaMod.id_provincia;
             ofertaAct.titulo = ofertaMod.titulo;
             ofertaAct.descripcion = ofertaMod.descripcion;
-            ofertaAct.vacantes = ofertaMod.vacantes;
+            ofertaAct.vacante = ofertaMod.vacante;
             ofertaAct.salario = ofertaMod.salario;
             ofertaAct.horario = ofertaMod.horario;
             ofertaAct.duracion_contrato = ofertaMod.duracion_contrato;
@@ -126,60 +126,74 @@ namespace SisEmpleo.Controllers
         [HttpGet]
         public IActionResult VerPostulantesEmpresa(int id_ofertaempleo, string nivelExperiencia = null)
         {
-            var query = (from oc in _EmpleoContext.OfertaCandidatos
-                         join u in _EmpleoContext.Usuario on oc.id_usuario equals u.id_usuario
-                         join p in _EmpleoContext.Postulante on u.id_usuario equals p.id_usuario
-                         join c in _EmpleoContext.Contacto on u.id_usuario equals c.id_usuario
-                         join cur in _EmpleoContext.Curriculum on p.id_postulante equals cur.id_postulante
-                         join exp in _EmpleoContext.ExperienciaProfesional on cur.id_curriculum equals exp.id_curriculum into experiencias
-                         from exp in experiencias.DefaultIfEmpty()
-                         where oc.id_ofertaempleo == id_ofertaempleo
-                         select new
-                         {
-                             IdPostulante = p.id_postulante,
-                             Nombre = p.nombre,
-                             Email = c.email,
-                             Telefono = c.telefono,
-                             IdUsuario = u.id_usuario,
-                             FechaInicioExperiencia = exp != null ? exp.fecha_inicio : (DateTime?)null,
-                             FechaFinExperiencia = exp != null ? exp.fecha_fin : (DateTime?)null
-                         }).AsEnumerable(); // Traemos los datos a memoria para procesar
-
-            // Agrupa por postulante y sumamos todos los años 
-            var postulantes = query
-                .GroupBy(p => new { p.IdPostulante, p.Nombre, p.Email, p.Telefono, p.IdUsuario })
-                .Select(g =>
-                {
-                    var totalAnios = g.Sum(p => CalcularAniosExperiencia(p.FechaInicioExperiencia, p.FechaFinExperiencia));
-                    return new
-                    {
-                        g.Key.IdPostulante,
-                        g.Key.Nombre,
-                        g.Key.Email,
-                        g.Key.Telefono,
-                        g.Key.IdUsuario,
-                        Experiencia = ClasificarExperiencia(totalAnios)
-                    };
-                })
-                .ToList();
-
-            // Filtrar por nivel de experiencia 
-            if (!string.IsNullOrEmpty(nivelExperiencia))
+            try
             {
-                postulantes = postulantes.Where(p => p.Experiencia == nivelExperiencia).ToList();
+                // Consulta principal para obtener postulantes
+                var query = (from oc in _EmpleoContext.OfertaCandidatos
+                             join u in _EmpleoContext.Usuario on oc.id_usuario equals u.id_usuario
+                             join p in _EmpleoContext.Postulante on u.id_usuario equals p.id_usuario
+                             join c in _EmpleoContext.Contacto on u.id_usuario equals c.id_usuario
+                             join cur in _EmpleoContext.Curriculum on p.id_postulante equals cur.id_postulante
+                             join exp in _EmpleoContext.ExperienciaProfesional on cur.id_curriculum equals exp.id_curriculum into experiencias
+                             from exp in experiencias.DefaultIfEmpty()
+                             where oc.id_ofertaempleo == id_ofertaempleo
+                             select new
+                             {
+                                 IdPostulante = p.id_postulante,
+                                 Nombre = p.nombre,
+                                 Email = c.email,
+                                 Telefono = c.telefono,
+                                 IdUsuario = u.id_usuario,
+                                 FechaInicioExperiencia = exp != null ? exp.fecha_inicio : (DateTime?)null,
+                                 FechaFinExperiencia = exp != null ? exp.fecha_fin : (DateTime?)null
+                             }).AsEnumerable();
+
+                // Procesamiento de postulantes y cálculo de experiencia
+                var postulantes = query
+                    .GroupBy(p => new { p.IdPostulante, p.Nombre, p.Email, p.Telefono, p.IdUsuario })
+                    .Select(g =>
+                    {
+                        var totalAnios = g.Sum(p => CalcularAniosExperiencia(p.FechaInicioExperiencia, p.FechaFinExperiencia));
+                        return new
+                        {
+                            g.Key.IdPostulante,
+                            g.Key.Nombre,
+                            g.Key.Email,
+                            g.Key.Telefono,
+                            g.Key.IdUsuario,
+                            Experiencia = ClasificarExperiencia(totalAnios)
+                        };
+                    })
+                    .ToList();
+
+                // Filtrado por nivel de experiencia si se especificó
+                if (!string.IsNullOrEmpty(nivelExperiencia))
+                {
+                    postulantes = postulantes.Where(p => p.Experiencia == nivelExperiencia).ToList();
+                }
+
+                // SOLUCIÓN DEFINITIVA PARA OBTENER EL TÍTULO
+                string ofertaTitulo = _EmpleoContext.OfertaEmpleo
+                    .Where(o => o.id_ofertaempleo == id_ofertaempleo)
+                    .Select(o => o.titulo)
+                    .FirstOrDefault() ?? "Sin título";
+
+                // Configuración de ViewBag y ViewData
+                ViewBag.OfertaTitulo = ofertaTitulo;
+                ViewBag.IdOferta = id_ofertaempleo;
+                ViewBag.NivelesExperiencia = new List<string> { "Sin experiencia", "1-3 años", "3-5 años", "Más de 5 años" };
+                ViewBag.NivelSeleccionado = nivelExperiencia;
+                ViewData["Postulantes"] = postulantes;
+
+                return View();
             }
+            catch (Exception ex)
+            {
 
-            var oferta = _EmpleoContext.OfertaEmpleo
-                .FirstOrDefault(o => o.id_ofertaempleo == id_ofertaempleo)?.titulo;
-
-            ViewBag.OfertaTitulo = oferta;
-            ViewBag.IdOferta = id_ofertaempleo;
-            ViewBag.NivelesExperiencia = new List<string> { "Sin experiencia", "1-3 años", "3-5 años", "Más de 5 años" };
-            ViewBag.NivelSeleccionado = nivelExperiencia;
-            ViewData["Postulantes"] = postulantes;
-
-            return View();
+                return View();
+            }
         }
+
 
         // Método para calcular años de experiencia entre dos fechas
         private double CalcularAniosExperiencia(DateTime? fechaInicio, DateTime? fechaFin)

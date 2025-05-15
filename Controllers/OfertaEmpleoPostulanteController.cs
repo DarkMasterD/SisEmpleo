@@ -33,7 +33,7 @@ namespace SisEmpleo.Controllers
                            {
                                Id = o.id_ofertaempleo,
                                Titulo = o.titulo,
-                               Vacantes = o.vacantes,
+                               Vacantes = o.vacante,
                                Salario = o.salario,
                                Duracion_Contrato = o.duracion_contrato,
                                Fecha_Publicacion = o.fecha_publicacion,
@@ -95,7 +95,7 @@ namespace SisEmpleo.Controllers
                           {
                               Id = o.id_ofertaempleo,
                               Titulo = o.titulo,
-                              Vacantes = o.vacantes,
+                              Vacantes = o.vacante,
                               Salario = o.salario,
                               Duracion_Contrato = o.duracion_contrato,
                               Fecha_Publicacion = o.fecha_publicacion,
@@ -146,7 +146,7 @@ namespace SisEmpleo.Controllers
                           {
                               Id = o.id_ofertaempleo,
                               Titulo = o.titulo,
-                              Vacantes = o.vacantes,
+                              Vacantes = o.vacante,
                               Salario = o.salario,
                               Duracion_Contrato = o.duracion_contrato,
                               Fecha_Publicacion = o.fecha_publicacion,
@@ -185,7 +185,7 @@ namespace SisEmpleo.Controllers
                            {
                                Id = o.id_ofertaempleo,
                                Titulo = o.titulo,
-                               Vacantes = o.vacantes,
+                               Vacantes = o.vacante,
                                Salario = o.salario,
                                Duracion_Contrato = o.duracion_contrato,
                                Fecha_Publicacion = o.fecha_publicacion,
