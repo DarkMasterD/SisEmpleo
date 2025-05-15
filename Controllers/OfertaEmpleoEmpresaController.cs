@@ -185,6 +185,19 @@ namespace SisEmpleo.Controllers
                 ViewBag.NivelSeleccionado = nivelExperiencia;
                 ViewData["Postulantes"] = postulantes;
 
+                // Obtener los requisitos asociados a la oferta
+                var requisitos = (from ro in _EmpleoContext.RequisitoOferta
+                                  join r in _EmpleoContext.Requisito on ro.id_requisito equals r.id_requisito
+                                  where ro.id_ofertaempleo == id_ofertaempleo
+                                  select new
+                                  {
+                                      Id = r.id_requisito,
+                                      Descripcion = r.descripcion
+                                  }).ToList();
+
+                // Pasarlo a la vista
+                ViewBag.Requisitos = requisitos;
+
                 return View();
             }
             catch (Exception ex)
