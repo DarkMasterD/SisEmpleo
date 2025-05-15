@@ -11,6 +11,8 @@ namespace SisEmpleo.Models
 
         public DbSet<CategoriaProfesional> CategoriaProfesional {  get; set; }
         public DbSet<Contacto> Contacto {  get; set; }
+        public DbSet<Habilidad> Habilidad { get; set; }
+        public DbSet<Habilidad> Habilidad_Curriculum { get; set; }
         public DbSet<Curriculum> Curriculum {  get; set; }
         public DbSet<Empresa> Empresa {  get; set; }
         public DbSet<Especialidad> Especialidad {  get; set; }

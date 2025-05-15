@@ -1,0 +1,474 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workeen - Encuentra tu Trabajo Ideal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.2rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand img {
+            width: 45px;
+            margin-right: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1);
+        }
+
+        .navbar-brand {
+            color: #1E3A8A;
+            font-weight: 700;
+            font-size: 1.6rem;
+            text-decoration: none;
+        }
+
+        .btn-profile {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-profile:hover {
+                background-color: #152A66;
+                transform: translateY(-2px);
+            }
+
+        .btn-logout {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-logout:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .btn-post-offer {
+            background-color: #F97316;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-post-offer:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+            }
+
+        .btn-list-offers {
+            background-color: #1E3A8A;
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-list-offers:hover {
+                background-color: #152A66;
+                transform: translateY(-2px);
+            }
+
+        .notification-badge {
+            position: relative;
+            display: inline-block;
+            margin-right: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+            .notification-badge:hover {
+                transform: scale(1.1);
+            }
+
+            .notification-badge .bi-bell {
+                font-size: 1.6rem;
+                color: #1E3A8A;
+                transition: color 0.3s ease;
+            }
+
+            .notification-badge:hover .bi-bell {
+                color: #F97316;
+            }
+
+            .notification-badge .badge {
+                position: absolute;
+                top: -12px;
+                right: -12px;
+                background-color: #F97316;
+                color: #FFFFFF;
+                font-size: 0.85rem;
+                font-weight: 600;
+                border-radius: 50%;
+                padding: 0.4rem 0.7rem;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                transition: background-color 0.3s ease;
+            }
+
+            .notification-badge:hover .badge {
+                background-color: #E86100;
+            }
+
+        .hero-section {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(249, 115, 22, 0.7)), url('/img/hero-bg.jpg') no-repeat center center;
+            background-size: cover;
+            color: #FFFFFF;
+            text-align: center;
+            padding: 7rem 2rem;
+            position: relative;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero-content p {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 2.5rem;
+        }
+
+        .categories-section {
+            padding: 5rem 2rem;
+            text-align: center;
+            background-color: #FFFFFF;
+        }
+
+            .categories-section h2 {
+                color: #1E3A8A;
+                font-weight: 700;
+                margin-bottom: 3rem;
+                font-size: 2.5rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+        .category-card {
+            background-color: #FFFFFF;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+            .category-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            }
+
+            .category-card img {
+                width: 65px;
+                margin-bottom: 1.2rem;
+                transition: transform 0.3s ease;
+            }
+
+            .category-card:hover img {
+                transform: scale(1.1);
+            }
+
+            .category-card h3 {
+                color: #374151;
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .category-card p {
+                color: #6B7280;
+                font-size: 1.05rem;
+                margin: 0;
+            }
+
+        .jobs-section {
+            padding: 5rem 2rem;
+            background-color: #F4F6F9;
+        }
+
+            .jobs-section h2 {
+                color: #1E3A8A;
+                font-weight: 700;
+                margin-bottom: 2.5rem;
+                text-align: center;
+                font-size: 2.5rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+        .job-card {
+            background-color: #FFFFFF;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 140px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .job-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+            }
+
+            .job-card h3 {
+                color: #374151;
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .job-card p {
+                color: #6B7280;
+                font-size: 1rem;
+                margin: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .job-card a.btn {
+                background-color: #F97316;
+                border: none;
+                color: #FFFFFF;
+                padding: 0.6rem 1.8rem;
+                font-weight: 600;
+                border-radius: 8px;
+                text-decoration: none;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .job-card a.btn:hover {
+                    background-color: #E86100;
+                    transform: translateY(-2px);
+                }
+
+        .no-offers {
+            text-align: center;
+            color: #6B7280;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+        }
+
+            .no-offers a {
+                color: #F97316;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+                .no-offers a:hover {
+                    text-decoration: underline;
+                    color: #E86100;
+                }
+
+        .footer {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            padding: 3rem;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+            .footer a {
+                color: #F97316;
+                text-decoration: none;
+                margin: 0 0.75rem;
+                transition: color 0.3s ease;
+            }
+
+                .footer a:hover {
+                    color: #FFFFFF;
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+<body class="" style="background-color:azure">
+
+    <div class="container mt-5">
+
+        <div class="card shadow-sm p-4 rounded-4 mb-3">
+            <h4 class="mb-4">🔍 Filtrar Notificaciones</h4>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="cboCategoria" class="form-label">Categoría</label>
+                    @Html.DropDownList("id_categoria", ViewBag.Categorias as SelectList, "Seleccione una categoría", new { @class = "form-select", id = "cboCategoria" })
+                </div>
+                <div class="col-md-5">
+                    <label for="cboSubCategoria" class="form-label">Subcategoría</label>
+                    <select id="cboSubCategoria" name="id_subcategoria" class="form-select">
+                        <option value="">Seleccione una subcategoría</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button id="btnBuscar" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-gradient-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0"><i class="fas fa-bell mr-2"></i>  Notificaciones</h3>
+                </div>
+            </div>
+
+            <div id="resultadoNoti" class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="pl-4">Título</th>
+                                <th scope="col">Mensaje</th>
+                                <th scope="col" class="text-center">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in (IEnumerable<dynamic>)ViewBag.Ofertas)
+                            {
+                                    <tr class="notification-unread">
+                                        <td class="pl-4 font-weight-bold">@item.Titulo</td>
+                                        <td class="text-truncate" style="max-width: 250px;">Se ha implementado una nueva actualización con mejoras de rendimiento...</td>
+                                        <td class="text-center text-muted">@item.Fecha.ToString("dd/MM/yyyy")</td>
+                                    </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .notification-unread {
+            background-color: #f8f9fa;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .rounded-circle {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $("#cboCategoria").change(function () {
+            var categoriaId = $(this).val();
+            $("#cboSubCategoria").empty().append('<option value="">Cargando...</option>');
+            if (categoriaId != 0) {
+                $.getJSON('/Home/ObtenerSubCategoriaSubs', { id_categoria: categoriaId }, function (data) {
+                    $("#cboSubCategoria").empty().append('<option value="">Seleccione una subcategoria</option>');
+                    $.each(data, function (i, item) {
+                        $("#cboSubCategoria").append('<option value="' + item.id + '">' + item.subCategoria + '</option>');
+                    });
+                });
+            } else {
+                $("#cboSubCategoria").empty().append('<option value="">Seleccione una subcategoria</option>');
+            }
+        });
+
+        $("#btnBuscar").click(function () {
+
+            let idCate = $('#cboCategoria').val();
+            let idSubCate = $('#cboSubCategoria').val();
+
+            $.ajax({
+                url: "/Home/NotificacionesFiltro",
+                type: "GET",
+                data: { id_categoria: idCate, id_subcategoria: idSubCate },
+                success: function (response) {
+                    $("#resultadoNoti").html("");
+                    $("#resultadoNoti").html(response);
+                },
+                error: function () {
+                    alert("Error");
+                }
+            });
+        });
+        VerNoti();
+    });
+
+    setInterval(function () {
+            VerNoti();
+        }, 300000);
+
+        function VerNoti() {
+            $.ajax({
+                url: '/Home/CantNotificaciones',
+                type: 'POST',
+                success: function (data) {
+                    $('#Notificaciones').text(data.cantidad);
+                },
+                error: function () {
+                    console.error("Error al obtener las notificaciones");
+                    $('#Notificaciones').text('0'); // Fallback to 0 on error
+                }
+            });
+        }
+</script>
