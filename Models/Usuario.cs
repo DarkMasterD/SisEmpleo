@@ -9,5 +9,7 @@ namespace SisEmpleo.Models
         public string email { get; set; }
         public string contrasenia { get; set; }
         public char tipo_usuario { get; set; }
+        public DateTime fecha_creacion { get; set; }
+        public DateTime last_login { get; set; }
     }
 }
