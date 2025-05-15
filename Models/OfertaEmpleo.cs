@@ -12,8 +12,8 @@ namespace SisEmpleo.Models
         public int id_empresa { get; set; }
         public string titulo { get; set; }
         public string descripcion { get; set; }
-        public int vacantes { get; set; }
-        public double salario { get; set; }
+        public int vacante { get; set; }
+        public float salario { get; set; }
         public string horario { get; set; }
         public string duracion_contrato { get; set; }
         public DateTime fecha_publicacion { get; set; }

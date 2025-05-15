@@ -197,7 +197,6 @@
                 background-color: #4B5563;
             }
 
-
     </style>
 </head>
 <body>
@@ -274,6 +273,20 @@
                             }
                         </select>
                     </div>
+
+                    <div class="col-md-12">
+                        <label for="filtroRequisitos" class="form-label">Requisitos que debe cumplir</label>
+                        <select class="form-select" id="filtroRequisitos" multiple>
+                            @if (ViewBag.Requisitos != null)
+                            {
+                                foreach (var req in ViewBag.Requisitos)
+                                {
+                                    <option value="@req.Id">@req.Descripcion</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">Puedes seleccionar múltiples requisitos manteniendo presionada la tecla Ctrl o Cmd.</small>
+                    </div>
                     <div class="col-12">
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" id="limpiarFiltros" class="btn">
@@ -286,6 +299,8 @@
                     </div>
                 </form>
             </div>
+
+            
         </div>
 
         <!-- Tabla de Postulantes -->
