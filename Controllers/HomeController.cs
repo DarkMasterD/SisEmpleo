@@ -53,7 +53,7 @@ namespace SisEmpleo.Controllers
                 model.Ofertas = (from oe in _EmpleoContext.OfertaEmpleo
                                  join p in _EmpleoContext.Pais on oe.id_pais equals p.id_pais
                                  join pro in _EmpleoContext.Provincia on oe.id_provincia equals pro.id_provincia
-                                 where oe.id_empresa == idEmpresa && oe.estado == 'A'
+                                 where oe.id_empresa == idEmpresa && oe.estado.Equals(true)
                                  orderby oe.fecha_publicacion descending
                                  select new OfertaEmpleo
                                  {
@@ -62,7 +62,7 @@ namespace SisEmpleo.Controllers
                                      id_provincia = oe.id_provincia,
                                      id_empresa = oe.id_empresa,
                                      titulo = oe.titulo,
-                                     vacantes = oe.vacantes,
+                                     vacante = oe.vacante,
                                      PaisNombre = p.nombre,
                                      ProvinciaNombre = pro.nombre
                                  }).Take(3).ToList();
@@ -88,7 +88,7 @@ namespace SisEmpleo.Controllers
                                  join p in _EmpleoContext.Pais on oe.id_pais equals p.id_pais
                                  join pro in _EmpleoContext.Provincia on oe.id_provincia equals pro.id_provincia
                                  join e in _EmpleoContext.Empresa on oe.id_empresa equals e.id_empresa
-                                 where categoriasSuscritas.Contains(oc.id_categoriaprofesional) && oe.estado == 'A'
+                                 where categoriasSuscritas.Contains(oc.id_categoriaprofesional) && oe.estado.Equals(true)
                                  orderby oe.fecha_publicacion descending
                                  select new OfertaEmpleo
                                  {
@@ -97,7 +97,7 @@ namespace SisEmpleo.Controllers
                                      id_provincia = oe.id_provincia,
                                      id_empresa = oe.id_empresa,
                                      titulo = oe.titulo,
-                                     vacantes = oe.vacantes,
+                                     vacante = oe.vacante,
                                      PaisNombre = p.nombre,
                                      ProvinciaNombre = pro.nombre,
                                      EmpresaNombre = e.nombre
@@ -128,7 +128,7 @@ namespace SisEmpleo.Controllers
                            on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
                            join o in _EmpleoContext.OfertaEmpleo
                            on oc.id_ofertaempleo equals o.id_ofertaempleo
-                           where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
+                           where o.estado.Equals(true) && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                            && sc.id_usuario == id_usuario
                            select new
                            {
@@ -165,7 +165,7 @@ namespace SisEmpleo.Controllers
                            on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
                            join o in _EmpleoContext.OfertaEmpleo
                            on oc.id_ofertaempleo equals o.id_ofertaempleo
-                           where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
+                           where o.estado.Equals(true) && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                            && sc.id_usuario == id_usuario && sc.id_categoriaprofesional == id_categoria
                            && sc.id_subcategoriaprofesional == id_subcategoria
                            select new
@@ -210,7 +210,7 @@ namespace SisEmpleo.Controllers
                                on new { sc.id_categoriaprofesional, sc.id_subcategoriaprofesional } equals new { oc.id_categoriaprofesional, oc.id_subcategoriaprofesional }
                                join o in _EmpleoContext.OfertaEmpleo
                                on oc.id_ofertaempleo equals o.id_ofertaempleo
-                               where o.estado == 'A' && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
+                               where o.estado.Equals(true) && o.fecha_publicacion >= DateTime.Now.AddDays(-7)
                                && sc.id_usuario == id_usuario
                                select new
                                {

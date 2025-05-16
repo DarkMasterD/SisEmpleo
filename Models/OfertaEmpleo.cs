@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SisEmpleo.Models
 {
@@ -11,17 +12,19 @@ namespace SisEmpleo.Models
         public int id_empresa { get; set; }
         public string titulo { get; set; }
         public string descripcion { get; set; }
-        public int vacantes { get; set; }
-        public double salario { get; set; }
+        public int vacante { get; set; }
+        public float salario { get; set; }
         public string horario { get; set; }
         public string duracion_contrato { get; set; }
         public DateTime fecha_publicacion { get; set; }
         public char estado { get; set; }
 
         //
-
+        [NotMapped]
         public string PaisNombre { get; set; }
+        [NotMapped]
         public string ProvinciaNombre { get; set; }
+        [NotMapped]
         public string EmpresaNombre { get; set; }
     }
 

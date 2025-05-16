@@ -1,15 +1,8 @@
 ﻿@{
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workeen - Lista de Ofertas de Empleo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+@section Styles {
     <style>
         body {
             background-color: #F4F6F9;
@@ -17,101 +10,6 @@
             font-family: 'Segoe UI', Arial, sans-serif;
             color: #333;
         }
-
-        .navbar {
-            background-color: #FFFFFF;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            padding: 1.2rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-
-        .navbar-brand img {
-            width: 45px;
-            margin-right: 0.75rem;
-            transition: transform 0.3s ease;
-        }
-
-        .navbar-brand:hover img {
-            transform: scale(1.1);
-        }
-
-        .navbar-brand {
-            color: #1E3A8A;
-            font-weight: 700;
-            font-size: 1.6rem;
-            text-decoration: none;
-        }
-
-        .btn-profile {
-            background-color: #1E3A8A;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-            .btn-profile:hover {
-                background-color: #152A66;
-                transform: translateY(-2px);
-            }
-
-        .btn-logout {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-            .btn-logout:hover {
-                background-color: #E86100;
-                transform: translateY(-2px);
-            }
-
-        .notification-badge {
-            position: relative;
-            display: inline-block;
-            margin-right: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-
-            .notification-badge:hover {
-                transform: scale(1.1);
-            }
-
-            .notification-badge .bi-bell {
-                font-size: 1.6rem;
-                color: #1E3A8A;
-                transition: color 0.3s ease;
-            }
-
-            .notification-badge:hover .bi-bell {
-                color: #F97316;
-            }
-
-            .notification-badge .badge {
-                position: absolute;
-                top: -12px;
-                right: -12px;
-                background-color: #F97316;
-                color: #FFFFFF;
-                font-size: 0.85rem;
-                font-weight: 600;
-                border-radius: 50%;
-                padding: 0.4rem 0.7rem;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                transition: background-color 0.3s ease;
-            }
-
-            .notification-badge:hover .badge {
-                background-color: #E86100;
-            }
 
         .jobs-section {
             padding: 5rem 2rem;
@@ -211,95 +109,47 @@
             font-size: 1.2rem;
             margin-top: 2rem;
         }
-
-        .footer {
-            background-color: #1E3A8A;
-            color: #FFFFFF;
-            padding: 3rem;
-            text-align: center;
-            font-size: 1.1rem;
-        }
-
-            .footer a {
-                color: #F97316;
-                text-decoration: none;
-                margin: 0 0.75rem;
-                transition: color 0.3s ease;
-            }
-
-                .footer a:hover {
-                    color: #FFFFFF;
-                    text-decoration: underline;
-                }
     </style>
-</head>
-<body>
-    <!-- Header -->
-    <nav class="navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
-            </a>
-            <div class="d-flex align-items-center">
-                <a href="/Notifications" class="notification-badge me-3">
-                    <i class="bi bi-bell"></i>
-                    <span id="Notificaciones" class="badge">0</span>
-                </a>
-                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
-                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
-            </div>
-        </div>
-    </nav>
+}
 
-    <!-- Jobs Section -->
-    <section class="jobs-section">
-        <h2>Ofertas de Empleo</h2>
-        <div class="container">
-            <ul>
-                @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
-                {
-                    <li>
-                        <div class="job-card">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h4>
-                                        <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
-                                            @oferta.Titulo
-                                        </a>
-                                    </h4>
-                                    <div class="company">@oferta.Nombre_Empresa</div>
-                                </div>
-                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn btn-details">Ver Detalles</a>
-                            </div>
-                            <div class="details">
-                                <span><strong>Salario:</strong> S/ @oferta.Salario</span>
-                                <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
-                                <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
-                                <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
-                            </div>
-                        </div>
-                    </li>
-                }
-            </ul>
-            @if (!((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+<!-- Jobs Section -->
+<section class="jobs-section">
+    <h2>Ofertas de Empleo</h2>
+    <div class="container">
+        <ul>
+            @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
             {
-                <p class="no-offers">No se encontraron ofertas.</p>
+                <li>
+                    <div class="job-card">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h4>
+                                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
+                                        @oferta.Titulo
+                                    </a>
+                                </h4>
+                                <div class="company">@oferta.Nombre_Empresa</div>
+                            </div>
+                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn btn-details">Ver Detalles</a>
+                        </div>
+                        <div class="details">
+                            <span><strong>Salario:</strong> S/ @oferta.Salario</span>
+                            <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
+                            <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
+                            <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion</span>
+                        </div>
+                    </div>
+                </li>
             }
-        </div>
-    </section>
+        </ul>
+        @if (!((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+        {
+            <p class="no-offers">No se encontraron ofertas.</p>
+        }
+    </div>
+</section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 Workeen. Todos los derechos reservados.</p>
-        <p>
-            <a href="/contacto">Contacto</a> |
-            <a href="/terminos">Términos y Condiciones</a> |
-            <a href="/privacidad">Política de Privacidad</a>
-        </p>
-    </footer>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
@@ -324,5 +174,4 @@
             });
         }
     </script>
-</body>
-</html>
+}

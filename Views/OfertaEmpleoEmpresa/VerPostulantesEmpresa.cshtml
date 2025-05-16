@@ -1,6 +1,5 @@
 ﻿@{
     ViewData["Title"] = "Postulantes";
-    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -16,23 +15,6 @@
             background-color: #F4F6F9;
             margin: 0;
             font-family: Arial, sans-serif;
-        }
-
-        .navbar {
-            background-color: #FFFFFF;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            padding: 1rem 2rem;
-        }
-
-        .navbar-brand img {
-            width: 40px;
-            margin-right: 0.5rem;
-        }
-
-        .navbar-brand {
-            color: #1E3A8A;
-            font-weight: bold;
-            font-size: 1.5rem;
         }
 
         .btn-profile {
@@ -215,36 +197,9 @@
                 background-color: #4B5563;
             }
 
-        .footer {
-            background-color: #1E3A8A;
-            color: #FFFFFF;
-            padding: 2rem;
-            text-align: center;
-        }
-
-            .footer a {
-                color: #F97316;
-                text-decoration: none;
-            }
-
-                .footer a:hover {
-                    text-decoration: underline;
-                }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <nav class="navbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/">
-                <img src="/img/logo.png" alt="Logo Workeen"> Workeen
-            </a>
-            <div>
-                <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
-                <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
-            </div>
-        </div>
-    </nav>
 
     <!-- Contenido Principal -->
     <div class="container">
@@ -318,6 +273,20 @@
                             }
                         </select>
                     </div>
+
+                    <div class="col-md-12">
+                        <label for="filtroRequisitos" class="form-label">Requisitos que debe cumplir</label>
+                        <select class="form-select" id="filtroRequisitos" multiple>
+                            @if (ViewBag.Requisitos != null)
+                            {
+                                foreach (var req in ViewBag.Requisitos)
+                                {
+                                    <option value="@req.Id">@req.Descripcion</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">Puedes seleccionar múltiples requisitos manteniendo presionada la tecla Ctrl o Cmd.</small>
+                    </div>
                     <div class="col-12">
                         <div class="d-flex justify-content-end gap-2">
                             <button type="button" id="limpiarFiltros" class="btn">
@@ -330,6 +299,8 @@
                     </div>
                 </form>
             </div>
+
+            
         </div>
 
         <!-- Tabla de Postulantes -->
@@ -377,12 +348,6 @@
             <i class="fas fa-arrow-left"></i> Volver a ofertas
         </a>
     </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <p>© 2025 Workeen. Todos los derechos reservados.</p>
-        <p><a href="/contacto">Contacto</a> | <a href="/terminos">Términos y Condiciones</a> | <a href="/privacidad">Política de Privacidad</a></p>
-    </footer>
 
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

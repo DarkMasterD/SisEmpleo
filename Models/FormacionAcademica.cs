@@ -7,10 +7,9 @@ namespace SisEmpleo.Models
         [Key]
         public int id_formacionacademica { get; set; }
         public int id_curriculum { get; set; }
-        public int id_especialidad { get; set; }
-        public int id_titulo { get; set; }
         public int id_institucion { get; set; }
-        public DateTime fecha { get; set; }
+        public int id_titulo { get; set; }
+
 
 
         public virtual Especialidad Especialidad { get; set; }

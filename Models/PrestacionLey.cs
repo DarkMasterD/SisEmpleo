@@ -2,10 +2,10 @@
 
 namespace SisEmpleo.Models
 {
-    public class Especialidad
+    public class PrestacionLey
     {
         [Key]
-        public int id_especialidad {  get; set; }
+        public int id_prestacionley { get; set; }
         public string? nombre { get; set; }
     }
 }
