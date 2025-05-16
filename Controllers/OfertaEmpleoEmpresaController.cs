@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using SisEmpleo.Models;
 using SisEmpleo.Services;
 
@@ -124,7 +125,7 @@ namespace SisEmpleo.Controllers
             return RedirectToAction("Index", "Home");
         }
         [HttpGet]
-        public IActionResult VerPostulantesEmpresa(int id_ofertaempleo, string nivelExperiencia = null)
+        public IActionResult VerPostulantesEmpresa(int id_ofertaempleo, List<int> filtroRequisitos, string nivelExperiencia = null )
         {
             try
             {
@@ -185,6 +186,7 @@ namespace SisEmpleo.Controllers
                 ViewBag.NivelSeleccionado = nivelExperiencia;
                 ViewData["Postulantes"] = postulantes;
 
+                
                 // Obtener los requisitos asociados a la oferta
                 var requisitos = (from ro in _EmpleoContext.RequisitoOferta
                                   join r in _EmpleoContext.Requisito on ro.id_requisito equals r.id_requisito
@@ -196,12 +198,13 @@ namespace SisEmpleo.Controllers
                                   }).ToList();
 
                 // Pasarlo a la vista
-                ViewBag.Requisitos = requisitos;
+                ViewBag.Requisitos = requisitos; 
 
                 return View();
             }
             catch (Exception ex)
             {
+                ViewBag.Error = "Ocurrió un error: " + ex.Message;
 
                 return View();
             }
