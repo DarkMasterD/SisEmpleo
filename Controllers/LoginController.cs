@@ -9,6 +9,8 @@ namespace SisEmpleo.Controllers
         public string contrasenia { get; set; }
         public string nombre { get; set; }
         public string direccion { get; set; }
+
+
     }
 
     public class RegistroUserEmpresaDTO
