@@ -6,7 +6,6 @@ namespace SisEmpleo.Models
     {
         public EmpleoContext(DbContextOptions<EmpleoContext> options) : base(options) 
         {
-        
         }
 
         public DbSet<CategoriaProfesional> CategoriaProfesional {  get; set; }
