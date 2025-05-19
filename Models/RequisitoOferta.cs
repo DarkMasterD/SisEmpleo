@@ -7,6 +7,6 @@ namespace SisEmpleo.Models
         [Key]
         public int id_requisitooferta { get; set; }
         public int id_ofertaempleo { get; set; }
-        public int id_requisito {  get; set; }
+        public int id_habilidad {  get; set; }
     }
 }

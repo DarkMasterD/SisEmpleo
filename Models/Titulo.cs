@@ -7,8 +7,9 @@ namespace SisEmpleo.Models
         [Key]
         public int id_titulo { get; set; }
         public int id_especialidad { get; set; }
-        public string nombre { get; set; }
-        public string descripcion {  get; set; }
-        public string tipo { get; set; }
+        public string? nombre { get; set; }
+        public string? descripcion {  get; set; }
+        public string? tipo { get; set; }
+        public int id_postulante { get; set; }
     }
 }
