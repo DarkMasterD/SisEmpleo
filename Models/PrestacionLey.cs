@@ -7,5 +7,6 @@ namespace SisEmpleo.Models
         [Key]
         public int id_prestacionley { get; set; }
         public string? nombre { get; set; }
+        public int id_empresa { get; set; }
     }
 }

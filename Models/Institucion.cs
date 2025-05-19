@@ -8,7 +8,8 @@ namespace SisEmpleo.Models
         public int id_institucion { get; set; }
         public int id_pais { get; set; }
         public int id_provincia { get; set; }
-        public string nombre { get; set; }
-        public string descripcion { get; set; } //Pelie tanto por encontrar esto porque se llamaba descripicion
+        public string? nombre { get; set; }
+        public string? direccion{ get; set; } 
+        public int id_postulante { get; set; }
     }
 }
