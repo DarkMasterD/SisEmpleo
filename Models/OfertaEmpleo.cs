@@ -17,7 +17,7 @@ namespace SisEmpleo.Models
         public string horario { get; set; }
         public string duracion_contrato { get; set; }
         public DateTime fecha_publicacion { get; set; }
-        public char estado { get; set; }
+        public bool? estado { get; set; }
 
         //
         [NotMapped]

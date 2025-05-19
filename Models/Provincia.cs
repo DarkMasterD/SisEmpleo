@@ -7,6 +7,6 @@ namespace SisEmpleo.Models
         [Key]
         public int id_provincia {  get; set; }
         public int id_pais { get; set; }
-        public string nombre { get; set; }
+        public string? nombre { get; set; }
     }
 }
