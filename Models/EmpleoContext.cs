@@ -25,6 +25,7 @@ namespace SisEmpleo.Models
         public DbSet<OfertaEmpleo> OfertaEmpleo { get; set; }
         public DbSet<Pais> Pais { get; set; }
         public DbSet<Postulante> Postulante { get; set; }
+        public DbSet<Puesto> Puesto { get; set; }
         public DbSet<Provincia> Provincia { get; set; }
         public DbSet<RequisitoOferta> RequisitoOferta { get; set; }
         public DbSet<SubcategoriaProfesional> SubcategoriaProfesional { get; set; }
