@@ -1,9 +1,11 @@
 ﻿    using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
     using Microsoft.EntityFrameworkCore;
     using SisEmpleo.Models;
+    using SisEmpleo.Models.Viewmodels;
     using SisEmpleo.Services;
 
-    namespace SisEmpleo.Controllers
+namespace SisEmpleo.Controllers
     {
     
         public class PerfilController : Controller
@@ -92,8 +94,68 @@
                 return View(postulante);
             }
 
+            [HttpGet]
+            public IActionResult EditarPerfil()
+            {
+                int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+
+                if (idUsuario == null)
+                {
+                    return RedirectToAction("Login", "Cuenta");
+                }
+
+                var datos = (from u in _context.Usuario
+                             join p in _context.Postulante on u.id_usuario equals p.id_usuario
+                             join c in _context.Contacto on u.id_usuario equals c.id_usuario
+                             where u.id_usuario == idUsuario
+                             select new EditarPerfilViewModel
+                             {
+                                 Nombre = p.nombre,
+                                 Apellidos = p.apellido,
+                                 Email = u.email,
+                                 Telefono = c.telefono,
+                                 Fecha_Nacimiento = p.fecha_nacimiento,
+                                 TipoUsuario = u.tipo_usuario.ToString()
+                             }).FirstOrDefault();
+
+                if (datos == null)
+                {
+                    datos = new EditarPerfilViewModel();
+                }
+
+                // Inicializar listas referenciales (aunque sea vacías si no hay datos en BD)
+                datos.Paises = _context.Pais.Select(p => new SelectListItem
+                {
+                    Value = p.id_pais.ToString(),
+                    Text = p.nombre
+                }).ToList();
+
+                datos.Provincias = _context.Provincia.Select(p => new SelectListItem
+                {
+                    Value = p.id_provincia.ToString(),
+                    Text = p.nombre
+                }).ToList();
+
+                datos.IdiomasDisponibles = _context.Idioma.Select(i => new SelectListItem
+                {
+                    Value = i.id_idioma.ToString(),
+                    Text = i.nombre
+                }).ToList();
+
+                datos.HabilidadesDisponibles = _context.Habilidad.ToList();
+
+                // Inicializar listas seleccionadas y objetos auxiliares si son null
+                datos.IdiomaIds = new List<int>();
+                datos.HabilidadIds = new List<int>();
+                datos.NuevaFormacion = new FormacionAcademica(); // O FormacionInputModel si ese es el tipo correcto
+                datos.NuevaExperiencia = new ExperienciaViewModel(); // O ExperienciaInputModel
+                datos.NuevaCertificacion = new CertificacionViewModel(); // O CertificacionInputModel
+
+                return View(datos);
+            }
+
 
 
         }
 
-    }
+}

@@ -1,4 +1,4 @@
-﻿namespace SisEmpleo.Models
+﻿namespace SisEmpleo.Models.Viewmodels
 {
     public class ExperienciaViewModel
     {
