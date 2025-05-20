@@ -4,33 +4,85 @@
     ViewData["Title"] = "Perfil de Postulante";
 }
 
+
+
 <style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+    }
+
+    .container {
+        max-width: 900px;
+    }
+
+    h2 {
+        font-weight: 600;
+        font-size: 2rem;
+    }
+
     .card {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        border-radius: 16px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        background-color: #fff;
     }
 
     .card-header {
-        background-color: #f8f9fa;
-        font-weight: bold;
-        font-size: 1.2rem;
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
+        background-color: #f1f3f5;
+        font-weight: 600;
+        font-size: 1.25rem;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        padding: 1rem 1.5rem;
     }
 
-    .card-body p, .card-body li {
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
+    .card-body {
+        padding: 1.5rem;
     }
+
+        .card-body p, .card-body li {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+    .badge {
+        font-size: 0.95rem;
+        padding: 0.5em 0.75em;
+        border-radius: 30px;
+    }
+
+        .badge.bg-info {
+            background-color: #e3f2fd;
+            color: #0d6efd;
+        }
+
+        .badge.bg-secondary {
+            background-color: #dee2e6;
+            color: #495057;
+        }
+
+    .section-icon {
+        margin-right: 10px;
+        color: #0d6efd;
+        font-size: 1.3rem;
+        vertical-align: middle;
+    }
+
+    .btn-outline-primary {
+        border-radius: 30px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .btn-outline-primary:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
 
     ul {
         padding-left: 1.2rem;
-    }
-
-    .section-icon {
-        margin-right: 8px;
-        color: #0d6efd;
     }
 </style>
 
@@ -57,7 +109,7 @@
             {
                 @foreach (var idioma in Model.Idiomas)
                 {
-                    <span class="badge bg-secondary me-1">@idioma</span>
+                    <span class="badge bg-secondary me-1 mb-1">@idioma</span>
                 }
             }
             else
@@ -75,7 +127,7 @@
             {
                 @foreach (var habilidad in Model.Habilidades)
                 {
-                    <span class="badge bg-info text-dark me-1">@habilidad</span>
+                    <span class="badge bg-info me-1 mb-1">@habilidad</span>
                 }
             }
             else
@@ -152,7 +204,7 @@
 
     <!-- Botón Editar -->
     <div class="text-center mt-4">
-        <a href="@Url.Action("EditarPerfil", "Postulante")" class="btn btn-outline-primary btn-lg px-4">
+        <a href="@Url.Action("EditarPerfil", "Postulante")" class="btn btn-outline-primary btn-lg px-5">
             <i class="bi bi-pencil-square me-2"></i>Editar Perfil
         </a>
     </div>
