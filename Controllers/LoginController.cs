@@ -10,16 +10,14 @@ namespace SisEmpleo.Controllers
     {
         public string email { get; set; }
         public string contrasenia { get; set; }
-        public string nombre { get; set; }
+        public string nombre_usuario { get; set; }
         public string apellido { get; set; }
-        public int id_pais { get; set; }
-        public int id_provincia { get; set; }
         public string direccion { get; set; }
+         public int id_pais { get; set; }
+        public int id_provincia { get; set; }
         public int id_idioma { get; set; }
         public DateTime fecha_nacimiento { get; set; }
-        public List<SelectListItem> Paises { get; set; } = new();
-        public List<SelectListItem> Provincias { get; set; } = new();
-        public List<SelectListItem> Idiomas { get; set; } = new();
+
     }
 
     public class RegistroUserEmpresaDTO
@@ -47,6 +45,12 @@ namespace SisEmpleo.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ActionResult RecuperarContra()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult Login(string email, string contrasenia)
         {
@@ -56,14 +60,25 @@ namespace SisEmpleo.Controllers
 
             if (usuario != null)
             {
+                // Actualización del last_login (único cambio agregado)
+                usuario.last_login = DateTime.Now;
+                _EmpleoContext.SaveChanges();
+
                 HttpContext.Session.SetInt32("id_usuario", usuario.id_usuario);
                 HttpContext.Session.SetString("tipo_usuario", usuario.tipo_usuario.ToString());
 
                 if (usuario.tipo_usuario == 'P')
                 {
-                    var postulante = (from p in _EmpleoContext.Postulante
-                                      where p.id_usuario == usuario.id_usuario
-                                      select p).FirstOrDefault();
+
+                    var postulante = (from u in _EmpleoContext.Usuario
+                                      join p in _EmpleoContext.Postulante
+                                      on u.id_usuario equals p.id_usuario
+                                      where u.id_usuario == usuario.id_usuario
+                                      select new
+                                      {
+                                          p.id_postulante
+                                      }).FirstOrDefault();
+
                     if (postulante != null)
                     {
                         HttpContext.Session.SetInt32("id_postulante", postulante.id_postulante);
@@ -71,9 +86,16 @@ namespace SisEmpleo.Controllers
                 }
                 else if (usuario.tipo_usuario == 'E')
                 {
-                    var empresa = (from e in _EmpleoContext.Empresa
-                                   where e.id_usuario == usuario.id_usuario
-                                   select e).FirstOrDefault();
+
+                    var empresa = (from u in _EmpleoContext.Usuario
+                                   join e in _EmpleoContext.Empresa
+                                   on u.id_usuario equals e.id_usuario
+                                   where u.id_usuario == usuario.id_usuario
+                                   select new
+                                   {
+                                       e.id_empresa
+                                   }).FirstOrDefault();
+
                     if (empresa != null)
                     {
                         HttpContext.Session.SetInt32("id_empresa", empresa.id_empresa);
@@ -94,35 +116,19 @@ namespace SisEmpleo.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+
+
         [HttpGet]
         public IActionResult RegistrarsePostulante()
         {
-            var model = new RegistroUserPostulanteDTO
-            {
-                Paises = _EmpleoContext.Pais.Select(p => new SelectListItem
-                {
-                    Value = p.id_pais.ToString(),
-                    Text = p.nombre
-                }).ToList(),
-
-                Provincias = _EmpleoContext.Provincia.Select(p => new SelectListItem
-                {
-                    Value = p.id_provincia.ToString(),
-                    Text = p.nombre
-                }).ToList(),
-
-                Idiomas = _EmpleoContext.Idioma.Select(i => new SelectListItem
-                {
-                    Value = i.id_idioma.ToString(),
-                    Text = i.nombre
-                }).ToList()
-            };
-
-            return View(model);
+            ViewBag.Paises = _EmpleoContext.Pais.ToList();
+            ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
+            ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
+            return View();
         }
 
         [HttpPost]
-        public IActionResult RegistrarsePostulante([FromForm] RegistroUserPostulanteDTO datos)
+        public IActionResult RegistrarsePostulante(RegistroUserPostulanteDTO datos)
         {
             if (!ModelState.IsValid)
             {
@@ -152,12 +158,14 @@ namespace SisEmpleo.Controllers
             {
                 Usuario user = new Usuario
                 {
+
+                    nombre_usuario = datos.nombre_usuario,
                     email = datos.email,
-                    contrasenia = datos.contrasenia, // Recuerda hashear la contraseña en producción
+                    contrasenia = datos.contrasenia,
                     tipo_usuario = 'P',
-                    nombre_usuario = datos.nombre,
-                    fecha_creacion = DateTime.UtcNow,
-                    last_login = DateTime.UtcNow,
+                    fecha_creacion = DateTime.Now,
+                    last_login = DateTime.Now,
+
                     estado = 'A'
                 };
 
@@ -167,44 +175,44 @@ namespace SisEmpleo.Controllers
                 Postulante postulante = new Postulante
                 {
                     id_usuario = user.id_usuario,
-                    nombre = datos.nombre,
+
+                    nombre = datos.nombre_usuario,
                     apellido = datos.apellido,
+                    direccion = datos.direccion,
+                    fecha_nacimiento = datos.fecha_nacimiento,
                     id_pais = datos.id_pais,
                     id_provincia = datos.id_provincia,
-                    direccion = datos.direccion,
-                    id_idioma = datos.id_idioma,
-                    fecha_nacimiento = datos.fecha_nacimiento
+                    id_idioma = datos.id_idioma
+
                 };
 
                 _EmpleoContext.Postulante.Add(postulante);
                 _EmpleoContext.SaveChanges();
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Login", "Login");
             }
             catch (Exception ex)
             {
-                datos.Paises = _EmpleoContext.Pais.Select(p => new SelectListItem
-                {
-                    Value = p.id_pais.ToString(),
-                    Text = p.nombre
-                }).ToList();
-
-                datos.Provincias = _EmpleoContext.Provincia.Select(p => new SelectListItem
-                {
-                    Value = p.id_provincia.ToString(),
-                    Text = p.nombre
-                }).ToList();
-
-                datos.Idiomas = _EmpleoContext.Idioma.Select(i => new SelectListItem
-                {
-                    Value = i.id_idioma.ToString(),
-                    Text = i.nombre
-                }).ToList();
-
-                ModelState.AddModelError("", "Error al registrar: " + ex.Message);
-                return View(datos);
+                ViewBag.Error = ex.Message;
+                ViewBag.Paises = _EmpleoContext.Pais.ToList();
+                ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
+                ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
+                return View();
             }
         }
+
+        [HttpGet]
+        public JsonResult ObtenerProvinciasPorPais(int id_pais)
+        {
+            var provincias = _EmpleoContext.Provincia
+                .Where(p => p.id_pais == id_pais)
+                .Select(p => new { p.id_provincia, p.nombre })
+                .ToList();
+
+            return Json(provincias);
+        }
+
+
 
         [HttpGet]
         public IActionResult RegistrarseEmpresa()
