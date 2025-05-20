@@ -26,19 +26,20 @@
                     return RedirectToAction("Login", "Cuenta");
                 }
 
-                var usuario =(from u in _context.Usuario
-                              join p in _context.Postulante 
-                              on u.id_usuario equals p.id_usuario
-                              join c in _context.Contacto
-                              on u.id_usuario equals c.id_usuario
-                              where u.id_usuario == idUsuario
-                              select new { 
-                                Nombre = p.nombre,
-                                Apellido = p.apellido,
-                                Correo = u.email,
-                                Telefono = c.telefono,
+            var usuario = (from u in _context.Usuario
+                           join p in _context.Postulante
+                           on u.id_usuario equals p.id_usuario
+                           join c in _context.Contacto
+                           on u.id_usuario equals c.id_usuario
+                           where u.id_usuario == idUsuario
+                           select new
+                           {
+                               Nombre = p.nombre,
+                               Apellido = p.apellido,
+                               Correo = u.email,
+                               Telefono = c.telefono,
 
-                              })
+                           });
 
                 var idiomas = (from p in _context.Postulante
                                join i in _context.Idioma

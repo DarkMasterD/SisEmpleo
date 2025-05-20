@@ -94,6 +94,7 @@
                 <label class="form-label">Contraseña</label>
                 @Html.Password("contrasenia", "", new { @class = "form-control", @placeholder = "••••••••" })
             </div>
+            <p class="text-center mt-1">¿Olvidaste tu contraseña? <a href="@Url.Action("RecuperarContra", "Login")">Recuperar</a></p>
             <button type="submit" class="btn btn-custom">Iniciar Sesión</button>
         </form>
         <div class="register-links text-center">
