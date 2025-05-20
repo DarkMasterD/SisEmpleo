@@ -1,4 +1,7 @@
-﻿@{
+﻿@model SisEmpleo.Models.OfertaEmpleo
+
+@{
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -10,35 +13,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #F4F6F9; /* Fondo gris claro */
+            background-color: #F4F6F9;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
-
-        .btn-profile {
-            background-color: #1E3A8A; /* Azul oscuro */
-            border: none;
-            color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
-        }
-
-            .btn-profile:hover {
-                background-color: #152A66; /* Azul más oscuro */
-            }
-
-        .btn-logout {
-            background-color: #F97316; /* Naranja */
-            border: none;
-            color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
-        }
-
-            .btn-logout:hover {
-                background-color: #E86100; /* Naranja más oscuro */
-            }
 
         .edit-container {
             max-width: 800px;
@@ -50,7 +29,7 @@
         }
 
             .edit-container h2 {
-                color: #1E3A8A; /* Azul oscuro */
+                color: #1E3A8A;
                 text-align: center;
                 margin-bottom: 1.5rem;
                 font-weight: bold;
@@ -77,7 +56,7 @@
             }
 
         .btn-primary {
-            background-color: #F97316; /* Naranja */
+            background-color: #F97316;
             border: none;
             width: 100%;
             padding: 0.75rem;
@@ -86,11 +65,11 @@
         }
 
             .btn-primary:hover {
-                background-color: #E86100; /* Naranja más oscuro */
+                background-color: #E86100;
             }
 
         .btn-secondary {
-            background-color: #6B7280; /* Gris */
+            background-color: #6B7280;
             border: none;
             width: 100%;
             padding: 0.75rem;
@@ -99,7 +78,7 @@
         }
 
             .btn-secondary:hover {
-                background-color: #4B5563; /* Gris más oscuro */
+                background-color: #4B5563;
             }
 
         .day-schedule {
@@ -111,184 +90,120 @@
                 margin-bottom: 0.5rem;
             }
 
-
+        .alert {
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
-
-    <!-- Formulario de Nueva Oferta -->
     <div class="edit-container">
         <h2>Nueva Oferta de Empleo</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
         <form asp-action="NuevaOferta" method="post">
+            <!-- Hidden fields -->
+            <input asp-for="id_empresa" type="hidden" value="@ViewBag.id_empresa" />
+            <input asp-for="PaisNombre" type="hidden" id="PaisNombre" />
+            <input asp-for="ProvinciaNombre" type="hidden" id="ProvinciaNombre" />
+            <input asp-for="EmpresaNombre" type="hidden" id="EmpresaNombre" value="@ViewBag.EmpresaNombre" />
+
             <div class="form-group">
-                <label for="id_pais" class="form-label">País</label>
-                @Html.DropDownList("id_pais", ViewBag.Pais as SelectList, "Seleccione un país", new { @class = "form-control", id = "cboPais" })
+                <label asp-for="id_pais" class="form-label">País</label>
+                <select asp-for="id_pais" asp-items="@ViewBag.Pais" class="form-control" id="cboPais" required>
+                    <option value="">Seleccione un país</option>
+                </select>
+                <span asp-validation-for="id_pais" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="id_provincia" class="form-label">Provincia</label>
-                <select id="cboProvincia" name="id_provincia" class="form-control">
+                <label asp-for="id_provincia" class="form-label">Provincia</label>
+                <select asp-for="id_provincia" id="cboProvincia" name="id_provincia" class="form-control" required>
                     <option value="">Seleccione una provincia</option>
                 </select>
+                <span asp-validation-for="id_provincia" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="titulo" class="form-label">Título</label>
-                @Html.TextBox("titulo", "", new { @class = "form-control", required = "required" })
+                <label asp-for="titulo" class="form-label">Título</label>
+                <input asp-for="titulo" class="form-control" required />
+                <span asp-validation-for="titulo" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="descripcion" class="form-label">Descripción</label>
-                @Html.TextArea("descripcion", "", new { @class = "form-control", id = "direccion", rows = "4", required = "required" })
+                <label asp-for="descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="descripcion" class="form-control" rows="4" required></textarea>
+                <span asp-validation-for="descripcion" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="vacantes" class="form-label">Vacantes</label>
-                @Html.TextBox("vacantes", "", new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+                <label asp-for="vacante" class="form-label">Vacantes</label>
+                <input asp-for="vacante" class="form-control" type="number" step="1" min="0" required />
+                <span asp-validation-for="vacante" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="salario" class="form-label">Salario</label>
-                @Html.TextBox("salario", "", new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+                <label asp-for="salario" class="form-label">Salario</label>
+                <input asp-for="salario" class="form-control" type="number" step="0.01" min="0" required />
+                <span asp-validation-for="salario" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label for="duracion_contrato" class="form-label">Duración del Contrato</label>
-                @Html.TextBox("duracion_contrato", "", new { @class = "form-control", required = "required" })
+                <label asp-for="duracion_contrato" class="form-label">Duración del Contrato</label>
+                <input asp-for="duracion_contrato" class="form-control" required />
+                <span asp-validation-for="duracion_contrato" class="text-danger"></span>
+            </div>
+
+            <!-- Habilidades -->
+            <div class="form-group">
+                <label class="form-label">Requisitos (Habilidades)</label>
+                @if (ViewBag.Habilidades != null)
+                {
+                    foreach (var habilidad in (List<SisEmpleo.Models.Habilidad>)ViewBag.Habilidades)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="HabilidadesSeleccionadas" value="@habilidad.id_habilidad" id="hab_@habilidad.id_habilidad" />
+                            <label class="form-check-label" for="hab_@habilidad.id_habilidad">@habilidad.nombre</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No hay habilidades disponibles.</p>
+                }
             </div>
 
             <!-- Horario -->
             <h3 class="mt-4">Horario</h3>
-            <div class="day-schedule">
-                <h4>Lunes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("lunes1", "00:00", new { @class = "form-control", type = "time" })
+            @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" })
+            {
+                <div class="day-schedule">
+                    <h4>@dia</h4>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())1" name="@(dia.ToLower())1" class="form-control" value="00:00" />
+                        </div>
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())2" name="@(dia.ToLower())2" class="form-control" value="00:00" />
+                        </div>
                     </div>
-                    <div class="col-6">
-                        @Html.TextBox("lunes2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("lunes3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("lunes4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Martes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("martes1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("martes2", "00:00", new { @class = "form-control", type = "time" })
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())3" name="@(dia.ToLower())3" class="form-control" value="00:00" />
+                        </div>
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())4" name="@(dia.ToLower())4" class="form-control" value="00:00" />
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("martes3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("martes4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Miércoles</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("miercoles1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("miercoles2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("miercoles3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("miercoles4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Jueves</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("jueves1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("jueves2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("jueves3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("jueves4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Viernes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("viernes1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("viernes2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("viernes3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("viernes4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Sábado</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("sabado1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("sabado2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("sabado3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("sabado4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Domingo</h4>
-                <div class="row">
-                    <div class="col-6">
-                        @Html.TextBox("domingo1", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("domingo2", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        @Html.TextBox("domingo3", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                    <div class="col-6">
-                        @Html.TextBox("domingo4", "00:00", new { @class = "form-control", type = "time" })
-                    </div>
-                </div>
-            </div>
+            }
 
             <!-- Campo oculto para horario -->
-            <input type="hidden" id="horario" name="horario">
+            <input asp-for="horario" type="hidden" id="horario" />
 
             <!-- Botones -->
             <div class="row mt-4">
@@ -307,64 +222,42 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Cargar provincias al seleccionar un país
             $("#cboPais").change(function () {
                 var paisId = $(this).val();
                 $("#cboProvincia").empty().append('<option value="">Cargando...</option>');
 
-                if (paisId != 0) {
+                if (paisId) {
                     $.getJSON('/OfertaEmpleoEmpresa/ObtenerProvincia', { id_pais: paisId }, function (data) {
                         $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
                         $.each(data, function (i, item) {
                             $("#cboProvincia").append('<option value="' + item.id_provincia + '">' + item.nombre + '</option>');
                         });
+                        $("#PaisNombre").val($("#cboPais option:selected").text());
                     });
                 } else {
                     $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+                    $("#PaisNombre").val("");
+                    $("#ProvinciaNombre").val("");
                 }
             });
 
-            document.querySelector('form').addEventListener('submit', function (e) {
-                const lunes1 = document.getElementById('lunes1').value;
-                const lunes2 = document.getElementById('lunes2').value;
-                const lunes3 = document.getElementById('lunes3').value;
-                const lunes4 = document.getElementById('lunes4').value;
+            // Actualizar ProvinciaNombre
+            $("#cboProvincia").change(function () {
+                $("#ProvinciaNombre").val($("#cboProvincia option:selected").text());
+            });
 
-                const martes1 = document.getElementById('martes1').value;
-                const martes2 = document.getElementById('martes2').value;
-                const martes3 = document.getElementById('martes3').value;
-                const martes4 = document.getElementById('martes4').value;
-
-                const miercoles1 = document.getElementById('miercoles1').value;
-                const miercoles2 = document.getElementById('miercoles2').value;
-                const miercoles3 = document.getElementById('miercoles3').value;
-                const miercoles4 = document.getElementById('miercoles4').value;
-
-                const jueves1 = document.getElementById('jueves1').value;
-                const jueves2 = document.getElementById('jueves2').value;
-                const jueves3 = document.getElementById('jueves3').value;
-                const jueves4 = document.getElementById('jueves4').value;
-
-                const viernes1 = document.getElementById('viernes1').value;
-                const viernes2 = document.getElementById('viernes2').value;
-                const viernes3 = document.getElementById('viernes3').value;
-                const viernes4 = document.getElementById('viernes4').value;
-
-                const sabado1 = document.getElementById('sabado1').value;
-                const sabado2 = document.getElementById('sabado2').value;
-                const sabado3 = document.getElementById('sabado3').value;
-                const sabado4 = document.getElementById('sabado4').value;
-
-                const domingo1 = document.getElementById('domingo1').value;
-                const domingo2 = document.getElementById('domingo2').value;
-                const domingo3 = document.getElementById('domingo3').value;
-                const domingo4 = document.getElementById('domingo4').value;
-
-                const horario = `${lunes1};${lunes2};${lunes3};${lunes4};${martes1};${martes2};${martes3};${martes4};` +
-                    `${miercoles1};${miercoles2};${miercoles3};${miercoles4};${jueves1};${jueves2};${jueves3};${jueves4};` +
-                    `${viernes1};${viernes2};${viernes3};${viernes4};${sabado1};${sabado2};${sabado3};${sabado4};${domingo1};${domingo2};${domingo3};${domingo4}`;
-
-                const horarioField = document.getElementById('horario');
-                horarioField.value = horario;
+            // Procesar horario
+            $("form").submit(function () {
+                const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+                let horario = '';
+                dias.forEach(dia => {
+                    for (let i = 1; i <= 4; i++) {
+                        const time = $(`#${dia}${i}`).val() || "00:00";
+                        horario += time + ';';
+                    }
+                });
+                $("#horario").val(horario);
             });
         });
     </script>
