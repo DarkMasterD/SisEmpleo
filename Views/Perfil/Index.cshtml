@@ -1,38 +1,64 @@
-﻿
+﻿@model SisEmpleo.Models.PostulanteViewModel
 
 @{
-    
+    ViewData["Title"] = "Perfil de Postulante";
 }
 
-<div class="container mt-4">
-    <h2 class="mb-4">Perfil de @Model.Nombres @Model.Apellidos</h2>
+<style>
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
 
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+    }
+
+    .card-body p, .card-body li {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    ul {
+        padding-left: 1.2rem;
+    }
+
+    .section-icon {
+        margin-right: 8px;
+        color: #0d6efd;
+    }
+</style>
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center text-primary">Perfil de @Model.Nombre @Model.Apellidos</h2>
+
+    <!-- Información Personal -->
     <div class="card mb-4">
-        <div class="card-header">
-            Información Personal
-        </div>
+        <div class="card-header"><i class="bi bi-person-fill section-icon"></i>Información Personal</div>
         <div class="card-body">
             <p><strong>Correo:</strong> @Model.Email</p>
             <p><strong>Teléfono:</strong> @Model.Telefono</p>
-            <p><strong>Fecha de nacimiento:</strong> @(Model.FechaNacimiento?.ToShortDateString() ?? "No especificada")</p>
+            <p><strong>Fecha de nacimiento:</strong> @(Model.Fecha_Nacimiento?.ToShortDateString() ?? "No especificada")</p>
             <p><strong>País:</strong> @Model.Pais</p>
             <p><strong>Provincia:</strong> @Model.Provincia</p>
         </div>
     </div>
 
+    <!-- Idiomas -->
     <div class="card mb-4">
-        <div class="card-header">
-            Idiomas
-        </div>
+        <div class="card-header"><i class="bi bi-translate section-icon"></i>Idiomas</div>
         <div class="card-body">
-            @if (ViewBag.Idioma != null && ((List<string>)ViewBag.Idioma).Any())
+            @if (Model.Idiomas.Any())
             {
-                <ul>
-                    @foreach (var idioma in (List<string>)ViewBag.Idioma)
-                    {
-                        <li>@idioma</li>
-                    }
-                </ul>
+                @foreach (var idioma in Model.Idiomas)
+                {
+                    <span class="badge bg-secondary me-1">@idioma</span>
+                }
             }
             else
             {
@@ -41,19 +67,16 @@
         </div>
     </div>
 
-    @* <div class="card mb-4">
-        <div class="card-header">
-            Habilidades
-        </div>
+    <!-- Habilidades -->
+    <div class="card mb-4">
+        <div class="card-header"><i class="bi bi-lightning-fill section-icon"></i>Habilidades</div>
         <div class="card-body">
             @if (Model.Habilidades.Any())
             {
-                <ul>
-                    @foreach (var habilidad in Model.Habilidades)
-                    {
-                        <li>@habilidad</li>
-                    }
-                </ul>
+                @foreach (var habilidad in Model.Habilidades)
+                {
+                    <span class="badge bg-info text-dark me-1">@habilidad</span>
+                }
             }
             else
             {
@@ -62,17 +85,17 @@
         </div>
     </div>
 
+    <!-- Formación Académica -->
     <div class="card mb-4">
-        <div class="card-header">
-            Formación Académica
-        </div>
+        <div class="card-header"><i class="bi bi-mortarboard-fill section-icon"></i>Formación Académica</div>
         <div class="card-body">
-            @if (Model.Formaciones.Any())
+            @if (Model.FormacionAcademica.Any())
             {
-                @foreach (var formacion in Model.Formaciones)
+                @foreach (var formacion in Model.FormacionAcademica)
                 {
                     <div class="mb-3">
-                        <p><strong>@formacion.Titulo</strong> - @formacion.Institucion</p>
+                        <p><strong>@formacion.Especialidad</strong></p>
+                        <p>@formacion.Titulo - @formacion.Institucion</p>
                     </div>
                 }
             }
@@ -83,12 +106,11 @@
         </div>
     </div>
 
+    <!-- Experiencia Profesional -->
     <div class="card mb-4">
-        <div class="card-header">
-            Experiencia Profesional
-        </div>
+        <div class="card-header"><i class="bi bi-briefcase-fill section-icon"></i>Experiencia Profesional</div>
         <div class="card-body">
-            @if (Model.Experiencias.Any())
+            @if (Model.Experiencias != null && Model.Experiencias.Any())
             {
                 @foreach (var exp in Model.Experiencias)
                 {
@@ -105,19 +127,17 @@
         </div>
     </div>
 
+    <!-- Certificaciones -->
     <div class="card mb-4">
-        <div class="card-header">
-            Certificaciones
-        </div>
+        <div class="card-header"><i class="bi bi-award-fill section-icon"></i>Certificaciones</div>
         <div class="card-body">
-            @if (Model.Certificaciones.Any())
+            @if (Model.Certificaciones != null && Model.Certificaciones.Any())
             {
-                <ul>
+                <ul class="list-unstyled">
                     @foreach (var cert in Model.Certificaciones)
                     {
-                        <li>
-                            <strong>@cert.Nombre</strong>
-                            <br />
+                        <li class="mb-2">
+                            <strong>@cert.Nombre</strong><br />
                             Obtenida: @cert.FechaObtencion?.ToShortDateString()
                         </li>
                     }
@@ -130,7 +150,10 @@
         </div>
     </div>
 
-    <div class="text-center">
-        <a href="@Url.Action("EditarPerfil", "Postulante")" class="btn btn-primary">Editar Perfil</a>
-    </div> *@
+    <!-- Botón Editar -->
+    <div class="text-center mt-4">
+        <a href="@Url.Action("EditarPerfil", "Postulante")" class="btn btn-outline-primary btn-lg px-4">
+            <i class="bi bi-pencil-square me-2"></i>Editar Perfil
+        </a>
+    </div>
 </div>

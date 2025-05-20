@@ -9,7 +9,6 @@ namespace SisEmpleo.Models
         public int id_curriculum { get; set; }
         public int id_institucion { get; set; }
         public int id_titulo { get; set; }
-        public int id_especialidad { get; set; }  // <-- clave foránea agregada
 
         public virtual Especialidad Especialidad { get; set; }
         public virtual Titulo Titulo { get; set; }
