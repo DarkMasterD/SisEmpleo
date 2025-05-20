@@ -1,4 +1,4 @@
-﻿@model SisEmpleo.Models.PostulanteViewModel
+﻿
 
 @{
     
@@ -28,7 +28,7 @@
             @if (ViewBag.Idioma != null && ((List<string>)ViewBag.Idioma).Any())
             {
                 <ul>
-                    @foreach (var idioma in (List<string>)ViewBag.Idiomas)
+                    @foreach (var idioma in (List<string>)ViewBag.Idioma)
                     {
                         <li>@idioma</li>
                     }
