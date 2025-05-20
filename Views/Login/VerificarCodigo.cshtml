@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Verificar Código";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center">Verificar Código</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    }
+
+                    <form asp-action="VerificarCodigo" method="post">
+                        <div class="form-group">
+                            <label for="codigo">Ingresa el código de verificación:</label>
+                            <input type="text" class="form-control" id="codigo" name="codigo" required>
+                            <small class="form-text text-muted">Revisa tu correo electrónico para obtener el código.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-3">Verificar</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a asp-action="RecuperarContra">Volver atrás</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
