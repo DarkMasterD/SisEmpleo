@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SisEmpleo.Models;
 using System.Net.Mail;
 using System.Net;
+using System;
+using System.Linq;
+
 
 namespace SisEmpleo.Controllers
 {
@@ -11,14 +15,12 @@ namespace SisEmpleo.Controllers
         public string contrasenia { get; set; }
         public string nombre_usuario { get; set; } 
         public string nombre { get; set; }
-
         public string apellido { get; set; }
         public string direccion { get; set; }
          public int id_pais { get; set; }
         public int id_provincia { get; set; }
         public int id_idioma { get; set; }
         public DateTime fecha_nacimiento { get; set; }
-
 
     }
 
@@ -47,6 +49,7 @@ namespace SisEmpleo.Controllers
         {
             return View();
         }
+
         [HttpGet]
         public ActionResult RecuperarContra()
         {
@@ -71,8 +74,9 @@ namespace SisEmpleo.Controllers
                 HttpContext.Session.SetInt32("id_usuario", usuario.id_usuario);
                 HttpContext.Session.SetString("tipo_usuario", usuario.tipo_usuario.ToString());
 
-                if (usuario.tipo_usuario.ToString() == "P")
+                if (usuario.tipo_usuario == 'P')
                 {
+
                     var postulante = (from u in _EmpleoContext.Usuario
                                       join p in _EmpleoContext.Postulante
                                       on u.id_usuario equals p.id_usuario
@@ -81,13 +85,15 @@ namespace SisEmpleo.Controllers
                                       {
                                           p.id_postulante
                                       }).FirstOrDefault();
+
                     if (postulante != null)
                     {
                         HttpContext.Session.SetInt32("id_postulante", postulante.id_postulante);
                     }
                 }
-                else if (usuario.tipo_usuario.ToString() == "E")
+                else if (usuario.tipo_usuario == 'E')
                 {
+
                     var empresa = (from u in _EmpleoContext.Usuario
                                    join e in _EmpleoContext.Empresa
                                    on u.id_usuario equals e.id_usuario
@@ -96,6 +102,7 @@ namespace SisEmpleo.Controllers
                                    {
                                        e.id_empresa
                                    }).FirstOrDefault();
+
                     if (empresa != null)
                     {
                         HttpContext.Session.SetInt32("id_empresa", empresa.id_empresa);
@@ -108,12 +115,14 @@ namespace SisEmpleo.Controllers
             ViewData["ErrorMessage"] = "Credenciales incorrectas. Intente nuevamente.";
             return View();
         }
+
         [HttpGet]
         public IActionResult LogOut()
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Index", "Home");
         }
+
 
 
         [HttpGet]
@@ -129,6 +138,30 @@ namespace SisEmpleo.Controllers
         [HttpPost]
         public IActionResult RegistrarsePostulante(RegistroUserPostulanteDTO datos)
         {
+            if (!ModelState.IsValid)
+            {
+                // Recargar listas para volver a mostrar la vista con errores
+                datos.Paises = _EmpleoContext.Pais.Select(p => new SelectListItem
+                {
+                    Value = p.id_pais.ToString(),
+                    Text = p.nombre
+                }).ToList();
+
+                datos.Provincias = _EmpleoContext.Provincia.Select(p => new SelectListItem
+                {
+                    Value = p.id_provincia.ToString(),
+                    Text = p.nombre
+                }).ToList();
+
+                datos.Idiomas = _EmpleoContext.Idioma.Select(i => new SelectListItem
+                {
+                    Value = i.id_idioma.ToString(),
+                    Text = i.nombre
+                }).ToList();
+
+                return View(datos);
+            }
+
             try
             {
                 // 1. Validación de edad (mínimo 18 años)
@@ -196,12 +229,15 @@ namespace SisEmpleo.Controllers
 
                 Usuario user = new Usuario
                 {
+
                     nombre_usuario = nombreUsuarioUnico, 
+
                     email = datos.email,
                     contrasenia = datos.contrasenia,
                     tipo_usuario = 'P',
                     fecha_creacion = DateTime.Now,
                     last_login = DateTime.Now,
+
                     estado = 'A'
                 };
 
@@ -211,13 +247,16 @@ namespace SisEmpleo.Controllers
                 Postulante postulante = new Postulante
                 {
                     id_usuario = user.id_usuario,
+
                     nombre = datos.nombre, 
+                    
                     apellido = datos.apellido,
                     direccion = datos.direccion,
                     fecha_nacimiento = datos.fecha_nacimiento,
                     id_pais = datos.id_pais,
                     id_provincia = datos.id_provincia,
                     id_idioma = datos.id_idioma
+
                 };
 
                 _EmpleoContext.Postulante.Add(postulante);
@@ -247,29 +286,41 @@ namespace SisEmpleo.Controllers
         }
 
 
+
         [HttpGet]
         public IActionResult RegistrarseEmpresa()
         {
             return View();
         }
+
         [HttpPost]
         public IActionResult RegistrarseEmpresa([FromForm] RegistroUserEmpresaDTO datos)
         {
             try
             {
-                Usuario user = new Usuario();
-                user.email = datos.email;
-                user.contrasenia = datos.contrasenia;
-                user.tipo_usuario = 'E';
+                Usuario user = new Usuario
+                {
+                    email = datos.email,
+                    contrasenia = datos.contrasenia, // Ideal: Hashear la contraseña antes de guardar
+                    tipo_usuario = 'E',
+                    nombre_usuario = datos.nombre,
+                    fecha_creacion = DateTime.UtcNow,
+                    last_login = DateTime.UtcNow,
+                    estado = 'A'
+                };
+
                 _EmpleoContext.Usuario.Add(user);
                 _EmpleoContext.SaveChanges();
 
-                Empresa empresa = new Empresa();
-                empresa.id_usuario = user.id_usuario;
-                empresa.nombre = datos.nombre;
-                empresa.direccion = datos.direccion;
-                empresa.descripcion_empresa = datos.descripcion_empresa;
-                empresa.sector_empresa = datos.sector_empresa;
+                Empresa empresa = new Empresa
+                {
+                    id_usuario = user.id_usuario,
+                    nombre = datos.nombre,
+                    direccion = datos.direccion,
+                    descripcion_empresa = datos.descripcion_empresa,
+                    sector_empresa = datos.sector_empresa
+                };
+
                 _EmpleoContext.Empresa.Add(empresa);
                 _EmpleoContext.SaveChanges();
 
@@ -474,5 +525,5 @@ namespace SisEmpleo.Controllers
             public DateTime FechaGeneracion { get; set; }
         }
     }
-}
 
+}
