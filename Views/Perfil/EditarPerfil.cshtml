@@ -107,13 +107,43 @@
 
         @* Idiomas *@
         <div class="card mb-4">
-            <div class="card-header">Idiomas</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Idiomas</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="agregarIdioma()">Agregar</button>
+            </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label class="form-label">Selecciona idiomas</label>
-                    <select asp-for="IdiomaIds" asp-items="Model.IdiomasDisponibles" class="form-select" multiple></select>
-                    <span asp-validation-for="IdiomaIds" class="text-danger"></span>
+                <div class="form-group mb-2">
+                    <label class="form-label">Selecciona un idioma</label>
+                    <select id="idiomaSelect" class="form-select">
+                        <option value="">-- Selecciona --</option>
+                        <option>Inglés</option>
+                        <option>Francés</option>
+                        <option>Alemán</option>
+                        <option>Portugués</option>
+                        <option>Italiano</option>
+                        <option>Chino</option>
+                        <option>Japonés</option>
+                        <option>Otro</option>
+                    </select>
                 </div>
+
+                <ul class="list-group mt-3" id="listaIdiomas">
+                    @if (Model.ListaIdiomas != null)
+                    {
+                        int index = 0;
+                        foreach (var idioma in Model.ListaIdiomas)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    @idioma
+                                    <input type="hidden" name="Idiomas[@index]" value="@idioma" />
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+                            </li>
+                            index++;
+                        }
+                    }
+                </ul>
             </div>
         </div>
 
@@ -178,73 +208,245 @@
 
         @* Formación Académica *@
         <div class="card mb-4">
-            <div class="card-header">Formación Académica</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Formación Académica</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="agregarFormacion()">Agregar</button>
+            </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label asp-for="NuevaFormacion.Titulo" class="form-label"></label>
-                    <input asp-for="NuevaFormacion.Titulo" class="form-control" />
-                    <span asp-validation-for="NuevaFormacion.Titulo" class="text-danger"></span>
+                <div class="form-group mb-2">
+                    <label class="form-label">Título</label>
+                    <input type="text" id="tituloFormacion" class="form-control" />
                 </div>
-                <div class="form-group">
-                    <label asp-for="NuevaFormacion.Institucion" class="form-label"></label>
-                    <input asp-for="NuevaFormacion.Institucion" class="form-control" />
-                    <span asp-validation-for="NuevaFormacion.Institucion" class="text-danger"></span>
+                <div class="form-group mb-2">
+                    <label class="form-label">Institución</label>
+                    <input type="text" id="institucionFormacion" class="form-control" />
                 </div>
-                <div class="form-group">
-                    <label asp-for="NuevaFormacion.Especialidad" class="form-label"></label>
-                    <input asp-for="NuevaFormacion.Especialidad" class="form-control" />
-                    <span asp-validation-for="NuevaFormacion.Especialidad" class="text-danger"></span>
+                <div class="form-group mb-2">
+                    <label class="form-label">Especialidad</label>
+                    <input type="text" id="especialidadFormacion" class="form-control" />
                 </div>
+
+                <ul class="list-group mt-3" id="listaFormaciones">
+                    @if (Model.ListaFormacion != null && Model.ListaFormacion.Any())
+                    {
+                        int index = 0;
+                        foreach (var item in Model.ListaFormacion)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@item.Titulo</strong> - @item.Especialidad, <em>@item.Institucion</em>
+                                    <input type="hidden" name="Formaciones[@index].Titulo" value="@item.Titulo" />
+                                    <input type="hidden" name="Formaciones[@index].Institucion" value="@item.Institucion" />
+                                    <input type="hidden" name="Formaciones[@index].Especialidad" value="@item.Especialidad" />
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+                            </li>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-muted">No hay formación académica registrada.</li>
+                    }
+                </ul>
             </div>
         </div>
 
         @* Experiencia Profesional *@
         <div class="card mb-4">
-            <div class="card-header">Experiencia Profesional</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Experiencia Profesional</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarExperiencia()">Agregar</button>
+            </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label asp-for="NuevaExperiencia.Empresa" class="form-label"></label>
-                    <input asp-for="NuevaExperiencia.Empresa" class="form-control" />
+
+                @* Formulario para agregar nueva experiencia *@
+                <div id="agregarExperienciaContainer" style="display:none;" class="mb-3">
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.Empresa" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.Empresa" class="form-control" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.Puesto" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.Puesto" class="form-control" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.FechaInicio" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.FechaInicio" class="form-control" type="date" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.FechaFin" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.FechaFin" class="form-control" type="date" />
+                    </div>
+                    <button type="submit" name="accion" value="agregarExperiencia" class="btn btn-success mt-2">Agregar experiencia</button>
                 </div>
-                <div class="form-group">
-                    <label asp-for="NuevaExperiencia.Puesto" class="form-label"></label>
-                    <input asp-for="NuevaExperiencia.Puesto" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="NuevaExperiencia.FechaInicio" class="form-label"></label>
-                    <input asp-for="NuevaExperiencia.FechaInicio" class="form-control" type="date" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="NuevaExperiencia.FechaFin" class="form-label"></label>
-                    <input asp-for="NuevaExperiencia.FechaFin" class="form-control" type="date" />
-                </div>
+
+                @* Lista de experiencias ya agregadas *@
+                @if (Model.Experiencias != null && Model.Experiencias.Any())
+                {
+                    <table class="table table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Puesto</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Experiencias.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Model.Experiencias[i].Empresa</td>
+                                    <td>@Model.Experiencias[i].Puesto</td>
+                                    <td>@(Model.Experiencias[i].FechaInicio?.ToShortDateString() ?? "Fecha no registrada")</td>
+                                    <td>@Model.Experiencias[i].FechaFin?.ToShortDateString()</td>
+                                    <td>
+                                        <button type="submit" name="eliminarExperiencia" value="@i" class="btn btn-danger btn-sm">Eliminar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No hay experiencias agregadas aún.</p>
+                }
             </div>
         </div>
 
-        @* Certificaciones *@
         <div class="card mb-4">
-            <div class="card-header">Certificaciones</div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label asp-for="NuevaCertificacion.Nombre" class="form-label"></label>
-                    <input asp-for="NuevaCertificacion.Nombre" class="form-control" />
-                </div>
-                <div class="form-group">
-                    <label asp-for="NuevaCertificacion.FechaObtencion" class="form-label"></label>
-                    <input asp-for="NuevaCertificacion.FechaObtencion" class="form-control" type="date" />
-                </div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Certificaciones</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarExperiencia()">Agregar</button>
             </div>
+
+            <div class="card-body">
+                <div id="agregarCertificacionContainer" style="display:none;" class="mb-3">
+                    <div class="form-group mb-2">
+                        <label for="nombreCertificacion" class="form-label">Nombre de la certificación</label>
+                        <input type="text" id="nombreCertificacion" name="NuevaCertificacion.Nombre" class="form-control" />
+                    </div>
+                    <button type="submit" name="accion" value="agregarCertificacion" class="btn btn-success mt-2">Agregar certificación</button>
+                </div>
+
+                @* Certificaciones *@
+                <div class="card mb-4">
+                    <div class="card-body">
+
+                        @* Formulario oculto para agregar nueva certificación *@
+                        <div id="agregarCertificacionContainer" style="display:none;" class="mb-3">
+                            <div class="form-group mb-2">
+                                <label asp-for="NuevaCertificacion.Nombre" class="form-label"></label>
+                                <input asp-for="NuevaCertificacion.Nombre" class="form-control" />
+                            </div>
+                        </div>
+
+                        @* Lista de certificaciones existentes *@
+                        <ul class="list-group">
+                            @if (Model.Certificaciones != null)
+                            {
+                                foreach (var cert in Model.Certificaciones)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <strong>@cert.Nombre</strong>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-danger">Eliminar</button> @* Aquí puedes manejar la eliminación con JS o un botón de envío *@
+                                    </li>
+                                }
+                            }
+                        </ul>
+
+                    </div>
+                </div>
         </div>
 
-        <div class="text-center mb-4">
-            <button type="submit" class="btn btn-success me-2 px-4">Guardar Cambios</button>
-            <a asp-action="Index" asp-controller="Perfil" class="btn btn-outline-danger px-4">Cancelar</a>
-        </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancelar</a>
+            </div>
     </form>
 </div>
 
 @section Scripts {
     <script>
+            let indexFormacion = @Model.ListaFormacion?.Count() ?? 0;
+            let indexIdioma = @Model.ListaIdiomas?.Count() ?? 0;
+
+                function agregarIdioma() {
+            const select = document.getElementById('idiomaSelect');
+            const idioma = select.value;
+
+            if (!idioma) {
+                alert("Selecciona un idioma");
+                return;
+            }
+
+            // Verificar si ya fue agregado
+            const existentes = document.querySelectorAll('#listaIdiomas input[type="hidden"]');
+            for (let i = 0; i < existentes.length; i++) {
+                if (existentes[i].value === idioma) {
+                    alert("Este idioma ya fue agregado.");
+                    return;
+                }
+            }
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+            li.innerHTML = `
+                <div>
+                    ${idioma}
+                    <input type="hidden" name="Idiomas[${indexIdioma}]" value="${idioma}" />
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+            `;
+
+            document.getElementById('listaIdiomas').appendChild(li);
+            indexIdioma++;
+
+            // Reiniciar selección
+            select.selectedIndex = 0;
+        }
+
+        function agregarFormacion() {
+            const titulo = document.getElementById('tituloFormacion').value;
+            const institucion = document.getElementById('institucionFormacion').value;
+            const especialidad = document.getElementById('especialidadFormacion').value;
+
+            if (!titulo || !institucion || !especialidad) {
+                alert("Completa todos los campos");
+                return;
+            }
+
+            const lista = document.getElementById('listaFormaciones');
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+            li.innerHTML = `
+                <div>
+                    <strong>${titulo}</strong> - ${especialidad}, <em>${institucion}</em>
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Titulo" value="${titulo}" />
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Institucion" value="${institucion}" />
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Especialidad" value="${especialidad}" />
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+            `;
+
+            lista.appendChild(li);
+
+            // Limpiar campos
+            document.getElementById('tituloFormacion').value = '';
+            document.getElementById('institucionFormacion').value = '';
+            document.getElementById('especialidadFormacion').value = '';
+
+            indexFormacion++;
+        }
+          
         // Mostrar/ocultar input agregar habilidad
         function toggleAgregarHabilidad() {
             const container = document.getElementById('agregarHabilidadContainer');
@@ -345,6 +547,20 @@
                 option.selected = true;
                 selectOculto.appendChild(option);
             });
+        }
+
+        function toggleAgregarCertificacion() {
+            const container = document.getElementById("agregarCertificacionContainer");
+            container.style.display = container.style.display === "none" ? "block" : "none";
+        }
+
+            function toggleAgregarCertificacion() {
+            const container = document.getElementById('agregarCertificacionContainer');
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
         }
 
         // Inicializar sincronización cuando carga la página

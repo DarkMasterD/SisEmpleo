@@ -147,11 +147,131 @@ namespace SisEmpleo.Controllers
                 // Inicializar listas seleccionadas y objetos auxiliares si son null
                 datos.IdiomaIds = new List<int>();
                 datos.HabilidadIds = new List<int>();
-                datos.NuevaFormacion = new FormacionAcademica(); // O FormacionInputModel si ese es el tipo correcto
+                datos.NuevaFormacion = new FormacionAcademica();
                 datos.NuevaExperiencia = new ExperienciaViewModel(); // O ExperienciaInputModel
                 datos.NuevaCertificacion = new CertificacionViewModel(); // O CertificacionInputModel
+                datos.Experiencias = (from exp in _context.ExperienciaProfesional
+                                      join c in _context.Curriculum on exp.id_curriculum equals c.id_curriculum
+                                      join p in _context.Postulante on c.id_postulante equals p.id_postulante
+                                      join te in _context.TrabajoEmpresa on exp.id_trabajoempresa equals te.id_trabajoempresa
+                                      join pu in _context.Puesto on exp.id_puesto equals pu.id_puesto
+                                      where p.id_usuario == idUsuario
+                                      select new ExperienciaViewModel
+                                      {
+                                          Empresa = te.nombre,
+                                          Puesto = pu.nombre,
+                                          FechaInicio = exp.fecha_inicio,
+                                          FechaFin = exp.fecha_fin
+                                      }).ToList();
+
+                datos.Certificaciones = (from cc in _context.Certificacion_Curriculum
+                                         join c in _context.Curriculum on cc.id_curriculum equals c.id_curriculum
+                                         join p in _context.Postulante on c.id_postulante equals p.id_postulante
+                                         join ce in _context.Certificacion on cc.id_certificacion equals ce.id_certificacion
+                                         where p.id_usuario == idUsuario
+                                         select new CertificacionViewModel
+                                         {
+                                             Id = ce.id_certificacion,
+                                             Nombre = ce.nombre,
+                                         }).ToList();
+
+                datos.ListaFormacion = (from fa in _context.FormacionAcademica
+                                        join c in _context.Curriculum on fa.id_curriculum equals c.id_curriculum
+                                        join p in _context.Postulante on c.id_postulante equals p.id_postulante
+                                        join ins in _context.Institucion on fa.id_institucion equals ins.id_institucion
+                                        join t in _context.Titulo on fa.id_titulo equals t.id_titulo
+                                        join esp in _context.Especialidad on t.id_especialidad equals esp.id_especialidad
+                                        where p.id_usuario == idUsuario
+                                        select new FormacionAcademicaViewModel
+                                        {
+                                            Titulo = t.nombre,
+                                            Especialidad = esp.nombre,
+                                            Institucion = ins.nombre
+                                        }).ToList();
 
                 return View(datos);
+            }
+
+            [HttpPost]
+            public IActionResult EditarPerfil(EditarPerfilViewModel model)
+            {
+                int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+
+                if (idUsuario == null)
+                {
+                    return RedirectToAction("Login", "Cuenta");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    // Recargar listas desplegables y datos
+                    model.Paises = _context.Pais.Select(p => new SelectListItem { Value = p.id_pais.ToString(), Text = p.nombre }).ToList();
+                    model.Provincias = _context.Provincia.Select(p => new SelectListItem { Value = p.id_provincia.ToString(), Text = p.nombre }).ToList();
+                    model.HabilidadesDisponibles = _context.Habilidad.ToList();
+                    model.IdiomasDisponibles = _context.Idioma.Select(i => new SelectListItem { Value = i.id_idioma.ToString(), Text = i.nombre }).ToList();
+                    return View(model);
+                }
+
+                var usuario = _context.Usuario.FirstOrDefault(u => u.id_usuario == idUsuario);
+                var postulante = _context.Postulante.FirstOrDefault(p => p.id_usuario == idUsuario);
+                var contacto = _context.Contacto.FirstOrDefault(c => c.id_usuario == idUsuario);
+
+                if (usuario == null || postulante == null || contacto == null)
+                {
+                    return NotFound();
+                }
+
+                // Actualizar datos personales
+                postulante.nombre = model.Nombre;
+                postulante.apellido = model.Apellidos;
+                if (model.Fecha_Nacimiento.HasValue)
+                {
+                    postulante.fecha_nacimiento = model.Fecha_Nacimiento.Value;
+                }
+
+            usuario.email = model.Email;
+
+                contacto.telefono = model.Telefono;
+
+                // Actualizar país y provincia
+                postulante.id_pais = model.PaisId;
+                postulante.id_provincia = model.ProvinciaId;
+
+                // Actualizar idioma (eliminar y agregar)
+                var curriculum = _context.Curriculum.FirstOrDefault(c => c.id_postulante == postulante.id_postulante);
+                if (curriculum != null)
+                {
+                    var idiomasActuales = _context.Idioma.Where(i => i.id_idioma == postulante.id_idioma).ToList(); // según tu diseño actual parece que solo tiene uno
+                    if (model.IdiomaIds.Any())
+                    {
+                        // Solo se permite uno, así que tomamos el primero por ahora
+                        postulante.id_idioma = model.IdiomaIds.First();
+                    }
+                }
+
+                // Actualizar habilidades (eliminar y agregar nuevas)
+                if (curriculum != null)
+                {
+                    var habilidadesActuales = _context.Habilidad_Curriculum.Where(hc => hc.id_curriculum == curriculum.id_curriculum).ToList();
+                    _context.Habilidad_Curriculum.RemoveRange(habilidadesActuales);
+
+                    if (model.HabilidadIds != null)
+                    {
+                        foreach (var idHab in model.HabilidadIds)
+                        {
+                            _context.Habilidad_Curriculum.Add(new Habilidad_Curriculum
+                            {
+                                id_curriculum = curriculum.id_curriculum,
+                                id_habilidad = idHab
+                            });
+                        }
+                    }
+                }
+
+                _context.SaveChanges();
+
+                TempData["mensaje"] = "Perfil actualizado correctamente";
+                return RedirectToAction("Index");
             }
 
 
