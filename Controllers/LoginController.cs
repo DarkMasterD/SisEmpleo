@@ -9,7 +9,8 @@ namespace SisEmpleo.Controllers
     {
         public string email { get; set; }
         public string contrasenia { get; set; }
-        public string nombre_usuario { get; set; }
+        public string nombre_usuario { get; set; } 
+        public string nombre { get; set; }
 
         public string apellido { get; set; }
         public string direccion { get; set; }
@@ -53,15 +54,17 @@ namespace SisEmpleo.Controllers
         }
 
         [HttpPost]
-        public IActionResult Login(string email, string contrasenia)
+        public IActionResult Login(string credencial, string contrasenia)
         {
+            // Buscar usuario por email O nombre de usuario
             var usuario = (from u in _EmpleoContext.Usuario
-                           where u.email == email && u.contrasenia == contrasenia
+                           where (u.email == credencial || u.nombre_usuario == credencial)
+                           && u.contrasenia == contrasenia
                            select u).FirstOrDefault();
 
             if (usuario != null)
             {
-                // Actualización del last_login (único cambio agregado)
+                // Actualización del last_login
                 usuario.last_login = DateTime.Now;
                 _EmpleoContext.SaveChanges();
 
@@ -102,8 +105,7 @@ namespace SisEmpleo.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewData["ErrorMessage"] = "Usuario o contraseña incorrecta";
-
+            ViewData["ErrorMessage"] = "Credenciales incorrectas. Intente nuevamente.";
             return View();
         }
         [HttpGet]
@@ -123,14 +125,78 @@ namespace SisEmpleo.Controllers
             return View();
         }
 
+        
         [HttpPost]
         public IActionResult RegistrarsePostulante(RegistroUserPostulanteDTO datos)
         {
             try
             {
+                // 1. Validación de edad (mínimo 18 años)
+                var edadMinima = DateTime.Now.AddYears(-18);
+                if (datos.fecha_nacimiento > edadMinima)
+                {
+                    ModelState.AddModelError("fecha_nacimiento", "Debes tener al menos 18 años para registrarte.");
+                }
+
+                // 2. Validación de fecha no futura
+                if (datos.fecha_nacimiento > DateTime.Now)
+                {
+                    ModelState.AddModelError("fecha_nacimiento", "La fecha de nacimiento no puede ser futura.");
+                }
+
+                // 3. Validación de correo único
+                var correoExistente = _EmpleoContext.Usuario.Any(u => u.email == datos.email);
+                if (correoExistente)
+                {
+                    ModelState.AddModelError("email", "Este correo electrónico ya está registrado.");
+                }
+
+                // 4. Validación de contraseña
+                var password = datos.contrasenia;
+                if (string.IsNullOrWhiteSpace(password))
+                {
+                    ModelState.AddModelError("contrasenia", "La contraseña es obligatoria.");
+                }
+                else
+                {
+                    if (password.Length < 8)
+                    {
+                        ModelState.AddModelError("contrasenia", "La contraseña debe tener al menos 8 caracteres.");
+                    }
+                    if (!password.Any(char.IsDigit))
+                    {
+                        ModelState.AddModelError("contrasenia", "La contraseña debe contener al menos un número.");
+                    }
+                    if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
+                    {
+                        ModelState.AddModelError("contrasenia", "La contraseña debe contener al menos un carácter especial.");
+                    }
+                }
+
+                // Si hay errores, recargar vista con datos
+                if (!ModelState.IsValid)
+                {
+                    ViewBag.Paises = _EmpleoContext.Pais.ToList();
+                    ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
+                    ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
+                    return View(datos);
+                }
+                // Generar un nombre de usuario único si es necesario
+                var nombreUsuarioUnico = datos.nombre_usuario;
+                if (_EmpleoContext.Usuario.Any(u => u.nombre_usuario == nombreUsuarioUnico))
+                {
+                    // Agregar un sufijo numérico si ya existe
+                    int suffix = 1;
+                    while (_EmpleoContext.Usuario.Any(u => u.nombre_usuario == $"{nombreUsuarioUnico}{suffix}"))
+                    {
+                        suffix++;
+                    }
+                    nombreUsuarioUnico = $"{nombreUsuarioUnico}{suffix}";
+                }
+
                 Usuario user = new Usuario
                 {
-                    nombre_usuario = datos.nombre_usuario,
+                    nombre_usuario = nombreUsuarioUnico, 
                     email = datos.email,
                     contrasenia = datos.contrasenia,
                     tipo_usuario = 'P',
@@ -145,7 +211,7 @@ namespace SisEmpleo.Controllers
                 Postulante postulante = new Postulante
                 {
                     id_usuario = user.id_usuario,
-                    nombre = datos.nombre_usuario,
+                    nombre = datos.nombre, 
                     apellido = datos.apellido,
                     direccion = datos.direccion,
                     fecha_nacimiento = datos.fecha_nacimiento,
@@ -241,7 +307,6 @@ namespace SisEmpleo.Controllers
             // Enviar correo electrónico
             EnviarCorreoRecuperacion(email, codigo);
 
-            TempData["SuccessMessage"] = "Se ha enviado un código de verificación a tu correo electrónico.";
             return RedirectToAction("VerificarCodigo");
         }
 
@@ -297,12 +362,39 @@ namespace SisEmpleo.Controllers
         [HttpPost]
         public IActionResult CambiarContrasenia(string nuevaContrasenia, string confirmarContrasenia)
         {
+            // 1. Validar que las contraseñas coincidan
             if (nuevaContrasenia != confirmarContrasenia)
             {
                 TempData["ErrorMessage"] = "Las contraseñas no coinciden.";
                 return View();
             }
 
+            // 2. Validar requisitos de contraseña segura
+            if (string.IsNullOrWhiteSpace(nuevaContrasenia))
+            {
+                TempData["ErrorMessage"] = "La contraseña es obligatoria.";
+                return View();
+            }
+            else
+            {
+                if (nuevaContrasenia.Length < 8)
+                {
+                    TempData["ErrorMessage"] = "La contraseña debe tener al menos 8 caracteres.";
+                    return View();
+                }
+                if (!nuevaContrasenia.Any(char.IsDigit))
+                {
+                    TempData["ErrorMessage"] = "La contraseña debe contener al menos un número.";
+                    return View();
+                }
+                if (!nuevaContrasenia.Any(ch => !char.IsLetterOrDigit(ch)))
+                {
+                    TempData["ErrorMessage"] = "La contraseña debe contener al menos un carácter especial.";
+                    return View();
+                }
+            }
+
+            // 3. Validar sesión de recuperación
             var resetInfoJson = HttpContext.Session.GetString(PasswordResetSessionKey);
             if (string.IsNullOrEmpty(resetInfoJson))
             {
@@ -312,7 +404,7 @@ namespace SisEmpleo.Controllers
 
             var resetInfo = System.Text.Json.JsonSerializer.Deserialize<PasswordResetInfo>(resetInfoJson);
 
-            // Actualizar la contraseña en la base de datos
+            // 4. Actualizar contraseña en la base de datos
             var usuario = _EmpleoContext.Usuario.FirstOrDefault(u => u.email == resetInfo.Email);
             if (usuario != null)
             {
@@ -320,10 +412,10 @@ namespace SisEmpleo.Controllers
                 _EmpleoContext.SaveChanges();
             }
 
-            // Limpiar la sesión
+            // 5. Limpiar la sesión
             HttpContext.Session.Remove(PasswordResetSessionKey);
 
-            TempData["SuccessMessage"] = "Contraseña actualizada correctamente. Ahora puedes iniciar sesión.";
+          
             return RedirectToAction("Login");
         }
 
