@@ -151,7 +151,14 @@ namespace SisEmpleo.Controllers
                     ModelState.AddModelError("email", "Este correo electrónico ya está registrado.");
                 }
 
-                // 4. Validación de contraseña
+                // 4. Validación de nombre de usuario único
+                var nombreUsuarioExistente = _EmpleoContext.Usuario.Any(u => u.nombre_usuario == datos.nombre_usuario);
+                if (nombreUsuarioExistente)
+                {
+                    ModelState.AddModelError("nombre_usuario", "Este nombre de usuario ya está en uso. Por favor elige otro.");
+                }
+
+                // 5. Validación de contraseña
                 var password = datos.contrasenia;
                 if (string.IsNullOrWhiteSpace(password))
                 {
@@ -181,22 +188,10 @@ namespace SisEmpleo.Controllers
                     ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
                     return View(datos);
                 }
-                // Generar un nombre de usuario único si es necesario
-                var nombreUsuarioUnico = datos.nombre_usuario;
-                if (_EmpleoContext.Usuario.Any(u => u.nombre_usuario == nombreUsuarioUnico))
-                {
-                    // Agregar un sufijo numérico si ya existe
-                    int suffix = 1;
-                    while (_EmpleoContext.Usuario.Any(u => u.nombre_usuario == $"{nombreUsuarioUnico}{suffix}"))
-                    {
-                        suffix++;
-                    }
-                    nombreUsuarioUnico = $"{nombreUsuarioUnico}{suffix}";
-                }
 
                 Usuario user = new Usuario
                 {
-                    nombre_usuario = nombreUsuarioUnico,
+                    nombre_usuario = datos.nombre_usuario, // Usamos el nombre de usuario tal cual lo ingresó el usuario
                     email = datos.email,
                     contrasenia = datos.contrasenia,
                     tipo_usuario = 'P',
@@ -211,7 +206,7 @@ namespace SisEmpleo.Controllers
                 Postulante postulante = new Postulante
                 {
                     id_usuario = user.id_usuario,
-                    nombre = datos.nombre,
+                    nombre = datos.nombre_usuario,
                     apellido = datos.apellido,
                     direccion = datos.direccion,
                     fecha_nacimiento = datos.fecha_nacimiento,
@@ -231,7 +226,7 @@ namespace SisEmpleo.Controllers
                 ViewBag.Paises = _EmpleoContext.Pais.ToList();
                 ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
                 ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
-                return View();
+                return View(datos);
             }
         }
 
