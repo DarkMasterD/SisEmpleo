@@ -1,0 +1,136 @@
+﻿
+
+@{
+    
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Perfil de @Model.Nombres @Model.Apellidos</h2>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Información Personal
+        </div>
+        <div class="card-body">
+            <p><strong>Correo:</strong> @Model.Email</p>
+            <p><strong>Teléfono:</strong> @Model.Telefono</p>
+            <p><strong>Fecha de nacimiento:</strong> @(Model.FechaNacimiento?.ToShortDateString() ?? "No especificada")</p>
+            <p><strong>País:</strong> @Model.Pais</p>
+            <p><strong>Provincia:</strong> @Model.Provincia</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Idiomas
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Idioma != null && ((List<string>)ViewBag.Idioma).Any())
+            {
+                <ul>
+                    @foreach (var idioma in (List<string>)ViewBag.Idioma)
+                    {
+                        <li>@idioma</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No hay idiomas registrados.</p>
+            }
+        </div>
+    </div>
+
+    @* <div class="card mb-4">
+        <div class="card-header">
+            Habilidades
+        </div>
+        <div class="card-body">
+            @if (Model.Habilidades.Any())
+            {
+                <ul>
+                    @foreach (var habilidad in Model.Habilidades)
+                    {
+                        <li>@habilidad</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No hay habilidades registradas.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Formación Académica
+        </div>
+        <div class="card-body">
+            @if (Model.Formaciones.Any())
+            {
+                @foreach (var formacion in Model.Formaciones)
+                {
+                    <div class="mb-3">
+                        <p><strong>@formacion.Titulo</strong> - @formacion.Institucion</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No hay formación académica registrada.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Experiencia Profesional
+        </div>
+        <div class="card-body">
+            @if (Model.Experiencias.Any())
+            {
+                @foreach (var exp in Model.Experiencias)
+                {
+                    <div class="mb-3">
+                        <p><strong>@exp.Puesto</strong> - @exp.Empresa</p>
+                        <p>Desde @exp.FechaInicio?.ToShortDateString() hasta @(exp.FechaFin?.ToShortDateString() ?? "Actualidad")</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No hay experiencia registrada.</p>
+            }
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Certificaciones
+        </div>
+        <div class="card-body">
+            @if (Model.Certificaciones.Any())
+            {
+                <ul>
+                    @foreach (var cert in Model.Certificaciones)
+                    {
+                        <li>
+                            <strong>@cert.Nombre</strong>
+                            <br />
+                            Obtenida: @cert.FechaObtencion?.ToShortDateString()
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No hay certificaciones registradas.</p>
+            }
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="@Url.Action("EditarPerfil", "Postulante")" class="btn btn-primary">Editar Perfil</a>
+    </div> *@
+</div>

@@ -1,4 +1,4 @@
-﻿@model SisEmpleo.Models.PostulanteViewModel
+﻿@* @model SisEmpleo.Models.PostulanteViewModel
 
 @{
 
@@ -209,6 +209,59 @@
 
                         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                     </div>
+
+                    <!-- Skills Selection Section -->
+                    <div class="skill-selection">
+                        <h4>Selecciona tus Habilidades</h4>
+
+                        <div class="mb-3">
+                            <strong>Tus Habilidades Seleccionadas:</strong>
+                            <div class="selected-skills mt-2">
+                                @if (Model.HabilidadesSeleccionadas != null && Model.HabilidadesSeleccionadas.Any())
+                                {
+                                    foreach (var habilidad in Model.HabilidadesSeleccionadas)
+                                    {
+                                        <span class="badge bg-primary me-1">
+                                            @habilidad
+                                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Cerrar"></button>
+                                        </span>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No tienes habilidades seleccionadas.</p>
+                                }
+                            </div>
+                        </div>
+
+                        <input type="text" placeholder="Buscar habilidades..." class="form-control my-3" />
+
+                        <div>
+                            <h5>Habilidades Disponibles:</h5>
+                            <ul class="list-group">
+                                @if (Model.HabilidadesDisponibles != null && Model.HabilidadesDisponibles.Any())
+                                {
+                                    foreach (var habilidad in Model.HabilidadesDisponibles)
+                                    {
+                                        // Mostrar sólo si no está ya seleccionada
+                                        if (Model.HabilidadesSeleccionadas == null || !Model.HabilidadesSeleccionadas.Contains(habilidad))
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                @habilidad
+                                                <button type="button" class="btn btn-primary btn-sm">+</button>
+                                            </li>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    <li class="list-group-item">No hay habilidades disponibles.</li>
+                                }
+                            </ul>
+                        </div>
+
+                        <button class="btn btn-primary mt-3">Siguiente: Vista Previa</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -217,4 +270,4 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-</html>
+</html> *@
