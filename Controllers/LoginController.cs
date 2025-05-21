@@ -129,7 +129,7 @@ namespace SisEmpleo.Controllers
         [HttpPost]
         public IActionResult RegistrarsePostulante(RegistroUserPostulanteDTO datos)
         {
-            try
+            try 
             {
                 // 1. Validación de edad (mínimo 18 años)
                 var edadMinima = DateTime.Now.AddYears(-18);
