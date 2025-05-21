@@ -62,7 +62,8 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center text-primary">Editar Perfil</h2>
 
-    <form asp-action="EditarPerfil" method="post">
+    <form asp-action="GuardarCambios" method="post" id="formPerfil">
+        @Html.AntiForgeryToken()
         @* Información personal *@
         <div class="card mb-4">
             <div class="card-header">Información Personal</div>
@@ -201,8 +202,6 @@
                 <select asp-for="HabilidadIds" id="HabilidadIds" name="HabilidadIds" multiple hidden>
                     @* Opciones sincronizadas por JS *@
                 </select>
-
-                <span asp-validation-for="HabilidadIds" class="text-danger"></span>
             </div>
         </div>
 
@@ -278,7 +277,7 @@
                         <label asp-for="NuevaExperiencia.FechaFin" class="form-label"></label>
                         <input asp-for="NuevaExperiencia.FechaFin" class="form-control" type="date" />
                     </div>
-                    <button type="submit" name="accion" value="agregarExperiencia" class="btn btn-success mt-2">Agregar experiencia</button>
+                    <button type="button" onclick="agregarExperiencia()" class="btn btn-success mt-2">
                 </div>
 
                 @* Lista de experiencias ya agregadas *@
@@ -323,7 +322,7 @@
                 <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarExperiencia()">Agregar</button>
             </div>
 
-            <div class="card-body">
+        <div class="card-body">
                 <div id="agregarCertificacionContainer" style="display:none;" class="mb-3">
                     <div class="form-group mb-2">
                         <label for="nombreCertificacion" class="form-label">Nombre de la certificación</label>
@@ -362,21 +361,36 @@
 
                     </div>
                 </div>
+            </div>
         </div>
 
-            <div class="d-flex justify-content-between mt-4">
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancelar</a>
-            </div>
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-primary" name="command" value="guardar">Guardar Cambios</button>
+            <a href="@Url.Action("Index", "Perfil")" class="btn btn-secondary">Cancelar</a>
+        </div>
+   
     </form>
 </div>
 
 @section Scripts {
     <script>
-            let indexFormacion = @Model.ListaFormacion?.Count() ?? 0;
-            let indexIdioma = @Model.ListaIdiomas?.Count() ?? 0;
+        // Inicializar variables y eventos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            sincronizarSelectOculto();
 
-                function agregarIdioma() {
+            // Manejar el envío del formulario
+            document.getElementById('formPerfil').addEventListener('submit', function(e) {
+                sincronizarSelectOculto();
+                if (!validarCambios()) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        let indexFormacion = @Model.ListaFormacion?.Count() ?? 0;
+        let indexIdioma = @Model.ListaIdiomas?.Count() ?? 0;
+
+        function agregarIdioma() {
             const select = document.getElementById('idiomaSelect');
             const idioma = select.value;
 
@@ -407,8 +421,6 @@
 
             document.getElementById('listaIdiomas').appendChild(li);
             indexIdioma++;
-
-            // Reiniciar selección
             select.selectedIndex = 0;
         }
 
@@ -423,7 +435,6 @@
             }
 
             const lista = document.getElementById('listaFormaciones');
-
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
 
@@ -438,22 +449,17 @@
             `;
 
             lista.appendChild(li);
-
-            // Limpiar campos
             document.getElementById('tituloFormacion').value = '';
             document.getElementById('institucionFormacion').value = '';
             document.getElementById('especialidadFormacion').value = '';
-
             indexFormacion++;
         }
-          
-        // Mostrar/ocultar input agregar habilidad
+
         function toggleAgregarHabilidad() {
             const container = document.getElementById('agregarHabilidadContainer');
             container.style.display = container.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Filtrar habilidades disponibles
         function filtrarHabilidades() {
             const filter = document.getElementById('buscarHabilidad').value.toLowerCase();
             const select = document.getElementById('listaHabilidades');
@@ -463,7 +469,6 @@
             }
         }
 
-        // Agregar nueva habilidad a lista disponible y seleccionar
         function agregarHabilidad() {
             const input = document.getElementById('nuevaHabilidad');
             const nuevaHabilidad = input.value.trim();
@@ -472,9 +477,7 @@
                 return;
             }
 
-            // Crear nuevo option en lista disponibles
             const select = document.getElementById('listaHabilidades');
-            // Revisar que no exista ya esa habilidad (por texto)
             for(let i=0; i<select.options.length; i++) {
                 if(select.options[i].text.toLowerCase() === nuevaHabilidad.toLowerCase()) {
                     alert('Esta habilidad ya existe en la lista disponible');
@@ -491,23 +494,19 @@
             input.focus();
         }
 
-        // Agregar habilidades seleccionadas a "Mis habilidades"
         function agregarAHabilidadesSeleccionadas() {
             const selectDisponibles = document.getElementById('listaHabilidades');
             const misHabilidades = document.getElementById('misHabilidades');
 
-            // Recorrer opciones seleccionadas y añadirlas a la lista si no existen
             for(let i=0; i < selectDisponibles.options.length; i++) {
                 const option = selectDisponibles.options[i];
                 if(option.selected && option.style.display !== 'none') {
-                    // Verificar que no exista en mis habilidades
                     if(!misHabilidades.querySelector(`li[data-id="${option.value}"]`)) {
                         const li = document.createElement('li');
                         li.className = 'list-group-item d-flex justify-content-between align-items-center';
                         li.setAttribute('data-id', option.value);
                         li.textContent = option.text;
 
-                        // Botón eliminar
                         const btn = document.createElement('button');
                         btn.type = 'button';
                         btn.className = 'btn btn-sm btn-danger';
@@ -517,15 +516,12 @@
                         li.appendChild(btn);
                         misHabilidades.appendChild(li);
                     }
-                    // Deseleccionar para evitar duplicados futuros
                     option.selected = false;
                 }
             }
-
             sincronizarSelectOculto();
         }
 
-        // Quitar habilidad de "Mis habilidades"
         function quitarHabilidad(id) {
             const misHabilidades = document.getElementById('misHabilidades');
             const li = misHabilidades.querySelector(`li[data-id="${id}"]`);
@@ -535,11 +531,10 @@
             }
         }
 
-        // Sincroniza el select oculto para que el formulario envíe las habilidades seleccionadas
         function sincronizarSelectOculto() {
             const selectOculto = document.getElementById('HabilidadIds');
             const misHabilidades = document.getElementById('misHabilidades');
-            selectOculto.innerHTML = ''; // Limpiar opciones
+            selectOculto.innerHTML = '';
 
             misHabilidades.querySelectorAll('li').forEach(li => {
                 const option = document.createElement('option');
@@ -550,22 +545,27 @@
         }
 
         function toggleAgregarCertificacion() {
-            const container = document.getElementById("agregarCertificacionContainer");
-            container.style.display = container.style.display === "none" ? "block" : "none";
-        }
-
-            function toggleAgregarCertificacion() {
             const container = document.getElementById('agregarCertificacionContainer');
-            if (container.style.display === 'none' || container.style.display === '') {
-                container.style.display = 'block';
-            } else {
-                container.style.display = 'none';
-            }
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Inicializar sincronización cuando carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            sincronizarSelectOculto();
-        });
+        function validarCambios() {
+            const form = document.getElementById('formPerfil');
+            const formData = new FormData(form);
+            let hasChanges = false;
+
+            for (let [key, value] of formData.entries()) {
+                if (value && value.trim() !== '') {
+                    hasChanges = true;
+                    break;
+                }
+            }
+
+            if (!hasChanges) {
+                alert("No se han realizado cambios. Por favor, edita algún campo antes de guardar.");
+                return false;
+            }
+            return true;
+        }
     </script>
 }

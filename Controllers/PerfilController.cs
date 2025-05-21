@@ -193,7 +193,7 @@ namespace SisEmpleo.Controllers
             }
 
             [HttpPost]
-            public IActionResult EditarPerfil(EditarPerfilViewModel model)
+            public IActionResult GuardarCambios(EditarPerfilViewModel model, string command)
             {
                 int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
 
@@ -202,77 +202,190 @@ namespace SisEmpleo.Controllers
                     return RedirectToAction("Login", "Cuenta");
                 }
 
-                if (!ModelState.IsValid)
+                try
                 {
-                    // Recargar listas desplegables y datos
-                    model.Paises = _context.Pais.Select(p => new SelectListItem { Value = p.id_pais.ToString(), Text = p.nombre }).ToList();
-                    model.Provincias = _context.Provincia.Select(p => new SelectListItem { Value = p.id_provincia.ToString(), Text = p.nombre }).ToList();
-                    model.HabilidadesDisponibles = _context.Habilidad.ToList();
-                    model.IdiomasDisponibles = _context.Idioma.Select(i => new SelectListItem { Value = i.id_idioma.ToString(), Text = i.nombre }).ToList();
-                    return View(model);
-                }
+                    // Obtener el postulante y usuario actual
+                    var postulante = _context.Postulante.FirstOrDefault(p => p.id_usuario == idUsuario);
+                    var usuario = _context.Usuario.FirstOrDefault(u => u.id_usuario == idUsuario);
+                    var contacto = _context.Contacto.FirstOrDefault(c => c.id_usuario == idUsuario);
+                    var curriculum = _context.Curriculum.FirstOrDefault(c => c.id_postulante == postulante.id_postulante);
 
-                var usuario = _context.Usuario.FirstOrDefault(u => u.id_usuario == idUsuario);
-                var postulante = _context.Postulante.FirstOrDefault(p => p.id_usuario == idUsuario);
-                var contacto = _context.Contacto.FirstOrDefault(c => c.id_usuario == idUsuario);
-
-                if (usuario == null || postulante == null || contacto == null)
-                {
-                    return NotFound();
-                }
-
-                // Actualizar datos personales
-                postulante.nombre = model.Nombre;
-                postulante.apellido = model.Apellidos;
-                if (model.Fecha_Nacimiento.HasValue)
-                {
-                    postulante.fecha_nacimiento = model.Fecha_Nacimiento.Value;
-                }
-
-            usuario.email = model.Email;
-
-                contacto.telefono = model.Telefono;
-
-                // Actualizar país y provincia
-                postulante.id_pais = model.PaisId;
-                postulante.id_provincia = model.ProvinciaId;
-
-                // Actualizar idioma (eliminar y agregar)
-                var curriculum = _context.Curriculum.FirstOrDefault(c => c.id_postulante == postulante.id_postulante);
-                if (curriculum != null)
-                {
-                    var idiomasActuales = _context.Idioma.Where(i => i.id_idioma == postulante.id_idioma).ToList(); // según tu diseño actual parece que solo tiene uno
-                    if (model.IdiomaIds.Any())
+                    if (postulante == null || usuario == null || contacto == null || curriculum == null)
                     {
-                        // Solo se permite uno, así que tomamos el primero por ahora
-                        postulante.id_idioma = model.IdiomaIds.First();
+                        TempData["ErrorMessage"] = "No se encontró el perfil del usuario.";
+                        return RedirectToAction("EditarPerfil");
                     }
-                }
 
-                // Actualizar habilidades (eliminar y agregar nuevas)
-                if (curriculum != null)
-                {
-                    var habilidadesActuales = _context.Habilidad_Curriculum.Where(hc => hc.id_curriculum == curriculum.id_curriculum).ToList();
-                    _context.Habilidad_Curriculum.RemoveRange(habilidadesActuales);
+                    // Actualizar información básica
+                    postulante.nombre = model.Nombre;
+                    postulante.apellido = model.Apellidos;
+                    postulante.fecha_nacimiento = model.Fecha_Nacimiento.Value;
+                    postulante.id_pais = model.PaisId;
+                    postulante.id_provincia = model.ProvinciaId;
 
-                    if (model.HabilidadIds != null)
+                    usuario.email = model.Email;
+                    contacto.telefono = model.Telefono;
+
+                    // Manejar habilidades
+                    if (model.HabilidadIds != null && model.HabilidadIds.Any())
                     {
-                        foreach (var idHab in model.HabilidadIds)
+                        // Eliminar habilidades existentes
+                        var habilidadesActuales = _context.Habilidad_Curriculum
+                            .Where(hc => hc.id_curriculum == curriculum.id_curriculum)
+                            .ToList();
+
+                        _context.Habilidad_Curriculum.RemoveRange(habilidadesActuales);
+
+                        // Agregar nuevas habilidades
+                        foreach (var habilidadId in model.HabilidadIds)
                         {
                             _context.Habilidad_Curriculum.Add(new Habilidad_Curriculum
                             {
                                 id_curriculum = curriculum.id_curriculum,
-                                id_habilidad = idHab
+                                id_habilidad = habilidadId
                             });
                         }
                     }
+
+                    // Manejar experiencias profesionales
+                    if (model.Experiencias != null && model.Experiencias.Any())
+                    {
+                        // Eliminar experiencias existentes
+                        var experienciasActuales = _context.ExperienciaProfesional
+                            .Where(e => e.id_curriculum == curriculum.id_curriculum)
+                            .ToList();
+
+                        _context.ExperienciaProfesional.RemoveRange(experienciasActuales);
+
+                        // Agregar nuevas experiencias
+                        foreach (var experiencia in model.Experiencias)
+                        {
+                            // Buscar o crear empresa
+                            var empresa = _context.TrabajoEmpresa.FirstOrDefault(e => e.nombre == experiencia.Empresa);
+                            if (empresa == null)
+                            {
+                                empresa = new TrabajoEmpresa { nombre = experiencia.Empresa };
+                                _context.TrabajoEmpresa.Add(empresa);
+                                _context.SaveChanges(); // Guardar para obtener el ID
+                            }
+
+                            // Buscar o crear puesto
+                            var puesto = _context.Puesto.FirstOrDefault(p => p.nombre == experiencia.Puesto);
+                            if (puesto == null)
+                            {
+                                puesto = new Puesto { nombre = experiencia.Puesto };
+                                _context.Puesto.Add(puesto);
+                                _context.SaveChanges(); // Guardar para obtener el ID
+                            }
+
+                            _context.ExperienciaProfesional.Add(new ExperienciaProfesional
+                            {
+                                id_curriculum = curriculum.id_curriculum,
+                                id_trabajoempresa = empresa.id_trabajoempresa,
+                                id_puesto = puesto.id_puesto,
+                                fecha_inicio = experiencia.FechaInicio,
+                                fecha_fin = experiencia.FechaFin
+                            });
+                        }
+                    }
+
+                    // Manejar formación académica
+                    if (model.ListaFormacion != null && model.ListaFormacion.Any())
+                    {
+                        // Eliminar formación existente
+                        var formacionActual = _context.FormacionAcademica
+                            .Where(f => f.id_curriculum == curriculum.id_curriculum)
+                            .ToList();
+
+                        _context.FormacionAcademica.RemoveRange(formacionActual);
+
+                        // Agregar nueva formación
+                        foreach (var formacion in model.ListaFormacion)
+                        {
+                            // Buscar o crear institución
+                            var institucion = _context.Institucion.FirstOrDefault(i => i.nombre == formacion.Institucion);
+                            if (institucion == null)
+                            {
+                                institucion = new Institucion { nombre = formacion.Institucion };
+                                _context.Institucion.Add(institucion);
+                                _context.SaveChanges();
+                            }
+
+                            // Buscar o crear especialidad
+                            var especialidad = _context.Especialidad.FirstOrDefault(e => e.nombre == formacion.Especialidad);
+                            if (especialidad == null)
+                            {
+                                especialidad = new Especialidad { nombre = formacion.Especialidad };
+                                _context.Especialidad.Add(especialidad);
+                                _context.SaveChanges();
+                            }
+
+                            // Buscar o crear título
+                            var titulo = _context.Titulo.FirstOrDefault(t => t.nombre == formacion.Titulo && t.id_especialidad == especialidad.id_especialidad);
+                            if (titulo == null)
+                            {
+                                titulo = new Titulo
+                                {
+                                    nombre = formacion.Titulo,
+                                    id_especialidad = especialidad.id_especialidad
+                                };
+                                _context.Titulo.Add(titulo);
+                                _context.SaveChanges();
+                            }
+
+                            _context.FormacionAcademica.Add(new FormacionAcademica
+                            {
+                                id_curriculum = curriculum.id_curriculum,
+                                id_institucion = institucion.id_institucion,
+                                id_titulo = titulo.id_titulo
+                            });
+                        }
+                    }
+
+                    // Manejar certificaciones
+                    if (model.Certificaciones != null && model.Certificaciones.Any())
+                    {
+                        // Eliminar certificaciones existentes
+                        var certificacionesActuales = _context.Certificacion_Curriculum
+                            .Where(cc => cc.id_curriculum == curriculum.id_curriculum)
+                            .ToList();
+
+                        _context.Certificacion_Curriculum.RemoveRange(certificacionesActuales);
+
+                        // Agregar nuevas certificaciones
+                        foreach (var cert in model.Certificaciones)
+                        {
+                            // Buscar o crear certificación
+                            var certificacion = _context.Certificacion.FirstOrDefault(c => c.nombre == cert.Nombre);
+                            if (certificacion == null)
+                            {
+                                certificacion = new Certificacion { nombre = cert.Nombre };
+                                _context.Certificacion.Add(certificacion);
+                                _context.SaveChanges();
+                            }
+
+                            _context.Certificacion_Curriculum.Add(new Certificacion_Curriculum
+                            {
+                                id_curriculum = curriculum.id_curriculum,
+                                id_certificacion = certificacion.id_certificacion,
+                                fecha = DateTime.Now // O usar fecha específica si está en el modelo
+                            });
+                        }
+                    }
+
+                    // Guardar todos los cambios
+                    _context.SaveChanges();
+
+                    TempData["SuccessMessage"] = "Perfil actualizado correctamente.";
+                    return RedirectToAction("Index");
                 }
-
-                _context.SaveChanges();
-
-                TempData["mensaje"] = "Perfil actualizado correctamente";
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = "Ocurrió un error al actualizar el perfil: " + ex.Message;
+                    return RedirectToAction("EditarPerfil");
+                }
             }
+
 
 
 
