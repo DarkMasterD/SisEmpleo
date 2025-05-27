@@ -1,273 +1,571 @@
-﻿@* @model SisEmpleo.Models.PostulanteViewModel
+﻿@model SisEmpleo.Models.Viewmodels.EditarPerfilViewModel
 
 @{
-
+    ViewData["Title"] = "Editar Perfil";
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workeen - Editar Perfil de Postulante</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #F4F6F9;
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #333;
-        }
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f4f6f8;
+        color: #333;
+    }
 
-        
+    .container {
+        max-width: 900px;
+    }
 
-        .btn-profile {
-            background-color: #1E3A8A;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
+    h2 {
+        font-weight: 600;
+        font-size: 2rem;
+    }
 
-            .btn-profile:hover {
-                background-color: #152A66;
-                transform: translateY(-2px);
-            }
+    .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        background-color: #fff;
+    }
 
-        .btn-logout {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.6rem 1.8rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
+    .card-header {
+        background-color: #f1f3f5;
+        font-weight: 600;
+        font-size: 1.25rem;
+        border-top-left-radius: 16px;
+        border-top-right-radius: 16px;
+        padding: 1rem 1.5rem;
+    }
 
-            .btn-logout:hover {
-                background-color: #E86100;
-                transform: translateY(-2px);
-            }
+    .card-body {
+        padding: 1.5rem;
+    }
 
-        .hero-section {
-            background: linear-gradient(135deg, rgba(30, 58, 138, 0.9), rgba(249, 115, 22, 0.7)), url('/img/hero-bg.jpg') no-repeat center center;
-            background-size: cover;
-            color: #FFFFFF;
-            text-align: center;
-            padding: 6rem 2rem;
-            position: relative;
-        }
+    .form-group {
+        margin-bottom: 1rem;
+    }
 
-        .hero-content h1 {
-            font-size: 2.8rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
+    .form-label {
+        font-weight: 500;
+    }
 
-        .hero-content p {
-            font-size: 1.3rem;
-            opacity: 0.9;
-        }
+    .form-control, .form-select {
+        border-radius: 8px;
+    }
 
-        .edit-profile-section {
-            padding: 4rem 2rem;
-            background-color: #FFFFFF;
-            min-height: 100vh;
-        }
+    .btn-primary {
+        border-radius: 30px;
+        font-weight: 500;
+        padding: 0.5rem 2rem;
+    }
+</style>
 
-        .profile-card {
-            background-color: #FFFFFF;
-            border-radius: 12px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            padding: 2rem;
-            transition: transform 0.3s ease;
-        }
+<div class="container mt-5">
+    <h2 class="mb-4 text-center text-primary">Editar Perfil</h2>
 
-            .profile-card:hover {
-                transform: translateY(-5px);
-            }
-
-        .card-header {
-            background-color: #1E3A8A;
-            color: #FFFFFF;
-            padding: 1.5rem;
-            border-radius: 12px 12px 0 0;
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .card-body {
-            padding: 2rem;
-        }
-
-            .card-body h4 {
-                color: #1E3A8A;
-                font-weight: 600;
-                margin-top: 1.5rem;
-                margin-bottom: 1rem;
-                border-bottom: 2px solid #F97316;
-                display: inline-block;
-                padding-bottom: 0.3rem;
-            }
-
-        .form-label {
-            color: #374151;
-            font-weight: 600;
-            font-size: 1.05rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control {
-            border-radius: 8px;
-            border: 1px solid #D1D5DB;
-            padding: 0.75rem;
-            font-size: 1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-
-            .form-control:focus {
-                border-color: #F97316;
-                box-shadow: 0 0 0 0.2rem rgba(249, 115, 22, 0.25);
-                outline: none;
-            }
-
-        .btn-primary {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.75rem 2rem;
-            font-weight: 600;
-            border-radius: 8px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-            .btn-primary:hover {
-                background-color: #E86100;
-                transform: translateY(-2px);
-            }
-
-
-    </style>
-</head>
-<body>
-
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1>¡Hola, @Model.Postulante.nombre!</h1>
-            <p>Actualiza tu perfil para destacar entre los empleadores</p>
+    <form asp-action="GuardarCambios" method="post" id="formPerfil">
+        @Html.AntiForgeryToken()
+        @* Información personal *@
+        <div class="card mb-4">
+            <div class="card-header">Información Personal</div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Apellidos" class="form-label"></label>
+                    <input asp-for="Apellidos" class="form-control" />
+                    <span asp-validation-for="Apellidos" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-control" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Telefono" class="form-label"></label>
+                    <input asp-for="Telefono" class="form-control" />
+                    <span asp-validation-for="Telefono" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Fecha_Nacimiento" class="form-label"></label>
+                    <input asp-for="Fecha_Nacimiento" class="form-control" type="date" />
+                    <span asp-validation-for="Fecha_Nacimiento" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PaisId" class="form-label"></label>
+                    <select asp-for="PaisId" class="form-select" asp-items="Model.Paises"></select>
+                    <span asp-validation-for="PaisId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ProvinciaId" class="form-label"></label>
+                    <select asp-for="ProvinciaId" class="form-select" asp-items="Model.Provincias"></select>
+                    <span asp-validation-for="ProvinciaId" class="text-danger"></span>
+                </div>
+            </div>
         </div>
-    </section>
 
-    <!-- Edit Profile Section -->
-    <section class="edit-profile-section">
-        <div class="container">
-            <form asp-action="EditarPerfil" method="post">
-                <div class="profile-card mb-4">
-                    <div class="card-header">
-                        <h3>@Model.Postulante.nombre</h3>
+        @* Idiomas *@
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Idiomas</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="agregarIdioma()">Agregar</button>
+            </div>
+            <div class="card-body">
+                <div class="form-group mb-2">
+                    <label class="form-label">Selecciona un idioma</label>
+                    <select id="idiomaSelect" class="form-select">
+                        <option value="">-- Selecciona --</option>
+                        <option>Inglés</option>
+                        <option>Francés</option>
+                        <option>Alemán</option>
+                        <option>Portugués</option>
+                        <option>Italiano</option>
+                        <option>Chino</option>
+                        <option>Japonés</option>
+                        <option>Otro</option>
+                    </select>
+                </div>
+
+                <ul class="list-group mt-3" id="listaIdiomas">
+                    @if (Model.ListaIdiomas != null)
+                    {
+                        int index = 0;
+                        foreach (var idioma in Model.ListaIdiomas)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    @idioma
+                                    <input type="hidden" name="Idiomas[@index]" value="@idioma" />
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+                            </li>
+                            index++;
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+
+        @* Habilidades *@
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Habilidades</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarHabilidad()">Agregar</button>
+            </div>
+            <div class="card-body">
+
+                <div class="form-group mb-3">
+                    <input type="text" id="buscarHabilidad" onkeyup="filtrarHabilidades()" class="form-control" placeholder="Buscar habilidades...">
+                </div>
+
+                <div id="agregarHabilidadContainer" style="display:none;" class="mb-3">
+                    <input type="text" id="nuevaHabilidad" class="form-control" placeholder="Nueva habilidad">
+                    <button type="button" class="btn btn-success mt-2" onclick="agregarHabilidad()">Agregar habilidad</button>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Habilidades disponibles</label>
+                        <select id="listaHabilidades" size="10" class="form-select" style="height: 250px; overflow-y: scroll;">
+                            @foreach (var habilidad in Model.HabilidadesDisponibles)
+                            {
+                                <option value="@habilidad.id_habilidad">@habilidad.nombre</option>
+                            }
+                        </select>
+                        <button type="button" class="btn btn-primary mt-2" onclick="agregarAHabilidadesSeleccionadas()">Agregar a Mis habilidades</button>
                     </div>
-                    <div class="card-body">
-                        <!-- Datos del postulante -->
-                        <div class="mb-4">
-                            <label for="Nombre" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="Nombre" name="Postulante.nombre" value="@Model.Postulante.nombre" required />
-                        </div>
-                        <div class="mb-4">
-                            <label for="Direccion" class="form-label">Dirección</label>
-                            <input type="text" class="form-control" id="Direccion" name="Postulante.direccion" value="@Model.Postulante.direccion" required />
-                        </div>
 
-                        <!-- Datos de contacto -->
-                        <h4>Contacto</h4>
-                        <div class="mb-4">
-                            <label for="Email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="Email" name="Contacto.email" value="@Model.Contacto?.email" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="Telefono" class="form-label">Teléfono</label>
-                            <input type="text" class="form-control" id="Telefono" name="Contacto.telefono" value="@Model.Contacto?.telefono" />
-                        </div>
-
-                        <!-- Información del currículum -->
-                        <h4>Currículum</h4>
-                        <div class="mb-4">
-                            <label for="Habilidades" class="form-label">Habilidades</label>
-                            <input type="text" class="form-control" id="Habilidades" name="Curriculum.habilidades" value="@Model.Curriculum?.habilidades" placeholder="Ej: Diseño gráfico, UX/UI" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="Idiomas" class="form-label">Idiomas</label>
-                            <input type="text" class="form-control" id="Idiomas" name="Curriculum.idiomas" value="@Model.Curriculum?.idiomas" placeholder="Ej: Español, Inglés" />
-                        </div>
-                        <div class="mb-4">
-                            <label for="Certificaciones" class="form-label">Certificaciones</label>
-                            <input type="text" class="form-control" id="Certificaciones" name="Curriculum.certificaciones" value="@Model.Curriculum?.certificaciones" placeholder="Ej: Certificado en Adobe XD" />
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                    </div>
-
-                    <!-- Skills Selection Section -->
-                    <div class="skill-selection">
-                        <h4>Selecciona tus Habilidades</h4>
-
-                        <div class="mb-3">
-                            <strong>Tus Habilidades Seleccionadas:</strong>
-                            <div class="selected-skills mt-2">
-                                @if (Model.HabilidadesSeleccionadas != null && Model.HabilidadesSeleccionadas.Any())
+                    <div class="col-md-6">
+                        <label class="form-label">Mis habilidades</label>
+                        <ul id="misHabilidades" class="list-group" style="height: 250px; overflow-y: scroll;">
+                            @if (Model.HabilidadIds != null)
+                            {
+                                foreach (var id in Model.HabilidadIds)
                                 {
-                                    foreach (var habilidad in Model.HabilidadesSeleccionadas)
+                                    var hab = Model.HabilidadesDisponibles.FirstOrDefault(h => h.id_habilidad == id);
+                                    if (hab != null)
                                     {
-                                        <span class="badge bg-primary me-1">
-                                            @habilidad
-                                            <button type="button" class="btn-close btn-close-white btn-sm ms-1" aria-label="Cerrar"></button>
-                                        </span>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="@hab.id_habilidad">
+                                            @hab.nombre
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="quitarHabilidad('@hab.id_habilidad')">x</button>
+                                        </li>
                                     }
                                 }
-                                else
-                                {
-                                    <p>No tienes habilidades seleccionadas.</p>
-                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                @* Select oculto que mantiene las habilidades seleccionadas para enviar al servidor *@
+                <select asp-for="HabilidadIds" id="HabilidadIds" name="HabilidadIds" multiple hidden>
+                    @* Opciones sincronizadas por JS *@
+                </select>
+            </div>
+        </div>
+
+        @* Formación Académica *@
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Formación Académica</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="agregarFormacion()">Agregar</button>
+            </div>
+            <div class="card-body">
+                <div class="form-group mb-2">
+                    <label class="form-label">Título</label>
+                    <input type="text" id="tituloFormacion" class="form-control" />
+                </div>
+                <div class="form-group mb-2">
+                    <label class="form-label">Institución</label>
+                    <input type="text" id="institucionFormacion" class="form-control" />
+                </div>
+                <div class="form-group mb-2">
+                    <label class="form-label">Especialidad</label>
+                    <input type="text" id="especialidadFormacion" class="form-control" />
+                </div>
+
+                <ul class="list-group mt-3" id="listaFormaciones">
+                    @if (Model.ListaFormacion != null && Model.ListaFormacion.Any())
+                    {
+                        int index = 0;
+                        foreach (var item in Model.ListaFormacion)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@item.Titulo</strong> - @item.Especialidad, <em>@item.Institucion</em>
+                                    <input type="hidden" name="Formaciones[@index].Titulo" value="@item.Titulo" />
+                                    <input type="hidden" name="Formaciones[@index].Institucion" value="@item.Institucion" />
+                                    <input type="hidden" name="Formaciones[@index].Especialidad" value="@item.Especialidad" />
+                                </div>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+                            </li>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-muted">No hay formación académica registrada.</li>
+                    }
+                </ul>
+            </div>
+        </div>
+
+        @* Experiencia Profesional *@
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Experiencia Profesional</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarExperiencia()">Agregar</button>
+            </div>
+            <div class="card-body">
+
+                @* Formulario para agregar nueva experiencia *@
+                <div id="agregarExperienciaContainer" style="display:none;" class="mb-3">
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.Empresa" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.Empresa" class="form-control" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.Puesto" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.Puesto" class="form-control" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.FechaInicio" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.FechaInicio" class="form-control" type="date" />
+                    </div>
+                    <div class="form-group mb-2">
+                        <label asp-for="NuevaExperiencia.FechaFin" class="form-label"></label>
+                        <input asp-for="NuevaExperiencia.FechaFin" class="form-control" type="date" />
+                    </div>
+                    <button type="button" onclick="agregarExperiencia()" class="btn btn-success mt-2">
+                </div>
+
+                @* Lista de experiencias ya agregadas *@
+                @if (Model.Experiencias != null && Model.Experiencias.Any())
+                {
+                    <table class="table table-striped mt-3">
+                        <thead>
+                            <tr>
+                                <th>Empresa</th>
+                                <th>Puesto</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Experiencias.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Model.Experiencias[i].Empresa</td>
+                                    <td>@Model.Experiencias[i].Puesto</td>
+                                    <td>@(Model.Experiencias[i].FechaInicio?.ToShortDateString() ?? "Fecha no registrada")</td>
+                                    <td>@Model.Experiencias[i].FechaFin?.ToShortDateString()</td>
+                                    <td>
+                                        <button type="submit" name="eliminarExperiencia" value="@i" class="btn btn-danger btn-sm">Eliminar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p>No hay experiencias agregadas aún.</p>
+                }
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Certificaciones</span>
+                <button type="button" class="btn btn-sm btn-primary" onclick="toggleAgregarExperiencia()">Agregar</button>
+            </div>
+
+        <div class="card-body">
+                <div id="agregarCertificacionContainer" style="display:none;" class="mb-3">
+                    <div class="form-group mb-2">
+                        <label for="nombreCertificacion" class="form-label">Nombre de la certificación</label>
+                        <input type="text" id="nombreCertificacion" name="NuevaCertificacion.Nombre" class="form-control" />
+                    </div>
+                    <button type="submit" name="accion" value="agregarCertificacion" class="btn btn-success mt-2">Agregar certificación</button>
+                </div>
+
+                @* Certificaciones *@
+                <div class="card mb-4">
+                    <div class="card-body">
+
+                        @* Formulario oculto para agregar nueva certificación *@
+                        <div id="agregarCertificacionContainer" style="display:none;" class="mb-3">
+                            <div class="form-group mb-2">
+                                <label asp-for="NuevaCertificacion.Nombre" class="form-label"></label>
+                                <input asp-for="NuevaCertificacion.Nombre" class="form-control" />
                             </div>
                         </div>
 
-                        <input type="text" placeholder="Buscar habilidades..." class="form-control my-3" />
-
-                        <div>
-                            <h5>Habilidades Disponibles:</h5>
-                            <ul class="list-group">
-                                @if (Model.HabilidadesDisponibles != null && Model.HabilidadesDisponibles.Any())
+                        @* Lista de certificaciones existentes *@
+                        <ul class="list-group">
+                            @if (Model.Certificaciones != null)
+                            {
+                                foreach (var cert in Model.Certificaciones)
                                 {
-                                    foreach (var habilidad in Model.HabilidadesDisponibles)
-                                    {
-                                        // Mostrar sólo si no está ya seleccionada
-                                        if (Model.HabilidadesSeleccionadas == null || !Model.HabilidadesSeleccionadas.Contains(habilidad))
-                                        {
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                @habilidad
-                                                <button type="button" class="btn btn-primary btn-sm">+</button>
-                                            </li>
-                                        }
-                                    }
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <strong>@cert.Nombre</strong>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-danger">Eliminar</button> @* Aquí puedes manejar la eliminación con JS o un botón de envío *@
+                                    </li>
                                 }
-                                else
-                                {
-                                    <li class="list-group-item">No hay habilidades disponibles.</li>
-                                }
-                            </ul>
-                        </div>
+                            }
+                        </ul>
 
-                        <button class="btn btn-primary mt-3">Siguiente: Vista Previa</button>
                     </div>
                 </div>
-            </form>
+            </div>
         </div>
-    </section>
 
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-primary" name="command" value="guardar">Guardar Cambios</button>
+            <a href="@Url.Action("Index", "Perfil")" class="btn btn-secondary">Cancelar</a>
+        </div>
+   
+    </form>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> *@
+@section Scripts {
+    <script>
+        // Inicializar variables y eventos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            sincronizarSelectOculto();
+
+            // Manejar el envío del formulario
+            document.getElementById('formPerfil').addEventListener('submit', function(e) {
+                sincronizarSelectOculto();
+                if (!validarCambios()) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        let indexFormacion = @Model.ListaFormacion?.Count() ?? 0;
+        let indexIdioma = @Model.ListaIdiomas?.Count() ?? 0;
+
+        function agregarIdioma() {
+            const select = document.getElementById('idiomaSelect');
+            const idioma = select.value;
+
+            if (!idioma) {
+                alert("Selecciona un idioma");
+                return;
+            }
+
+            // Verificar si ya fue agregado
+            const existentes = document.querySelectorAll('#listaIdiomas input[type="hidden"]');
+            for (let i = 0; i < existentes.length; i++) {
+                if (existentes[i].value === idioma) {
+                    alert("Este idioma ya fue agregado.");
+                    return;
+                }
+            }
+
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+            li.innerHTML = `
+                <div>
+                    ${idioma}
+                    <input type="hidden" name="Idiomas[${indexIdioma}]" value="${idioma}" />
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+            `;
+
+            document.getElementById('listaIdiomas').appendChild(li);
+            indexIdioma++;
+            select.selectedIndex = 0;
+        }
+
+        function agregarFormacion() {
+            const titulo = document.getElementById('tituloFormacion').value;
+            const institucion = document.getElementById('institucionFormacion').value;
+            const especialidad = document.getElementById('especialidadFormacion').value;
+
+            if (!titulo || !institucion || !especialidad) {
+                alert("Completa todos los campos");
+                return;
+            }
+
+            const lista = document.getElementById('listaFormaciones');
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+            li.innerHTML = `
+                <div>
+                    <strong>${titulo}</strong> - ${especialidad}, <em>${institucion}</em>
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Titulo" value="${titulo}" />
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Institucion" value="${institucion}" />
+                    <input type="hidden" name="Formaciones[${indexFormacion}].Especialidad" value="${especialidad}" />
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('li').remove()">Quitar</button>
+            `;
+
+            lista.appendChild(li);
+            document.getElementById('tituloFormacion').value = '';
+            document.getElementById('institucionFormacion').value = '';
+            document.getElementById('especialidadFormacion').value = '';
+            indexFormacion++;
+        }
+
+        function toggleAgregarHabilidad() {
+            const container = document.getElementById('agregarHabilidadContainer');
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function filtrarHabilidades() {
+            const filter = document.getElementById('buscarHabilidad').value.toLowerCase();
+            const select = document.getElementById('listaHabilidades');
+            for (let i = 0; i < select.options.length; i++) {
+                const text = select.options[i].text.toLowerCase();
+                select.options[i].style.display = text.includes(filter) ? '' : 'none';
+            }
+        }
+
+        function agregarHabilidad() {
+            const input = document.getElementById('nuevaHabilidad');
+            const nuevaHabilidad = input.value.trim();
+            if (!nuevaHabilidad) {
+                alert('Por favor, escribe una habilidad');
+                return;
+            }
+
+            const select = document.getElementById('listaHabilidades');
+            for(let i=0; i<select.options.length; i++) {
+                if(select.options[i].text.toLowerCase() === nuevaHabilidad.toLowerCase()) {
+                    alert('Esta habilidad ya existe en la lista disponible');
+                    input.value = '';
+                    return;
+                }
+            }
+
+            const nuevaOption = document.createElement('option');
+            nuevaOption.text = nuevaHabilidad;
+            nuevaOption.value = 'nueva_' + Date.now();
+            select.add(nuevaOption);
+            input.value = '';
+            input.focus();
+        }
+
+        function agregarAHabilidadesSeleccionadas() {
+            const selectDisponibles = document.getElementById('listaHabilidades');
+            const misHabilidades = document.getElementById('misHabilidades');
+
+            for(let i=0; i < selectDisponibles.options.length; i++) {
+                const option = selectDisponibles.options[i];
+                if(option.selected && option.style.display !== 'none') {
+                    if(!misHabilidades.querySelector(`li[data-id="${option.value}"]`)) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        li.setAttribute('data-id', option.value);
+                        li.textContent = option.text;
+
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'btn btn-sm btn-danger';
+                        btn.textContent = 'x';
+                        btn.onclick = function () { quitarHabilidad(option.value); };
+
+                        li.appendChild(btn);
+                        misHabilidades.appendChild(li);
+                    }
+                    option.selected = false;
+                }
+            }
+            sincronizarSelectOculto();
+        }
+
+        function quitarHabilidad(id) {
+            const misHabilidades = document.getElementById('misHabilidades');
+            const li = misHabilidades.querySelector(`li[data-id="${id}"]`);
+            if(li) {
+                misHabilidades.removeChild(li);
+                sincronizarSelectOculto();
+            }
+        }
+
+        function sincronizarSelectOculto() {
+            const selectOculto = document.getElementById('HabilidadIds');
+            const misHabilidades = document.getElementById('misHabilidades');
+            selectOculto.innerHTML = '';
+
+            misHabilidades.querySelectorAll('li').forEach(li => {
+                const option = document.createElement('option');
+                option.value = li.getAttribute('data-id');
+                option.selected = true;
+                selectOculto.appendChild(option);
+            });
+        }
+
+        function toggleAgregarCertificacion() {
+            const container = document.getElementById('agregarCertificacionContainer');
+            container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function validarCambios() {
+            const form = document.getElementById('formPerfil');
+            const formData = new FormData(form);
+            let hasChanges = false;
+
+            for (let [key, value] of formData.entries()) {
+                if (value && value.trim() !== '') {
+                    hasChanges = true;
+                    break;
+                }
+            }
+
+            if (!hasChanges) {
+                alert("No se han realizado cambios. Por favor, edita algún campo antes de guardar.");
+                return false;
+            }
+            return true;
+        }
+    </script>
+}
