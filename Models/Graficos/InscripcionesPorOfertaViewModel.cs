@@ -1,4 +1,4 @@
-﻿namespace SisEmpleo.Models.Gráficos
+﻿namespace SisEmpleo.Models.Graficos
 {
     public class InscripcionesPorOfertaViewModel
     {

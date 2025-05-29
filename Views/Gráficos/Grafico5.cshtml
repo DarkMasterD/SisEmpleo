@@ -1,0 +1,86 @@
+﻿@{
+    ViewData["Title"] = "Relación Salario vs Vacantes";
+}
+
+<div class="container py-3">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-chart-scatter me-2"></i> @ViewData["Title"]
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <!-- Contenedor simplificado -->
+            <div id="chartContainer">
+                <div id="scatterChart" style="height: 60vh;"></div>
+                <div class="text-end small text-muted mt-2">
+                    Actualizado: <span id="lastUpdate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- librerías esenciales -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            loadData();
+        });
+
+        function loadData() {
+            $.ajax({
+                url: '@Url.Action("GetSalarioVacantesData", "Graficos")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response && Array.isArray(response)) {
+                        renderChart(response);
+                    }
+                },
+                error: function (xhr) {
+                    console.error("Error al cargar datos:", xhr.statusText);
+                }
+            });
+        }
+
+        function renderChart(data) {
+            const processedData = data.map(item => ({
+                x: item.salario,
+                y: item.vacantes,
+                text: `${item.titulo}<br>${item.empresa}`,
+                salary: item.salario,
+                vacancies: item.vacantes
+            }));
+
+            const trace = {
+                x: processedData.map(d => d.x),
+                y: processedData.map(d => d.y),
+                text: processedData.map(d => d.text),
+                mode: 'markers',
+                type: 'scatter',
+                marker: {
+                    size: 10,
+                    color: '#4285F4'
+                }
+            };
+
+            const layout = {
+                title: 'Salario vs Vacantes',
+                xaxis: { title: 'Salario ($)', tickprefix: '$' },
+                yaxis: { title: 'Vacantes', tickmode: 'linear', dtick: 1 },
+                margin: { t: 40, l: 60, r: 30, b: 60 }
+            };
+
+            Plotly.newPlot('scatterChart', [trace], layout);
+
+            // Actualizar marca de tiempo
+            $('#lastUpdate').text(moment().format('LLL'));
+        }
+    </script>
+}
