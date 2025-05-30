@@ -1,0 +1,100 @@
+﻿@{
+    ViewData["Title"] = "Distribución de Ofertas por País";
+}
+
+<div class="container py-3">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h5 mb-0">
+                <i class="fas fa-chart-bar me-2"></i> @ViewData["Title"]
+            </h2>
+        </div>
+
+        <div class="card-body">
+            <div id="chartContainer">
+                <div id="barChart" style="height: 60vh;"></div>
+                <div class="text-end small text-muted mt-2">
+                    Actualizado: <span id="lastUpdate"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- librerías esenciales -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            loadData();
+        });
+
+        function loadData() {
+            $.ajax({
+                url: '@Url.Action("GetOfertasPorPaisData", "OfertaEmpleos")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (response && Array.isArray(response)) {
+                        renderChart(response);
+                    } else if (response && response.warning) {
+                        // Mostrar mensaje si no hay datos
+                        $('#barChart').html(`<div class="alert alert-warning">${response.warning}</div>`);
+                    }
+                },
+                error: function (xhr) {
+                    console.error("Error al cargar datos:", xhr.statusText);
+                    $('#barChart').html('<div class="alert alert-danger">Error al cargar los datos</div>');
+                }
+            });
+        }
+
+        function renderChart(data) {
+            // Ordenar datos por porcentaje descendente
+            data.sort((a, b) => b.porcentaje - a.porcentaje);
+
+            const paises = data.map(item => item.pais);
+            const porcentajes = data.map(item => item.porcentaje);
+            const cantidades = data.map(item => item.cantidad);
+
+            // Texto para hover
+            const hoverText = data.map(item =>
+                `${item.pais}<br>${item.porcentaje.toFixed(1)}% (${item.cantidad} ofertas)`);
+
+            const trace = {
+                x: paises,
+                y: porcentajes,
+                text: hoverText,
+                type: 'bar',
+                marker: {
+                    color: 'rgba(66, 133, 244, 0.7)',
+                    line: {
+                        color: 'rgba(66, 133, 244, 1)',
+                        width: 1.5
+                    }
+                }
+            };
+
+            const layout = {
+                title: 'Porcentaje de Ofertas por País',
+                xaxis: {
+                    title: 'País',
+                    tickangle: -45
+                },
+                yaxis: {
+                    title: 'Porcentaje (%)',
+                    ticksuffix: '%'
+                },
+                margin: { t: 40, l: 60, r: 30, b: 100 }
+            };
+
+            Plotly.newPlot('barChart', [trace], layout);
+
+            // Actualizar marca de tiempo
+            $('#lastUpdate').text(moment().format('LLL'));
+        }
+    </script>
+}

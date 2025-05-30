@@ -150,13 +150,15 @@
             <a class="navbar-brand" href="/">
                 <img src="/img/logo.png"> Workeen
             </a>
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center"> 
                 @if (Model != null && Model.TipoUsuario == "P")
                 {
                     <a href="/Home/Notificaciones" class="notification-badge me-3">
                         <i class="bi bi-bell"></i>
                         <span id="Notificaciones" class="badge">0</span>
                     </a>
+                    <a href="/Perfil/Index" class="btn btn-profile me-2"> Mi Perfil</a>
+                    <a href="/Login/LogOut" class="btn btn-logout"> Cerrar Sesión</a>
                 }
 
                 @if (Model != null && Model.TipoUsuario == "E")
@@ -164,7 +166,7 @@
                     <a href="/OfertaEmpleoEmpresa/NuevaOferta" class="btn btn-post-offer me-2">Publicar Oferta</a>
                 }
 
-                <a href="/Perfil/Index" class="btn btn-profile me-2"> Mi Perfil</a>
+                <a href="/Perfil/IndexEmpresa" class="btn btn-profile me-2"> Mi Perfil</a>
                 <a href="/Login/LogOut" class="btn btn-logout"> Cerrar Sesión</a>
             </div>
         </div>

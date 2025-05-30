@@ -195,6 +195,42 @@ namespace SisEmpleo.Controllers
             return RedirectToAction("Index");
         }
 
+        public async Task<IActionResult> IndexEmpresa()
+        {
+            int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+
+            if (idUsuario == null)
+                return RedirectToAction("Login", "Account");
+
+            var usuario = await _context.Usuario
+                .FirstOrDefaultAsync(u => u.id_usuario == idUsuario);
+
+            if (usuario == null || usuario.tipo_usuario != 'E')
+                return RedirectToAction("Login", "Account");
+
+            var empresa = await _context.Empresa
+                .FirstOrDefaultAsync(e => e.id_usuario == idUsuario);
+
+            if (empresa == null)
+            {
+                ViewData["Error"] = "No se encontró información del perfil de la empresa.";
+                return View(null);
+            }
+
+            var model = new EmpresaViewModel
+            {
+                Nombre = empresa.nombre,
+                Email = usuario.email,
+                Direccion = empresa.direccion,
+                Descripcion = empresa.descripcion_empresa,
+                Sector = empresa.sector_empresa,
+                TipoUsuario = usuario.tipo_usuario.ToString()
+            };
+
+            return View("IndexEmpresa", model);
+        }
+
+
     }
 
 }
