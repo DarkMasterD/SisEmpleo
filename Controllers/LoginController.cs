@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SisEmpleo.Models;
-using System.Net.Mail;
 using System.Net;
+using System.Net.Mail;
 
 namespace SisEmpleo.Controllers
 {
@@ -213,10 +214,22 @@ namespace SisEmpleo.Controllers
                     id_pais = datos.id_pais,
                     id_provincia = datos.id_provincia,
                     id_idioma = datos.id_idioma
+
+
+
                 };
 
                 _EmpleoContext.Postulante.Add(postulante);
                 _EmpleoContext.SaveChanges();
+
+                var curriculum = new Curriculum
+                {
+                    id_postulante = postulante.id_postulante,
+                    fecha = DateTime.Now
+                };
+                _EmpleoContext.Curriculum.Add(curriculum);
+                _EmpleoContext.SaveChangesAsync();
+
 
                 return RedirectToAction("Login", "Login");
             }

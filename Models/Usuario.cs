@@ -13,5 +13,6 @@ namespace SisEmpleo.Models
         public DateTime fecha_creacion { get; set; }
         public DateTime last_login { get; set; }
         public char estado { get; set; }
+
     }
 }

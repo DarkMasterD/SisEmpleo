@@ -1,212 +1,86 @@
-﻿@using SisEmpleo.Models.Viewmodels
-@model PostulanteViewModel
+﻿@model SisEmpleo.Models.Viewmodels.PostulanteViewModel
 
-@{
-    ViewData["Title"] = "Perfil de Postulante";
+@if (Model == null)
+{
+    <div class="alert alert-warning">
+        No hay datos para mostrar. Por favor completa tu perfil.
+    </div>
 }
+else
+{
+    var camposFaltantes = new List<string>();
+    if (string.IsNullOrWhiteSpace(Model.Telefono)) { camposFaltantes.Add("Teléfono"); }
+    if (string.IsNullOrWhiteSpace(Model.Pais)) { camposFaltantes.Add("País"); }
+    if (string.IsNullOrWhiteSpace(Model.Provincia)) { camposFaltantes.Add("Provincia"); }
+    if (Model.Idiomas == null || !Model.Idiomas.Any()) { camposFaltantes.Add("Idiomas"); }
+    if (Model.Habilidades == null || !Model.Habilidades.Any()) { camposFaltantes.Add("Habilidades"); }
 
-
-
-<style>
-    body {
-        font-family: 'Poppins', sans-serif;
-        background-color: #f4f6f8;
-        color: #333;
+    if (camposFaltantes.Any())
+    {
+        <div class="alert alert-info">
+            <strong>¡Tu perfil está incompleto!</strong>
+            <br />
+            Faltan los siguientes campos: @string.Join(", ", camposFaltantes).
+            <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-sm btn-primary ml-2">Completa tu perfil aquí</a>
+        </div>
     }
 
-    .container {
-        max-width: 900px;
-    }
-
-    h2 {
-        font-weight: 600;
-        font-size: 2rem;
-    }
-
-    .card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
-        background-color: #fff;
-    }
-
-    .card-header {
-        background-color: #f1f3f5;
-        font-weight: 600;
-        font-size: 1.25rem;
-        border-top-left-radius: 16px;
-        border-top-right-radius: 16px;
-        padding: 1rem 1.5rem;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-        .card-body p, .card-body li {
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-    .badge {
-        font-size: 0.95rem;
-        padding: 0.5em 0.75em;
-        border-radius: 30px;
-    }
-
-        .badge.bg-info {
-            background-color: #e3f2fd;
-            color: #0d6efd;
-        }
-
-        .badge.bg-secondary {
-            background-color: #dee2e6;
-            color: #495057;
-        }
-
-    .section-icon {
-        margin-right: 10px;
-        color: #0d6efd;
-        font-size: 1.3rem;
-        vertical-align: middle;
-    }
-
-    .btn-outline-primary {
-        border-radius: 30px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-        .btn-outline-primary:hover {
-            background-color: #0d6efd;
-            color: white;
-        }
-
-    ul {
-        padding-left: 1.2rem;
-    }
-</style>
-
-<div class="container mt-5">
-    <h2 class="mb-4 text-center text-primary">Perfil de @Model.Nombre @Model.Apellidos</h2>
-
-    <!-- Información Personal -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-person-fill section-icon"></i>Información Personal</div>
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h2>@Model.Nombre @Model.Apellidos</h2>
+        </div>
         <div class="card-body">
-            <p><strong>Correo:</strong> @Model.Email</p>
-            <p><strong>Teléfono:</strong> @Model.Telefono</p>
-            <p><strong>Fecha de nacimiento:</strong> @(Model.Fecha_Nacimiento?.ToShortDateString() ?? "No especificada")</p>
-            <p><strong>País:</strong> @Model.Pais</p>
-            <p><strong>Provincia:</strong> @Model.Provincia</p>
+            <p><strong>Email:</strong> @Model.Email</p>
+            <p><strong>Teléfono:</strong> @(string.IsNullOrWhiteSpace(Model.Telefono) ? "No especificado" : Model.Telefono)</p>
+            <p><strong>País:</strong> @(string.IsNullOrWhiteSpace(Model.Pais) ? "No especificado" : Model.Pais)</p>
+            <p><strong>Provincia:</strong> @(string.IsNullOrWhiteSpace(Model.Provincia) ? "No especificado" : Model.Provincia)</p>
         </div>
     </div>
 
-    <!-- Idiomas -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-translate section-icon"></i>Idiomas</div>
-        <div class="card-body">
-            @if (Model.Idiomas.Any())
-            {
-                @foreach (var idioma in Model.Idiomas)
-                {
-                    <span class="badge bg-secondary me-1 mb-1">@idioma</span>
-                }
-            }
-            else
-            {
-                <p>No hay idiomas registrados.</p>
-            }
-        </div>
-    </div>
-
-    <!-- Habilidades -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-lightning-fill section-icon"></i>Habilidades</div>
-        <div class="card-body">
-            @if (Model.Habilidades.Any())
-            {
-                @foreach (var habilidad in Model.Habilidades)
-                {
-                    <span class="badge bg-info me-1 mb-1">@habilidad</span>
-                }
-            }
-            else
-            {
-                <p>No hay habilidades registradas.</p>
-            }
-        </div>
-    </div>
-
-    <!-- Formación Académica -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-mortarboard-fill section-icon"></i>Formación Académica</div>
-        <div class="card-body">
-            @if (Model.FormacionAcademica.Any())
-            {
-                @foreach (var formacion in Model.FormacionAcademica)
-                {
-                    <div class="mb-3">
-                        <p><strong>@formacion.Especialidad</strong></p>
-                        <p>@formacion.Titulo - @formacion.Institucion</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p>No hay formación académica registrada.</p>
-            }
-        </div>
-    </div>
-
-    <!-- Experiencia Profesional -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-briefcase-fill section-icon"></i>Experiencia Profesional</div>
-        <div class="card-body">
-            @if (Model.Experiencias != null && Model.Experiencias.Any())
-            {
-                @foreach (var exp in Model.Experiencias)
-                {
-                    <div class="mb-3">
-                        <p><strong>@exp.Puesto</strong> - @exp.Empresa</p>
-                        <p>Desde @exp.FechaInicio?.ToShortDateString() hasta @(exp.FechaFin?.ToShortDateString() ?? "Actualidad")</p>
-                    </div>
-                }
-            }
-            else
-            {
-                <p>No hay experiencia registrada.</p>
-            }
-        </div>
-    </div>
-
-    <!-- Certificaciones -->
-    <div class="card mb-4">
-        <div class="card-header"><i class="bi bi-award-fill section-icon"></i>Certificaciones</div>
-        <div class="card-body">
-            @if (Model.Certificaciones != null && Model.Certificaciones.Any())
-            {
-                <ul class="list-unstyled">
-                    @foreach (var cert in Model.Certificaciones)
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4>Idiomas</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Idiomas != null && Model.Idiomas.Any())
                     {
-                        <li class="mb-2">
-                            <strong>@cert.Nombre</strong><br />
-                            Obtenida: @cert.FechaObtencion?.ToShortDateString()
-                        </li>
+                        <ul class="list-group list-group-flush">
+                            @foreach (var idioma in Model.Idiomas)
+                            {
+                                <li class="list-group-item">@idioma</li>
+                            }
+                        </ul>
                     }
-                </ul>
-            }
-            else
-            {
-                <p>No hay certificaciones registradas.</p>
-            }
+                    else
+                    {
+                        <span class="text-danger">No especificado</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h4>Habilidades</h4>
+                </div>
+                <div class="card-body">
+                    @if (Model.Habilidades != null && Model.Habilidades.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var habilidad in Model.Habilidades)
+                            {
+                                <li class="list-group-item">@habilidad</li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-danger">No especificado</span>
+                    }
+                </div>
+            </div>
         </div>
     </div>
-
-    <!-- Botón Editar -->
-    <div class="text-center mt-4">
-        <a href="@Url.Action("EditarPerfil")" class="btn btn-outline-primary btn-lg px-5">
-            <i class="bi bi-pencil-square me-2"></i>Editar Perfil
-        </a>
-    </div>
-</div>
+}
