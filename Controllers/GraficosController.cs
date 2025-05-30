@@ -5,11 +5,11 @@ using SisEmpleo.Models.Graficos;
 
 namespace SisEmpleo.Controllers
 {
-    public class Graficos : Controller
+    public class GraficosController : Controller
     {
         private readonly EmpleoContext _context;
 
-        public Graficos(EmpleoContext context)
+        public GraficosController(EmpleoContext context)
         {
             _context = context;
         }
@@ -142,34 +142,29 @@ namespace SisEmpleo.Controllers
             return View("~/Views/Gráficos/Grafico5.cshtml");
         }
 
-        //Metodo para obtener los datos para el grafico 5
         [HttpGet]
         public async Task<IActionResult> GetSalarioVacantesData()
         {
             try
             {
-                // 1. Verificar conexión a la base de datos
                 if (!_context.Database.CanConnect())
                 {
                     return Json(new { error = "No se pudo conectar a la base de datos" });
                 }
 
-                // 2. Consulta con logging
-                var query = _context.OfertaEmpleo
-                    .Include(o => o.EmpresaNombre)
-                    .Where(o => o.salario > 0 && o.vacante > 0)
-                    .Select(o => new
+                var query =
+                    from o in _context.OfertaEmpleo
+                    join e in _context.Empresa on o.id_empresa equals e.id_empresa
+                    where o.salario > 0 && o.vacante > 0
+                    select new
                     {
-                        o.salario,
-                        o.vacante,
-                        o.titulo,
-                        Empresa = o.EmpresaNombre
-                    });
-
-                Console.WriteLine($"SQL generado: {query.ToQueryString()}");
+                        Salario = o.salario,
+                        Vacantes = o.vacante,
+                        Titulo = o.titulo,
+                        Empresa = e.nombre
+                    };
 
                 var datos = await query.ToListAsync();
-                Console.WriteLine($"Registros encontrados: {datos.Count}");
 
                 if (!datos.Any())
                 {
@@ -180,7 +175,6 @@ namespace SisEmpleo.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error completo: {ex.ToString()}");
                 return Json(new
                 {
                     error = "Error en el servidor",
@@ -189,6 +183,8 @@ namespace SisEmpleo.Controllers
                 });
             }
         }
+
+
 
         //Grap 6
         public async Task<IActionResult> OfertasPorEmpresa()
