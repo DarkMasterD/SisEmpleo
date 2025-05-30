@@ -263,32 +263,33 @@ namespace SisEmpleo.Controllers
         {
             try
             {
-                // 1. Verificar conexión a la base de datos
+                // 1. Verificar conexión
                 if (!_context.Database.CanConnect())
                 {
                     return Json(new { error = "No se pudo conectar a la base de datos" });
                 }
 
-                // 2. Consulta para obtener el total de ofertas
+                // 2. Verificar que haya ofertas
                 var totalOfertas = await _context.OfertaEmpleo.CountAsync();
-
                 if (totalOfertas == 0)
                 {
                     return Json(new { warning = "No hay ofertas de empleo registradas" });
                 }
 
-                // 3. Consulta para obtener ofertas por país
-                var datos = await _context.OfertaEmpleo
-                    .Include(o => o.PaisNombre)
-                    .GroupBy(o => o.PaisNombre)
-                    .Select(g => new
+                // 3. Consulta tipo Qlik: JOIN manual entre OfertaEmpleo y Pais
+                var datos = await (
+                    from o in _context.OfertaEmpleo
+                    join p in _context.Pais on o.id_pais equals p.id_pais
+                    group o by p.nombre into g
+                    select new
                     {
                         pais = g.Key,
                         cantidad = g.Count(),
                         porcentaje = (g.Count() * 100.0) / totalOfertas
-                    })
-                    .OrderByDescending(x => x.cantidad)
-                    .ToListAsync();
+                    }
+                )
+                .OrderByDescending(x => x.cantidad)
+                .ToListAsync();
 
                 return Json(datos);
             }
