@@ -1,0 +1,41 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Ofertas de Empleo Publicadas por Rango de Fechas";
+}
+
+<h2 class="text-center">Ofertas de Empleo Publicadas por Rango de Fechas</h2>
+
+<canvas id="graficoOfertas" width="400" height="200"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var ctx = document.getElementById('graficoOfertas').getContext('2d');
+
+        var fechas = @Html.Raw(Json.Serialize(Model.Select(o => o.Fecha.ToString("yyyy-MM-dd"))));
+        var cantidades = @Html.Raw(Json.Serialize(Model.Select(o => o.TotalOfertas)));
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: 'Número de Ofertas',
+                    data: cantidades,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>

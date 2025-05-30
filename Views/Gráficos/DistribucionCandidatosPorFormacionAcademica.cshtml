@@ -1,0 +1,43 @@
+﻿@{
+    ViewData["Title"] = "Distribución de Candidatos por Formación Académica";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<!-- Canvas donde se renderiza el gráfico -->
+<canvas id="chartFormacionAcademica" width="400" height="200"></canvas>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Datos obtenidos desde el controlador
+        var datos = @Html.Raw(Json.Serialize(Model));
+
+        // Preparando los datos para el gráfico
+        var labels = datos.map(d => d.NivelFormacion);
+        var candidatos = datos.map(d => d.TotalCandidatos);
+
+        // Configuración y creación del gráfico
+        var ctx = document.getElementById('chartFormacionAcademica').getContext('2d');
+        var chart = new Chart(ctx, {
+            type: 'bar', // Tipo de gráfico (puedes cambiarlo a 'pie' si prefieres gráfico de pastel)
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total de Candidatos',
+                    data: candidatos,
+                    backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'],
+                    borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+}
