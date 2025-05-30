@@ -28,6 +28,7 @@ namespace SisEmpleo.Controllers
                     return RedirectToAction("Login", "Cuenta");
                 }
 
+
                 var postulante = (from u in _context.Usuario
                                   join p in _context.Postulante on u.id_usuario equals p.id_usuario
                                   join c in _context.Contacto on u.id_usuario equals c.id_usuario

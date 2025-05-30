@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Recuperar Contraseña";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center">Recuperar Contraseña</h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    }
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    }
+
+                    <form asp-action="EnviarCodigoRecuperacion" method="post">
+                        <div class="form-group">
+                            <label for="email">Correo Electrónico:</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-3">Enviar Código</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a asp-action="Login">Volver al inicio de sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
