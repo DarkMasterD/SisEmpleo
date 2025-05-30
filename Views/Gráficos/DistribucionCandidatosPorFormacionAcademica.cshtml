@@ -2,12 +2,16 @@
     ViewData["Title"] = "Distribución de Candidatos por Formación Académica";
 }
 
+@{
+        Layout = null; 
+}
+
 <h2>@ViewData["Title"]</h2>
 
 <!-- Canvas donde se renderiza el gráfico -->
 <canvas id="chartFormacionAcademica" width="400" height="200"></canvas>
 
-@section Scripts {
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Datos obtenidos desde el controlador
@@ -40,4 +44,4 @@
             }
         });
     </script>
-}
+
