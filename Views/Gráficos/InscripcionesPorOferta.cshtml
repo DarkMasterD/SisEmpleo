@@ -1,64 +1,287 @@
 ﻿@model List<SisEmpleo.Models.Graficos.InscripcionesPorOfertaViewModel>
 @{
-    Layout=null;
+    Layout = null;
+    var totalInscripciones = Model?.Sum(m => m.TotalInscripciones) ?? 0;
+    var ofertaMasPopular = Model?.OrderByDescending(m => m.TotalInscripciones).FirstOrDefault()?.Oferta ?? "N/A";
+    var promedioInscripciones = Model?.Count > 0 ? Math.Round(Model.Average(m => m.TotalInscripciones), 1) : 0;
 }
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Número de Inscripciones por Oferta</title>
+    <title>Inscripciones por Oferta - SisEmpleo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <style>
-        body {
-            background-color: #f4f7fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
-        .chart-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: var(--card-shadow);
+            flex-shrink: 0;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .data-summary {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            text-align: center;
+            min-width: 160px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid #9c27b0;
+            flex: 1;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #9c27b0;
+            margin: 0.5rem 0;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-top: 5px solid #9c27b0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             min-height: 400px;
         }
 
-        h2 {
-            color: #333;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .chart-actions .btn {
+            margin-left: 0.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
         }
 
         #myChart {
             width: 100% !important;
-            height: 400px !important;
+            height: 100% !important;
+        }
+
+        .no-data-alert {
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff8e1;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+            margin: auto;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #9c27b0;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .back-button:hover {
+                transform: scale(1.1);
+                background-color: #7b1fa2;
+            }
+
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.3rem;
+            }
+
+            .summary-card {
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+
+            .summary-value {
+                font-size: 1.2rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="chart-container">
-            <h2>Número de Inscripciones por Oferta</h2>
-            <canvas id="myChart"></canvas>
+    <div class="dashboard-header text-center">
+        <div class="container">
+            <h1 class="dashboard-title"><i class="fas fa-users me-2"></i>Inscripciones por Oferta</h1>
+            <p class="dashboard-subtitle">Análisis de candidatos inscritos por oferta de empleo</p>
         </div>
+    </div>
+
+    <div class="main-content">
+        <div class="data-summary">
+            <div class="summary-card">
+                <div class="summary-label">Total Inscripciones</div>
+                <div class="summary-value">@totalInscripciones</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Ofertas Publicadas</div>
+                <div class="summary-value">@Model?.Count</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Promedio por Oferta</div>
+                <div class="summary-value">@promedioInscripciones</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">Distribución de Inscripciones por Oferta</h2>
+                <div class="chart-actions">
+                    <button class="btn btn-outline-primary" onclick="downloadChart()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="no-data-alert">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #ffc107;"></i>
+                        <h4>No hay datos disponibles</h4>
+                        <p>No se encontraron registros de inscripciones por oferta para mostrar el gráfico.</p>
+                    </div>
+                }
+                else
+                {
+                    <canvas id="myChart"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="back-button" onclick="window.history.back()">
+        <i class="fas fa-arrow-left fa-lg"></i>
     </div>
 
     <script>
         const labels = @Html.Raw(Json.Serialize(Model?.Select(m => m.Oferta) ?? new string[] { }));
         const data = @Html.Raw(Json.Serialize(Model?.Select(m => m.TotalInscripciones) ?? new int[] { }));
 
+        // Función para generar colores en gradiente morado/rosa
+        function generateGradientColors(count, color1, color2) {
+            const colors = [];
+            const color1Rgb = color1.match(/\d+/g).map(Number);
+            const color2Rgb = color2.match(/\d+/g).map(Number);
+            const alpha = color1.split(',')[3] ? parseFloat(color1.split(',')[3]) : 1;
+
+            for (let i = 0; i < count; i++) {
+                const ratio = i / Math.max(1, count - 1);
+                const r = Math.round(color1Rgb[0] * (1 - ratio) + color2Rgb[0] * ratio);
+                const g = Math.round(color1Rgb[1] * (1 - ratio) + color2Rgb[1] * ratio);
+                const b = Math.round(color1Rgb[2] * (1 - ratio) + color2Rgb[2] * ratio);
+                colors.push(`rgba(${r}, ${g}, ${b}, ${alpha})`);
+            }
+            return colors;
+        }
+
         if (!labels || labels.length === 0 || !data || data.length === 0) {
             console.error('No hay datos para mostrar en el gráfico.');
-            document.getElementById('myChart').style.display = 'none';
-            const container = document.querySelector('.chart-container');
-            container.innerHTML += '<p class="text-center text-danger">No hay datos disponibles para mostrar el gráfico.</p>';
+            if (document.getElementById('myChart')) {
+                document.getElementById('myChart').style.display = 'none';
+            }
         } else {
             const ctx = document.getElementById('myChart').getContext('2d');
             new Chart(ctx, {
@@ -68,37 +291,86 @@
                     datasets: [{
                         label: 'Número de Inscripciones',
                         data: data,
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        hoverBackgroundColor: 'rgba(54, 162, 235, 0.8)'
+                        backgroundColor: generateGradientColors(labels.length, 'rgba(156, 39, 176, 0.7)', 'rgba(233, 30, 99, 0.7)'),
+                        borderColor: generateGradientColors(labels.length, 'rgba(156, 39, 176, 1)', 'rgba(233, 30, 99, 1)'),
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        hoverBackgroundColor: generateGradientColors(labels.length, 'rgba(156, 39, 176, 0.9)', 'rgba(233, 30, 99, 0.9)')
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 14 } } },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 14 },
+                                boxWidth: 20,
+                                padding: 20
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${context.dataset.label}: ${context.raw}`;
+                                    return ` ${context.raw} inscripción${context.raw !== 1 ? 'es' : ''}`;
                                 }
-                            }
+                            },
+                            displayColors: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 14 },
+                            padding: 12
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Número de Inscripciones', font: { size: 16 } },
-                            ticks: { stepSize: 1 }
+                            title: {
+                                display: true,
+                                text: 'Número de Inscripciones',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
                         },
                         x: {
-                            title: { display: true, text: 'Ofertas de Empleo', font: { size: 16 } }
+                            title: {
+                                display: true,
+                                text: 'Ofertas de Empleo',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                callback: function(value) {
+                                    return this.getLabelForValue(value).length > 20 ?
+                                        this.getLabelForValue(value).substring(0, 20) + '...' :
+                                        this.getLabelForValue(value);
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
                         }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuad'
                     }
                 }
             });
+        }
+
+        function downloadChart() {
+            const link = document.createElement('a');
+            link.download = 'Inscripciones-por-Oferta.png';
+            link.href = document.getElementById('myChart').toDataURL('image/png');
+            link.click();
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

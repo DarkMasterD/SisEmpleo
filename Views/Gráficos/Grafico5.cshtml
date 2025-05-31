@@ -1,45 +1,261 @@
 ﻿@{
     ViewData["Title"] = "Relación Salario vs Vacantes";
-    Layout =  null; 
+    Layout = null;
 }
+
+<!DOCTYPE html>
+<html lang="es">
 <head>
-    <meta charset="utf-8" />
-    <title>@ViewData["Title"]</title>
-
-    <!-- Bootstrap CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - SisEmpleo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- FontAwesome para íconos -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-
-    <!-- jQuery -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: var(--card-shadow);
+            flex-shrink: 0;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .data-summary {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 160px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid #e74c3c;
+            flex: 1;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e74c3c;
+            margin: 0.5rem 0;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-top: 5px solid #e74c3c;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .chart-actions .btn {
+            margin-left: 0.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 100%;
+            flex: 1;
+        }
+
+        #scatterChart {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+        }
+
+        .no-data-alert {
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff8e1;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+            margin: auto;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .back-button:hover {
+                transform: scale(1.1);
+                background-color: #c0392b;
+            }
+
+        .update-timestamp {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.3rem;
+            }
+
+            .summary-card {
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+
+            .summary-value {
+                font-size: 1.2rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
-<div class="container py-3">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h5 mb-0">
-                <i class="fas fa-chart-scatter me-2"></i> @ViewData["Title"]
-            </h2>
+<body>
+    <div class="dashboard-header text-center">
+        <div class="container">
+            <h1 class="dashboard-title"><i class="fas fa-money-bill-wave me-2"></i>Relación Salario vs Vacantes</h1>
+            <p class="dashboard-subtitle">Análisis comparativo entre salarios ofrecidos y número de vacantes</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="data-summary">
+            <div class="summary-card">
+                <div class="summary-label">Total Ofertas</div>
+                <div class="summary-value" id="totalOfertas">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Salario Promedio</div>
+                <div class="summary-value" id="salarioPromedio">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Vacantes Promedio</div>
+                <div class="summary-value" id="vacantesPromedio">-</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Correlación</div>
+                <div class="summary-value" id="correlacion">-</div>
+            </div>
         </div>
 
-        <div class="card-body">
-            <!-- Contenedor simplificado -->
-            <div id="chartContainer">
-                <div id="scatterChart" style="height: 60vh;"></div>
-                <div class="text-end small text-muted mt-2">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">Relación Salario vs Vacantes</h2>
+                <div class="chart-actions">
+                    <button class="btn btn-outline-primary" onclick="downloadChart()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div id="scatterChart"></div>
+                <div class="update-timestamp">
                     Actualizado: <span id="lastUpdate"></span>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-
-    <!-- librerías esenciales -->
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
+    <div class="back-button" onclick="window.history.back()">
+        <i class="fas fa-arrow-left fa-lg"></i>
+    </div>
 
     <script>
         $(document).ready(function () {
@@ -53,22 +269,58 @@
                 dataType: 'json',
                 success: function (response) {
                     if (response && Array.isArray(response)) {
+                        updateSummaryData(response);
                         renderChart(response);
+                    } else {
+                        showNoDataAlert();
                     }
                 },
                 error: function (xhr) {
                     console.error("Error al cargar datos:", xhr.statusText);
+                    showNoDataAlert();
                 }
             });
+        }
+
+        function updateSummaryData(data) {
+            // Actualizar tarjetas de resumen
+            $('#totalOfertas').text(data.length);
+
+            const salarios = data.map(item => item.salario);
+            const salarioPromedio = salarios.reduce((a, b) => a + b, 0) / salarios.length;
+            $('#salarioPromedio').text('$' + salarioPromedio.toFixed(2));
+
+            const vacantes = data.map(item => item.vacantes);
+            const vacantesPromedio = vacantes.reduce((a, b) => a + b, 0) / vacantes.length;
+            $('#vacantesPromedio').text(vacantesPromedio.toFixed(1));
+
+            // Calcular correlación (coeficiente de Pearson simplificado)
+            if (data.length > 1) {
+                const correlacion = calculateCorrelation(salarios, vacantes);
+                $('#correlacion').text(correlacion.toFixed(2));
+            }
+        }
+
+        function calculateCorrelation(x, y) {
+            const n = x.length;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.map((val, i) => val * y[i]).reduce((a, b) => a + b, 0);
+            const sumX2 = x.map(val => val * val).reduce((a, b) => a + b, 0);
+            const sumY2 = y.map(val => val * val).reduce((a, b) => a + b, 0);
+
+            const numerator = sumXY - (sumX * sumY / n);
+            const denominator = Math.sqrt((sumX2 - (sumX * sumX / n)) * (sumY2 - (sumY * sumY / n)));
+
+            return denominator !== 0 ? numerator / denominator : 0;
         }
 
         function renderChart(data) {
             const processedData = data.map(item => ({
                 x: item.salario,
                 y: item.vacantes,
-                text: `${item.titulo}<br>${item.empresa}`,
-                salary: item.salario,
-                vacancies: item.vacantes
+                text: `${item.titulo}<br>Empresa: ${item.empresa}<br>Salario: $${item.salario.toFixed(2)}<br>Vacantes: ${item.vacantes}`,
+                customdata: item
             }));
 
             const trace = {
@@ -78,21 +330,70 @@
                 mode: 'markers',
                 type: 'scatter',
                 marker: {
-                    size: 10,
-                    color: '#4285F4'
-                }
+                    size: 12,
+                    color: '#e74c3c',
+                    opacity: 0.8,
+                    line: {
+                        width: 1,
+                        color: '#c0392b'
+                    }
+                },
+                hoverinfo: 'text',
+                hovertemplate: '%{text}<extra></extra>'
             };
 
             const layout = {
-                title: 'Salario vs Vacantes',
-                xaxis: { title: 'Salario ($)', tickprefix: '$' },
-                yaxis: { title: 'Vacantes', tickmode: 'linear', dtick: 1 },
-                margin: { t: 40, l: 60, r: 30, b: 60 }
+                xaxis: {
+                    title: 'Salario ($)',
+                    tickprefix: '$',
+                    gridcolor: 'rgba(0,0,0,0.05)',
+                    titlefont: { size: 14, weight: 'bold' }
+                },
+                yaxis: {
+                    title: 'Número de Vacantes',
+                    tickmode: 'linear',
+                    dtick: 1,
+                    gridcolor: 'rgba(0,0,0,0.05)',
+                    titlefont: { size: 14, weight: 'bold' }
+                },
+                margin: { t: 40, l: 60, r: 30, b: 60 },
+                hoverlabel: {
+                    bgcolor: 'rgba(0,0,0,0.8)',
+                    font: { size: 12 }
+                },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)'
             };
 
             Plotly.newPlot('scatterChart', [trace], layout);
 
             // Actualizar marca de tiempo
-            $('#lastUpdate').text(moment().format('LLL'));
+            $('#lastUpdate').text(moment().format('LL'));
+        }
+
+        function downloadChart() {
+            const plot = document.getElementById('scatterChart');
+            Plotly.toImage(plot, {
+                format: 'png',
+                width: 800,
+                height: 600
+            }).then(function(url) {
+                const link = document.createElement('a');
+                link.download = 'Salario-vs-Vacantes.png';
+                link.href = url;
+                link.click();
+            });
+        }
+
+        function showNoDataAlert() {
+            $('.chart-container').html(`
+                <div class="no-data-alert">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #ffc107;"></i>
+                    <h4>No hay datos disponibles</h4>
+                    <p>No se encontraron registros para mostrar el gráfico.</p>
+                </div>
+            `);
         }
     </script>
+</body>
+</html>

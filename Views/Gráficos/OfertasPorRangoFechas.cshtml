@@ -5,38 +5,397 @@
     Layout = null;
 }
 
-<h2 class="text-center">Ofertas de Empleo Publicadas por Rango de Fechas</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - SisEmpleo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
 
-<canvas id="graficoOfertas" width="400" height="200"></canvas>
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        var ctx = document.getElementById('graficoOfertas').getContext('2d');
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: var(--card-shadow);
+        }
 
-        var fechas = @Html.Raw(Json.Serialize(Model.Select(o => o.Fecha.ToString("yyyy-MM-dd"))));
-        var cantidades = @Html.Raw(Json.Serialize(Model.Select(o => o.TotalOfertas)));
+        .dashboard-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
 
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: fechas,
-                datasets: [{
-                    label: 'Número de Ofertas',
-                    data: cantidades,
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            padding: 1rem 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .date-filter {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-top: 5px solid var(--primary-color);
+            min-height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .action-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .action-button:hover {
+                transform: scale(1.1);
+                background-color: #2980b9;
+            }
+
+            .action-button.back {
+                background-color: var(--secondary-color);
+            }
+
+            .action-button.print {
+                background-color: #2ecc71;
+            }
+
+                .action-button.print:hover {
+                    background-color: #27ae60;
+                }
+
+        @@media print {
+            body {
+                background-color: white;
+                padding: 20px;
+            }
+
+            .dashboard-header, .action-buttons, .no-print {
+                display: none;
+            }
+
+            .chart-container {
+                box-shadow: none;
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.3rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .date-filter .row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .date-filter .col-md-4 {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header text-center">
+        <div class="container">
+            <h1 class="dashboard-title"><i class="fas fa-calendar-alt me-2"></i>Ofertas por Rango de Fechas</h1>
+            <p class="dashboard-subtitle">Análisis de ofertas laborales publicadas por fecha</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Filtro de fechas -->
+        <div class="date-filter no-print">
+            <form id="filtroForm" class="row g-3">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fechaInicio" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fechaFin" required>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contenedor del gráfico -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <h2 class="chart-title">Distribución de Ofertas por Fecha</h2>
+                <div class="chart-actions no-print">
+                    <button class="btn btn-outline-secondary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimir
+                    </button>
+                </div>
+            </div>
+
+            <div style="width: 100%; height: 400px;">
+                <canvas id="graficoOfertas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones flotantes -->
+    <div class="action-buttons no-print">
+        <div class="action-button back" onclick="window.history.back()" title="Volver atrás">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+        <div class="action-button print" onclick="window.print()" title="Imprimir reporte">
+            <i class="fas fa-print"></i>
+        </div>
+    </div>
+
+    <script>
+        // Variable para almacenar la instancia del gráfico
+        var graficoOfertas = null;
+
+        $(document).ready(function () {
+            // Inicializar gráfico con datos del modelo
+            inicializarGrafico(
+                @Html.Raw(Json.Serialize(Model.Select(o => o.Fecha.ToString("yyyy-MM-dd")))),
+                @Html.Raw(Json.Serialize(Model.Select(o => o.TotalOfertas)))
+            );
+
+            // Configurar fechas por defecto (últimos 30 días)
+            const fechaFin = new Date();
+            const fechaInicio = new Date();
+            fechaInicio.setDate(fechaFin.getDate() - 30);
+
+            $('#fechaInicio').val(fechaInicio.toISOString().split('T')[0]);
+            $('#fechaFin').val(fechaFin.toISOString().split('T')[0]);
+
+            // Manejar el envío del formulario de filtro
+            $('#filtroForm').on('submit', function(e) {
+                e.preventDefault();
+                filtrarDatos();
+            });
+        });
+
+        function inicializarGrafico(fechas, cantidades) {
+            const ctx = document.getElementById('graficoOfertas').getContext('2d');
+
+            // Destruir gráfico anterior si existe
+            if (graficoOfertas) {
+                graficoOfertas.destroy();
+            }
+
+            graficoOfertas = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'Número de Ofertas',
+                        data: cantidades,
+                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Ofertas',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Fechas de Publicación',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                maxRotation: 45,
+                                minRotation: 45
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const fechaCompleta = new Date(fechas[context[0].dataIndex]);
+                                    return fechaCompleta.toLocaleDateString('es-ES', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    });
+                                },
+                                label: function(context) {
+                                    return ' ' + context.raw + ' oferta' + (context.raw !== 1 ? 's' : '');
+                                }
+                            }
+                        }
                     }
                 }
+            });
+        }
+
+        function filtrarDatos() {
+            const fechaInicio = $('#fechaInicio').val();
+            const fechaFin = $('#fechaFin').val();
+
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor seleccione ambas fechas');
+                return;
             }
-        });
-    });
-</script>
+
+            if (new Date(fechaInicio) > new Date(fechaFin)) {
+                alert('La fecha de inicio no puede ser mayor a la fecha final');
+                return;
+            }
+
+            // Mostrar carga
+            $('.chart-container').html(`
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2">Cargando datos...</p>
+                </div>
+                <canvas id="graficoOfertas" style="display: none"></canvas>
+            `);
+
+            // Obtener datos filtrados
+            $.ajax({
+                url: '@Url.Action("OfertasPorRangoFechas", "Graficos")',
+                type: 'GET',
+                data: {
+                    fechaInicio: fechaInicio,
+                    fechaFin: fechaFin,
+                    json: true
+                },
+                success: function(response) {
+                    $('.chart-container').html(`
+                        <div class="chart-header">
+                            <h2 class="chart-title">Distribución de Ofertas por Fecha</h2>
+                            <div class="chart-actions no-print">
+                                <button class="btn btn-outline-secondary" onclick="window.print()">
+                                    <i class="fas fa-print me-1"></i>Imprimir
+                                </button>
+                            </div>
+                        </div>
+                        <div style="width: 100%; height: 400px;">
+                            <canvas id="graficoOfertas"></canvas>
+                        </div>
+                    `);
+                    inicializarGrafico(response.fechas, response.cantidades);
+                },
+                error: function() {
+                    $('.chart-container').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error al cargar los datos
+                        </div>
+                        <div style="width: 100%; height: 400px;">
+                            <canvas id="graficoOfertas"></canvas>
+                        </div>
+                    `);
+                }
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
