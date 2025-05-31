@@ -258,9 +258,33 @@ namespace SisEmpleo.Controllers
 
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = "Por favor corrija los errores del formulario.";
+                var errorList = new List<string>();
+                foreach (var value in ModelState.Values)
+                {
+                    foreach (var error in value.Errors)
+                    {
+                        errorList.Add(error.ErrorMessage);
+                    }
+                }
+                string detailedErrors = string.Join(" | ", errorList);
+                TempData["ErrorMessage"] = "Por favor corrija los errores del formulario: " + detailedErrors;
+
+                System.Diagnostics.Debug.WriteLine("Errores de ModelState en POST EditarPerfil:");
+                foreach (var key in ModelState.Keys)
+                {
+                    var state = ModelState[key];
+                    if (state.Errors.Any())
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Campo: {key}");
+                        foreach (var error in state.Errors)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"  - Error: {error.ErrorMessage}");
+                        }
+                    }
+                }
+
                 await PopulateDropdownsForViewModel(model);
-                return View(model);
+                return View(model); // Devuelve la vista CON el modelo que tiene los errores
             }
             postulante.nombre = model.Nombre;
             postulante.apellido = model.Apellidos;
