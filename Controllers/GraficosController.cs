@@ -5,14 +5,15 @@ using SisEmpleo.Models.Graficos;
 
 namespace SisEmpleo.Controllers
 {
-    public class Graficos : Controller
+    public class GraficosController : Controller
     {
         private readonly EmpleoContext _context;
-
-        public Graficos(EmpleoContext context)
+        private readonly ILogger<GraficosController> _logger; 
+        public GraficosController(EmpleoContext context)
         {
             _context = context;
         }
+
         public IActionResult Index()
         {
             return View();
@@ -142,34 +143,29 @@ namespace SisEmpleo.Controllers
             return View("~/Views/Gráficos/Grafico5.cshtml");
         }
 
-        //Metodo para obtener los datos para el grafico 5
         [HttpGet]
         public async Task<IActionResult> GetSalarioVacantesData()
         {
             try
             {
-                // 1. Verificar conexión a la base de datos
                 if (!_context.Database.CanConnect())
                 {
                     return Json(new { error = "No se pudo conectar a la base de datos" });
                 }
 
-                // 2. Consulta con logging
-                var query = _context.OfertaEmpleo
-                    .Include(o => o.EmpresaNombre)
-                    .Where(o => o.salario > 0 && o.vacante > 0)
-                    .Select(o => new
+                var query =
+                    from o in _context.OfertaEmpleo
+                    join e in _context.Empresa on o.id_empresa equals e.id_empresa
+                    where o.salario > 0 && o.vacante > 0
+                    select new
                     {
-                        o.salario,
-                        o.vacante,
-                        o.titulo,
-                        Empresa = o.EmpresaNombre
-                    });
-
-                Console.WriteLine($"SQL generado: {query.ToQueryString()}");
+                        Salario = o.salario,
+                        Vacantes = o.vacante,
+                        Titulo = o.titulo,
+                        Empresa = e.nombre
+                    };
 
                 var datos = await query.ToListAsync();
-                Console.WriteLine($"Registros encontrados: {datos.Count}");
 
                 if (!datos.Any())
                 {
@@ -180,7 +176,6 @@ namespace SisEmpleo.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error completo: {ex.ToString()}");
                 return Json(new
                 {
                     error = "Error en el servidor",
@@ -189,6 +184,8 @@ namespace SisEmpleo.Controllers
                 });
             }
         }
+
+
 
         //Grap 6
         public async Task<IActionResult> OfertasPorEmpresa()
@@ -224,13 +221,29 @@ namespace SisEmpleo.Controllers
         }
 
         //Grap 7
-        public async Task<IActionResult> OfertasPorRangoFechas(DateTime fechaInicio, DateTime fechaFin)
+        [HttpGet]
+        public async Task<IActionResult> OfertasPorRangoFechas(DateTime fechaInicio, DateTime fechaFin, bool json = false)
         {
             try
             {
+                // Validaciones (se mantienen igual)
+                if (fechaInicio > fechaFin)
+                {
+                    return json
+                        ? BadRequest(new { error = "La fecha de inicio no puede ser mayor a la fecha final" })
+                        : BadRequest("La fecha de inicio no puede ser mayor a la fecha final");
+                }
+
+                if ((fechaFin - fechaInicio).TotalDays > 365)
+                {
+                    return json
+                        ? BadRequest(new { error = "El rango de fechas no puede ser mayor a 1 año" })
+                        : BadRequest("El rango de fechas no puede ser mayor a 1 año");
+                }
+
                 var datos = await _context.OfertaEmpleo
                     .Where(o => o.fecha_publicacion >= fechaInicio && o.fecha_publicacion <= fechaFin)
-                    .GroupBy(o => o.fecha_publicacion)
+                    .GroupBy(o => o.fecha_publicacion.Date)
                     .Select(g => new
                     {
                         Fecha = g.Key,
@@ -239,19 +252,36 @@ namespace SisEmpleo.Controllers
                     .OrderBy(g => g.Fecha)
                     .ToListAsync();
 
-                System.Diagnostics.Debug.WriteLine($"Datos obtenidos (Ofertas por Rango de Fechas): {Newtonsoft.Json.JsonConvert.SerializeObject(datos)}");
-
-                if (!datos.Any())
+                // Respuesta según el formato solicitado
+                if (json)
                 {
-                    System.Diagnostics.Debug.WriteLine("No se encontraron ofertas publicadas en el rango de fechas especificado.");
+                    return Json(new
+                    {
+                        fechas = datos.Select(d => d.Fecha.ToString("yyyy-MM-dd")),
+                        cantidades = datos.Select(d => d.TotalOfertas),
+                        totalOfertas = datos.Sum(d => d.TotalOfertas),
+                        promedioPorDia = datos.Any() ? datos.Average(d => d.TotalOfertas) : 0,
+                        diaMasOfertas = datos.Any() ? datos.OrderByDescending(d => d.TotalOfertas).First().Fecha.ToString("dd/MM/yyyy") : "N/A"
+                    });
                 }
+                else
+                {
+                    // Para la vista HTML, pasamos datos dinámicos
+                    var viewModel = datos.Select(d => new
+                    {
+                        Fecha = d.Fecha,
+                        TotalOfertas = d.TotalOfertas
+                    }).ToList<dynamic>();
 
-                return View("~/Views/Gráficos/OfertasPorRangoFechas.cshtml", datos);
+                    return View("~/Views/Gráficos/OfertasPorRangoFechas.cshtml", viewModel);
+                }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error: {ex.Message}");
-                throw;
+                _logger.LogError(ex, "Error en OfertasPorRangoFechas");
+                return json
+                    ? StatusCode(500, new { error = "Error interno del servidor" })
+                    : StatusCode(500, "Error interno del servidor");
             }
         }
 
@@ -267,32 +297,33 @@ namespace SisEmpleo.Controllers
         {
             try
             {
-                // 1. Verificar conexión a la base de datos
+                // 1. Verificar conexión
                 if (!_context.Database.CanConnect())
                 {
                     return Json(new { error = "No se pudo conectar a la base de datos" });
                 }
 
-                // 2. Consulta para obtener el total de ofertas
+                // 2. Verificar que haya ofertas
                 var totalOfertas = await _context.OfertaEmpleo.CountAsync();
-
                 if (totalOfertas == 0)
                 {
                     return Json(new { warning = "No hay ofertas de empleo registradas" });
                 }
 
-                // 3. Consulta para obtener ofertas por país
-                var datos = await _context.OfertaEmpleo
-                    .Include(o => o.PaisNombre)
-                    .GroupBy(o => o.PaisNombre)
-                    .Select(g => new
+                // 3. Consulta tipo Qlik: JOIN manual entre OfertaEmpleo y Pais
+                var datos = await (
+                    from o in _context.OfertaEmpleo
+                    join p in _context.Pais on o.id_pais equals p.id_pais
+                    group o by p.nombre into g
+                    select new
                     {
                         pais = g.Key,
                         cantidad = g.Count(),
                         porcentaje = (g.Count() * 100.0) / totalOfertas
-                    })
-                    .OrderByDescending(x => x.cantidad)
-                    .ToListAsync();
+                    }
+                )
+                .OrderByDescending(x => x.cantidad)
+                .ToListAsync();
 
                 return Json(datos);
             }
