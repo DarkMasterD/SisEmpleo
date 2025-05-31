@@ -1,59 +1,324 @@
 ﻿@model SisEmpleo.Models.Viewmodels.EditarPerfilViewModel
 
-<h2>Editar Perfil</h2>
+<div class="container my-5">
+    <h2 class="mb-4 text-primary fw-bold">Editar Perfil</h2>
 
-<form asp-action="EditarPerfil" method="post">
-
-    <div class="form-row">
-        <div class="form-group col-md-6">
-            <label asp-for="Nombre"></label>
-            <input asp-for="Nombre" class="form-control" />
+    @* Mensajes de TempData para éxito/error *@
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-        <div class="form-group col-md-6">
-            <label asp-for="Apellidos"></label>
-            <input asp-for="Apellidos" class="form-control" />
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
+    }
 
-    <div class="form-group">
-        <label asp-for="Email"></label>
-        <input asp-for="Email" type="email" class="form-control" readonly />
-    </div>
+    @* FORMULARIO PRINCIPAL (para datos personales, país, provincia, etc. Y SELECCIÓN de idiomas/habilidades) *@
+    <form asp-action="EditarPerfil" method="post" novalidate>
+        @Html.AntiForgeryToken()
 
-    <div class="form-group">
-        <label asp-for="Telefono"></label>
-        <input asp-for="Telefono" class="form-control" />
-    </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <label asp-for="Nombre" class="form-label fw-semibold"></label>
+                <input asp-for="Nombre" class="form-control" placeholder="Ingresa tu nombre" />
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="Apellidos" class="form-label fw-semibold"></label>
+                <input asp-for="Apellidos" class="form-control" placeholder="Ingresa tus apellidos" />
+                <span asp-validation-for="Apellidos" class="text-danger"></span>
+            </div>
 
-    <div class="form-row">
-        <div class="form-group col-md-6">
-            <label asp-for="PaisId"></label>
-            <select asp-for="PaisId" asp-items="Model.Paises" class="form-control"></select>
+            <div class="col-12">
+                <label asp-for="Email" class="form-label fw-semibold"></label>
+                <input asp-for="Email" type="email" class="form-control" readonly />
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Telefono" class="form-label fw-semibold"></label>
+                <input asp-for="Telefono" class="form-control" placeholder="+503 1234 5678" />
+                <span asp-validation-for="Telefono" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="Fecha_Nacimiento" class="form-label fw-semibold"></label>
+                <input asp-for="Fecha_Nacimiento" type="date" class="form-control" />
+                <span asp-validation-for="Fecha_Nacimiento" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="PaisId" class="form-label fw-semibold">País de Residencia</label>
+                <select asp-for="PaisId" asp-items="Model.Paises" class="form-select" id="selectPaisResidencia">
+                    <option value="">Seleccione un país</option>
+                </select>
+                <span asp-validation-for="PaisId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="ProvinciaId" class="form-label fw-semibold">Provincia de Residencia</label>
+                <select asp-for="ProvinciaId" asp-items="Model.Provincias" class="form-select" id="selectProvinciaResidencia">
+                    <option value="">Seleccione una provincia</option>
+                </select>
+                <span asp-validation-for="ProvinciaId" class="text-danger"></span>
+            </div>
+
+            @* SECCIÓN DE IDIOMAS (Solo selección - la lógica detallada de Institución/Fecha se hará después) *@
+            <div class="col-12">
+                <hr class="my-4">
+                <h4 class="mb-3 text-secondary">Mis Idiomas</h4>
+                <label class="form-label fw-semibold">Seleccionar Idiomas que Domino</label>
+                <select asp-for="IdiomaIds" asp-items="Model.IdiomasDisponibles" multiple="multiple" class="form-select" size="6"></select>
+                <small class="form-text text-muted mb-2">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar varios idiomas. <em>(Más adelante podrás especificar la institución y fecha para cada uno)</em></small>
+                <span asp-validation-for="IdiomaIds" class="text-danger"></span>
+            </div>
+
+            @* SECCIÓN DE HABILIDADES *@
+            <div class="col-12">
+                <hr class="my-4">
+                <h4 class="mb-3 text-secondary">Mis Habilidades</h4>
+                <label class="form-label fw-semibold">Seleccionar Habilidades que Poseo</label>
+                <select asp-for="HabilidadIds" multiple="multiple" class="form-select" size="6">
+                    @if (Model.HabilidadesDisponibles != null)
+                    {
+                        @foreach (var habilidad in Model.HabilidadesDisponibles)
+                        {
+                            <option value="@habilidad.id_habilidad" selected="@(Model.HabilidadIds != null && Model.HabilidadIds.Contains(habilidad.id_habilidad))">
+                                @habilidad.nombre
+                            </option>
+                        }
+                    }
+                </select>
+                <small class="form-text text-muted mb-2">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar varias habilidades.</small>
+                <span asp-validation-for="HabilidadIds" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 text-end mt-4">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
+                    <i class="bi bi-save me-2"></i> Guardar Todos los Cambios del Perfil
+                </button>
+            </div>
         </div>
-        <div class="form-group col-md-6">
-            <label asp-for="ProvinciaId"></label>
-            <select asp-for="ProvinciaId" asp-items="Model.Provincias" class="form-control"></select>
-        </div>
-    </div>
+    </form> @* FIN DEL FORMULARIO PRINCIPAL *@
 
-    <div class="form-group">
-        <label>Idiomas</label>
-        <select asp-for="IdiomaIds" asp-items="Model.IdiomasDisponibles" multiple="multiple" class="form-control"></select>
-    </div>
+    @* --- INICIO SECCIÓN INDEPENDIENTE PARA INSTITUCIONES --- *@
+    <div class="col-12 mt-5">
+        @* Separador visual y estructural *@
+        <hr class="my-4">
+        <h4 class="mb-3 text-secondary">Mis Instituciones Educativas / Certificadoras</h4>
 
-    <div class="form-group">
-        <label>Habilidades</label>
-        <select asp-for="HabilidadIds" class="form-control" multiple="multiple">
-            @foreach (var habilidad in Model.HabilidadesDisponibles)
-            {
-                <option value="@habilidad.id_habilidad" selected="@Model.HabilidadIds.Contains(habilidad.id_habilidad)">
-                    @habilidad.nombre
-                </option>
+        @if (Model.MisInstituciones != null && Model.MisInstituciones.Any())
+        {
+            <table class="table table-sm table-striped table-hover mb-4">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>País</th>
+                        <th>Provincia</th>
+                        <th>Dirección</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var inst in Model.MisInstituciones)
+                    {
+                        <tr>
+                            <td>@inst.Nombre</td>
+                            <td>@(Model.Paises.FirstOrDefault(p => p.Value == inst.IdPais.ToString())?.Text ?? "N/D")</td>
+                            <td>
+                                
+                                <td>  
+                                    @(GetProvinciaNombre(inst.IdProvincia))  
+                                </td>  
+
+                                @functions {  
+                                    private string GetProvinciaNombre(int idProvincia)  
+                                    {  
+                                        if (idProvincia <= 0)  
+                                        {  
+                                            return "N/A";  
+                                        }  
+
+                                        var provincia = Model.Provincias.FirstOrDefault(p => p.Value == idProvincia.ToString());  
+                                        return provincia?.Text ?? "N/A";  
+                                    }  
+                                }
+                            </td>
+                            <td>@inst.Direccion</td>
+                            <td>
+                                <form asp-action="DeleteInstitucionPostulante" asp-route-idInstitucion="@inst.IdInstitucion" method="post" onsubmit="return confirm('¿Está seguro de que desea eliminar esta institución?');" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar Institución">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p class="text-muted">Aún no has agregado ninguna institución.</p>
+        }
+
+        <h5 class="mt-4 mb-3">Agregar Nueva Institución</h5>
+        @if (Model.NuevaInstitucion != null)
+        {
+            @* ESTE ES UN FORMULARIO SEPARADO E INDEPENDIENTE *@
+            <form asp-action="AddInstitucionPostulante" method="post" class="mb-4 p-3 border rounded bg-light" id="formAddInstitucion">
+                @Html.AntiForgeryToken()
+                @* Para que el binding funcione con la acción AddInstitucionPostulante(EditarPerfilViewModel modelFromMainForm)
+                   los nombres de los campos deben ser "NuevaInstitucion.Nombre", "NuevaInstitucion.IdPais", etc.
+                   Esto se logra con asp-for="NuevaInstitucion.Nombre" porque el @model de la página es EditarPerfilViewModel.
+                *@
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div> 
+
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="NuevaInstitucion.Nombre" class="form-label fw-semibold"></label>
+                        <input asp-for="NuevaInstitucion.Nombre" class="form-control" placeholder="Nombre de la institución" />
+                        <span asp-validation-for="NuevaInstitucion.Nombre" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NuevaInstitucion.IdPais" class="form-label fw-semibold"></label>
+                        <select asp-for="NuevaInstitucion.IdPais" asp-items="Model.NuevaInstitucion.PaisesList" class="form-select" id="selectPaisInstitucion">
+                            <option value="">Seleccione un país</option>
+                        </select>
+                        <span asp-validation-for="NuevaInstitucion.IdPais" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="NuevaInstitucion.IdProvincia" class="form-label fw-semibold"></label>
+                        <select asp-for="NuevaInstitucion.IdProvincia" asp-items="Model.NuevaInstitucion.ProvinciasList" class="form-select" id="selectProvinciaInstitucion">
+                            <option value="">Seleccione una provincia (primero elija país)</option>
+                        </select>
+                        <span asp-validation-for="NuevaInstitucion.IdProvincia" class="text-danger"></span>
+                    </div>
+                    <div class="col-12">
+                        <label asp-for="NuevaInstitucion.Direccion" class="form-label fw-semibold"></label>
+                        <input asp-for="NuevaInstitucion.Direccion" class="form-control" placeholder="Dirección (opcional)" />
+                        <span asp-validation-for="NuevaInstitucion.Direccion" class="text-danger"></span>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-success">
+                            @* Este botón solo enviará este formulario "formAddInstitucion" *@
+                            <i class="bi bi-plus-circle me-2"></i> Agregar esta Institución
+                        </button>
+                    </div>
+                </div>
+            </form>
+        }
+    </div>
+    @* --- FIN SECCIÓN INDEPENDIENTE PARA INSTITUCIONES --- *@
+</div>
+
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> @* Asegúrate que jQuery esté cargado *@
+    <script>
+        $(document).ready(function () {
+
+            // Función para poblar el dropdown de provincias
+            // Esta función es similar a la de tu RegistrarsePostulante.cshtml
+            function actualizarProvincias(selectPaisElement, selectProvinciaElement) {
+                var idPaisSeleccionado = $(selectPaisElement).val();
+                selectProvinciaElement.empty(); // Limpiar opciones previas
+                selectProvinciaElement.append('<option value="">Cargando...</option>');
+
+                if (idPaisSeleccionado && idPaisSeleccionado !== "") {
+                    $.getJSON('@Url.Action("GetProvinciasPorPais", "Perfil")', { id_pais: idPaisSeleccionado }, function (data) {
+                        selectProvinciaElement.empty(); // Limpiar "Cargando..."
+                        selectProvinciaElement.append('<option value="">Seleccione una provincia</option>');
+                        if (data && data.length > 0) {
+                            $.each(data, function (index, provincia) {
+                                // La acción GetProvinciasPorPais en PerfilController ahora devuelve {id_provincia, nombre}
+                                selectProvinciaElement.append($('<option></option>').val(provincia.id_provincia).text(provincia.nombre));
+                            });
+                        } else {
+                            selectProvinciaElement.append('<option value="">No hay provincias para este país</option>');
+                        }
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        console.error("Error AJAX para " + $(selectPaisElement).attr('id') + ": " + textStatus + ", " + errorThrown, jqXHR.responseText);
+                        selectProvinciaElement.empty().append('<option value="">Error al cargar provincias</option>');
+                    });
+                } else {
+                    selectProvinciaElement.empty().append('<option value="">Seleccione un país primero</option>');
+                }
             }
-        </select>
-    </div>
 
-    <!-- Aquí puedes agregar secciones para NuevaFormacion, NuevaExperiencia y NuevaCertificacion -->
+            // --- Para PAÍS/PROVINCIA DE RESIDENCIA ---
+            $('#selectPaisResidencia').on('change', function () {
+                actualizarProvincias($(this), $('#selectProvinciaResidencia'));
+            });
 
-    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-</form>
+            // Carga inicial para Provincia de Residencia (si ya hay un país y provincia seleccionados)
+            var paisResidenciaInicial = $('#selectPaisResidencia').val();
+            var provinciaResidenciaSeleccionadaId = "@Model.ProvinciaId"; // Viene del modelo
+            if (paisResidenciaInicial && paisResidenciaInicial !== "" && provinciaResidenciaSeleccionadaId !== "0" && provinciaResidenciaSeleccionadaId !== "") {
+                var provinciaSelectResidencia = $('#selectProvinciaResidencia');
+                // Necesitamos llamar a la función que también maneja la preselección.
+                // Modificaremos 'actualizarProvincias' para que acepte un ID a preseleccionar.
+                 // Por ahora, para simplificar la carga inicial, la haremos así:
+                 provinciaSelectResidencia.empty().append('<option value="">Cargando...</option>');
+                 $.getJSON('@Url.Action("GetProvinciasPorPais", "Perfil")', { id_pais: paisResidenciaInicial }, function (data) {
+                    provinciaSelectResidencia.empty().append('<option value="">Seleccione una provincia</option>');
+                    if (data && data.length > 0) {
+                        $.each(data, function (index, provincia) {
+                            var option = $('<option></option>').val(provincia.id_provincia).text(provincia.nombre);
+                            if (provincia.id_provincia == provinciaResidenciaSeleccionadaId) {
+                                option.prop('selected', true);
+                            }
+                            provinciaSelectResidencia.append(option);
+                        });
+                    } else {
+                        provinciaSelectResidencia.append('<option value="">No hay provincias para este país</option>');
+                    }
+                 }).fail(function() {
+                     provinciaSelectResidencia.empty().append('<option value="">Error al cargar</option>');
+                 });
+            } else if (!paisResidenciaInicial || paisResidenciaInicial === "") {
+                 $('#selectProvinciaResidencia').empty().append('<option value="">Seleccione un país primero</option>');
+            }
+
+
+            // --- Para PAÍS/PROVINCIA DE NUEVA INSTITUCIÓN ---
+            $('#selectPaisInstitucion').on('change', function () {
+                actualizarProvincias($(this), $('#selectProvinciaInstitucion'));
+            });
+
+            // Carga inicial para Provincia de Nueva Institución (si se vuelve de un error de validación y había algo)
+            var paisInstitucionInicial = $('#selectPaisInstitucion').val(); // Si Model.NuevaInstitucion.IdPais tiene valor
+            var provinciaInstitucionSeleccionadaId = "@(Model.NuevaInstitucion?.IdProvincia.ToString() ?? "")";
+            if (paisInstitucionInicial && paisInstitucionInicial !== "" && provinciaInstitucionSeleccionadaId !== "0" && provinciaInstitucionSeleccionadaId !== "") {
+                 var provinciaSelectInstitucion = $('#selectProvinciaInstitucion');
+                 provinciaSelectInstitucion.empty().append('<option value="">Cargando...</option>');
+                 $.getJSON('@Url.Action("GetProvinciasPorPais", "Perfil")', { id_pais: paisInstitucionInicial }, function (data) {
+                    provinciaSelectInstitucion.empty().append('<option value="">Seleccione una provincia</option>');
+                    if (data && data.length > 0) {
+                        $.each(data, function (index, provincia) {
+                            var option = $('<option></option>').val(provincia.id_provincia).text(provincia.nombre);
+                            if (provincia.id_provincia == provinciaInstitucionSeleccionadaId) {
+                                option.prop('selected', true);
+                            }
+                            provinciaSelectInstitucion.append(option);
+                        });
+                    } else {
+                        provinciaSelectInstitucion.append('<option value="">No hay provincias para este país</option>');
+                    }
+                 }).fail(function() {
+                     provinciaSelectInstitucion.empty().append('<option value="">Error al cargar</option>');
+                 });
+            } else if (!paisInstitucionInicial || paisInstitucionInicial === "") {
+                 $('#selectProvinciaInstitucion').empty().append('<option value="">Seleccione un país primero</option>');
+            }
+
+        });
+    </script>
+}

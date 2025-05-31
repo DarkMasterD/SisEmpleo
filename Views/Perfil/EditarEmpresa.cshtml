@@ -1,0 +1,52 @@
+﻿@model SisEmpleo.Models.Viewmodels.EmpresaViewModel
+
+<div class="container my-5">
+    <h2 class="mb-4 text-primary fw-bold">Editar Perfil de Empresa</h2>
+
+    <form asp-action="EditarPerfil" method="post" novalidate>
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            <label asp-for="Nombre" class="form-label fw-semibold"></label>
+            <input asp-for="Nombre" class="form-control" placeholder="Nombre de la empresa" />
+            <span asp-validation-for="Nombre" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label fw-semibold"></label>
+            <input asp-for="Email" class="form-control" readonly />
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Direccion" class="form-label fw-semibold"></label>
+            <input asp-for="Direccion" class="form-control" placeholder="Dirección de la empresa" />
+            <span asp-validation-for="Direccion" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Sector" class="form-label fw-semibold"></label>
+            <input asp-for="Sector" class="form-control" placeholder="Sector de trabajo" />
+            <span asp-validation-for="Sector" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Descripcion" class="form-label fw-semibold"></label>
+            <textarea asp-for="Descripcion" class="form-control" rows="5" placeholder="Descripción de la empresa"></textarea>
+            <span asp-validation-for="Descripcion" class="text-danger"></span>
+        </div>
+
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+                <i class="bi bi-save me-2"></i> Guardar Cambios
+            </button>
+            <a href="@Url.Action("IndexEmpresa", "Perfil")" class="btn btn-outline-secondary px-4 py-2">
+                <i class="bi bi-arrow-left-circle me-2"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+    

@@ -230,6 +230,8 @@ namespace SisEmpleo.Controllers
                 _EmpleoContext.Curriculum.Add(curriculum);
                 _EmpleoContext.SaveChangesAsync();
 
+                
+
 
                 return RedirectToAction("Login", "Login");
             }

@@ -10,6 +10,10 @@ namespace SisEmpleo.Models.Viewmodels
         public string Apellidos { get; set; }
         public string Email { get; set; }
         public string Telefono { get; set; }
+
+        public string EmailContacto { get; set; }
+        public bool UsarTelefonoCuenta { get; set; }
+
         public DateTime? Fecha_Nacimiento { get; set; }
         public string TipoUsuario { get; set; }
 
@@ -36,6 +40,8 @@ namespace SisEmpleo.Models.Viewmodels
         public List<ExperienciaViewModel> Experiencias { get; set; } = new();
         public CertificacionViewModel NuevaCertificacion { get; set; }
         public List<CertificacionViewModel> Certificaciones { get; set; } = new();
+        public List<InstitucionViewModel> MisInstituciones { get; set; } = new List<InstitucionViewModel>();
+        public InstitucionViewModel NuevaInstitucion { get; set; }
 
     }
 
