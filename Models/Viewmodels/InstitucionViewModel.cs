@@ -1,32 +1,30 @@
-﻿// Models/Viewmodels/InstitucionViewModel.cs
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SisEmpleo.Models.Viewmodels
 {
     public class InstitucionViewModel
     {
-        public int IdInstitucion { get; set; } // Para editar/eliminar, si lo implementas
+        public int IdInstitucion { get; set; }
 
         [Required(ErrorMessage = "El nombre de la institución es obligatorio.")]
-        [StringLength(120, ErrorMessage = "El nombre no puede exceder los 120 caracteres.")]
+        [StringLength(120)]
         public string Nombre { get; set; }
 
-        [Required(ErrorMessage = "Debe seleccionar un país.")]
-        [Display(Name = "País")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un país.")]
         public int IdPais { get; set; }
+        public string NombrePais { get; set; } 
 
-        [Required(ErrorMessage = "Debe seleccionar una provincia.")]
-        [Display(Name = "Provincia")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar una provincia.")]
         public int IdProvincia { get; set; }
+        public string NombreProvincia { get; set; } 
 
-        [StringLength(200, ErrorMessage = "La dirección no puede exceder los 200 caracteres.")]
-        [Display(Name = "Dirección (Opcional)")]
+        [StringLength(200)]
         public string Direccion { get; set; }
 
-        // Para llenar los dropdowns en el formulario
-        public List<SelectListItem> PaisesList { get; set; } = new List<SelectListItem>();
-        public List<SelectListItem> ProvinciasList { get; set; } = new List<SelectListItem>();
+        // Para los dropdowns en el formulario de añadir nueva institución
+        public IEnumerable<SelectListItem> PaisesList { get; set; }
+        public IEnumerable<SelectListItem> ProvinciasList { get; set; }
     }
 }

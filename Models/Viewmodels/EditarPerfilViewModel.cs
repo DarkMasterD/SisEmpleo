@@ -18,6 +18,9 @@ namespace SisEmpleo.Models.Viewmodels
         [StringLength(200, ErrorMessage = "Los apellidos no pueden exceder los 200 caracteres.")]
         public string Apellidos { get; set; }
 
+        public int PrimaryIdiomaId { get; set; }
+        public List<SelectListItem> IdiomasPrincipalesDisponibles { get; set; }
+
         public string Email { get; set; } // Readonly en el formulario
 
         [Display(Name = "Teléfono")]
@@ -76,5 +79,6 @@ namespace SisEmpleo.Models.Viewmodels
         public List<ExperienciaViewModel> Experiencias { get; set; } = new();
         public List<CertificacionViewModel> Certificaciones { get; set; } = new();
         public List<InstitucionViewModel> MisInstituciones { get; set; } = new();
+        public List<IdiomaCvViewModel> OtrosIdiomasCv { get; set; } = new List<IdiomaCvViewModel>();
     }
 }
