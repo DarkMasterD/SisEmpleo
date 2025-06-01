@@ -214,9 +214,6 @@ namespace SisEmpleo.Controllers
                     id_pais = datos.id_pais,
                     id_provincia = datos.id_provincia,
                     id_idioma = datos.id_idioma
-
-
-
                 };
 
                 _EmpleoContext.Postulante.Add(postulante);
@@ -229,6 +226,32 @@ namespace SisEmpleo.Controllers
                 };
                 _EmpleoContext.Curriculum.Add(curriculum);
                 _EmpleoContext.SaveChangesAsync();
+                // --- INICIO: LÓGICA AÑADIDA ---
+                if (postulante.id_idioma != 0) 
+                {
+                    string defaultInstitutionName = "Idioma Principal (Auto-declarado)";
+
+                    Institucion defaultInstitutionForPrimary = new Institucion
+                    {
+                        id_pais = postulante.id_pais,
+                        id_provincia = postulante.id_provincia,
+                        nombre = defaultInstitutionName,
+                        Postulante = postulante
+                    };
+                    _EmpleoContext.Institucion.Add(defaultInstitutionForPrimary);
+                    Idioma_Curriculum nuevaEntradaIdiomaCv = new Idioma_Curriculum
+                    {
+                        Curriculum = curriculum,
+                        Institucion = defaultInstitutionForPrimary,
+                        id_idioma = postulante.id_idioma,
+                        fecha = DateTime.UtcNow 
+                    };
+                    _EmpleoContext.Idioma_Curriculum.Add(nuevaEntradaIdiomaCv);
+
+                    _EmpleoContext.SaveChangesAsync(); 
+                }
+                // --- FIN: LÓGICA AÑADIDA ---
+
 
 
                 return RedirectToAction("Login", "Login");
