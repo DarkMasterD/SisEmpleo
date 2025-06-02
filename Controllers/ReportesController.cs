@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SisEmpleo.Models;
 using System.Drawing;
@@ -100,6 +101,31 @@ namespace SisEmpleo.Controllers
             ViewBag.TotalEmpresas = totalEmpresas; // Pasamos el total a la vista
 
             return View(reporteData);
+        }
+
+        //Reporte 4 - Requisitos más frecuentes en ofertas de empleo
+        public IActionResult ReporteRequisitosFrecuentes()
+        {
+            var requisitosFrecuentes = (from ro in _context.RequisitoOferta
+                                        join o in _context.OfertaEmpleo on ro.id_ofertaempleo equals o.id_ofertaempleo
+                                        join h in _context.Habilidad on ro.id_habilidad equals h.id_habilidad
+                                        where o.estado == true
+                                        group h by h.nombre into g
+                                        select new
+                                        {
+                                            Requisito = g.Key,
+                                            CantidadOfertas = g.Count()
+                                        })
+                                        .OrderByDescending(x => x.CantidadOfertas)
+                                        .ToList();
+
+            int totalOfertasActivas = _context.OfertaEmpleo.Count(o => o.estado == true);
+
+            ViewBag.TituloReporte = "Requisitos Más Frecuentes en Ofertas de Empleo";
+            ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            ViewBag.TotalOfertasActivas = totalOfertasActivas;
+
+            return View(requisitosFrecuentes);
         }
     }
 }
