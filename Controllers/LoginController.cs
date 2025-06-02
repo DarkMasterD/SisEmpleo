@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using SisEmpleo.Models;
 using System.Net;
@@ -283,34 +284,87 @@ namespace SisEmpleo.Controllers
         {
             return View();
         }
+
         [HttpPost]
-        public IActionResult RegistrarseEmpresa([FromForm] RegistroUserEmpresaDTO datos)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistrarseEmpresa([FromForm] RegistroUserEmpresaDTO datos)
         {
+            if (!string.IsNullOrWhiteSpace(datos.email) &&
+                await _EmpleoContext.Usuario.AnyAsync(u => u.email == datos.email))
+            {
+                ModelState.AddModelError("email", "Este correo electrónico ya está registrado.");
+            }
+
+            // El nombre de la empresa se usará como nombre_usuario. Validar su unicidad en la tabla Usuario.
+            if (!string.IsNullOrWhiteSpace(datos.nombre) &&
+                await _EmpleoContext.Usuario.AnyAsync(u => u.nombre_usuario == datos.nombre))
+            {
+                ModelState.AddModelError("nombre", "Este nombre de empresa ya se encuentra en uso como identificador de usuario. Por favor, elija un nombre ligeramente diferente.");
+            }
+
+            // Validar que el sector sea uno de los permitidos si tienes un CHECK constraint.
+            var sectoresPermitidos = new List<string> { "Primario", "Secundario", "Terciario", "Cuaternario", "Quinario" };
+            if (!string.IsNullOrWhiteSpace(datos.sector_empresa) && !sectoresPermitidos.Contains(datos.sector_empresa, StringComparer.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("sector_empresa", "El sector de trabajo no es válido. Sectores permitidos: " + string.Join(", ", sectoresPermitidos) + ".");
+            }
+
+
+            if (!ModelState.IsValid)
+            {
+                // La vista RegistrarseEmpresa.cshtml debe usar @model RegistroUserEmpresaDTO
+                // y tener los asp-validation-for para mostrar estos errores.
+                return View("RegistrarseEmpresa", datos);
+            }
+
             try
             {
-                Usuario user = new Usuario();
-                user.email = datos.email;
-                user.contrasenia = datos.contrasenia;
-                user.tipo_usuario = 'E';
+                Usuario user = new Usuario
+                {
+                    nombre_usuario = datos.nombre, // <--- ASIGNACIÓN QUE CREO QUE NO ESTABA
+                    email = datos.email,
+                    contrasenia = datos.contrasenia,
+                    tipo_usuario = 'E',       
+                    fecha_creacion = DateTime.UtcNow, 
+                    last_login = DateTime.UtcNow,
+                    estado = 'A'                    
+                };
+
                 _EmpleoContext.Usuario.Add(user);
-                _EmpleoContext.SaveChanges();
+                await _EmpleoContext.SaveChangesAsync();
 
-                Empresa empresa = new Empresa();
-                empresa.id_usuario = user.id_usuario;
-                empresa.nombre = datos.nombre;
-                empresa.direccion = datos.direccion;
-                empresa.descripcion_empresa = datos.descripcion_empresa;
-                empresa.sector_empresa = datos.sector_empresa;
+                Empresa empresa = new Empresa
+                {
+                    id_usuario = user.id_usuario,
+                    nombre = datos.nombre, 
+                    direccion = datos.direccion,
+                    descripcion_empresa = datos.descripcion_empresa,
+                    sector_empresa = datos.sector_empresa
+                };
                 _EmpleoContext.Empresa.Add(empresa);
-                _EmpleoContext.SaveChanges();
+                await _EmpleoContext.SaveChangesAsync();
 
-                return RedirectToAction("Index", "Home");
+                TempData["SuccessMessage"] = "¡Empresa registrada exitosamente! Ahora puede iniciar sesión.";
+                return RedirectToAction("Login", "Login");
+            }
+            catch (DbUpdateException dbEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"DbUpdateException en RegistrarseEmpresa: {dbEx.ToString()}");
+                if (dbEx.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception (RegistrarseEmpresa): {dbEx.InnerException.ToString()}");
+                }
+                ModelState.AddModelError("", "Ocurrió un error al guardar los datos. Por favor, verifique la información e intente de nuevo.");
+                return View("RegistrarseEmpresa", datos);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                System.Diagnostics.Debug.WriteLine($"Excepción general en RegistrarseEmpresa: {ex.ToString()}");
+                ModelState.AddModelError("", "Ocurrió un error inesperado. Por favor, intente de nuevo más tarde.");
+                return View("RegistrarseEmpresa", datos);
             }
         }
+
         [HttpPost]
         public IActionResult EnviarCodigoRecuperacion(string email)
         {
