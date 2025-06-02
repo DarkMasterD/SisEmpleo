@@ -127,5 +127,33 @@ namespace SisEmpleo.Controllers
 
             return View(requisitosFrecuentes);
         }
+
+        // Reporte 5 - Suscripciones a categorías (versión corregida)
+        public IActionResult ReporteSuscripcionesCategorias()
+        {
+            // Obtener datos necesarios
+            var suscripciones = _context.SuscripcionCategoria.ToList();
+            var categorias = _context.CategoriaProfesional.ToList();
+            var postulantes = _context.Usuario.Count(u => u.tipo_usuario == 'P');
+
+            // Agrupar suscripciones por categoría principal
+            var reporteData = categorias.Select(c => new
+            {
+                CategoriaId = c.id_categoriaprofesional,
+                NombreCategoria = c.nombre,
+                CantidadSuscriptores = suscripciones.Count(sc =>
+                    sc.id_categoriaprofesional == c.id_categoriaprofesional &&
+                    sc.estado == true) // Solo suscripciones activas
+            })
+            .OrderByDescending(x => x.CantidadSuscriptores)
+            .ToList();
+
+            ViewBag.TituloReporte = "Suscripciones a Categorías Profesionales";
+            ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            ViewBag.TotalSuscripciones = suscripciones.Count(sc => sc.estado == true);
+            ViewBag.TotalPostulantes = postulantes;
+
+            return View(reporteData);
+        }
     }
 }
