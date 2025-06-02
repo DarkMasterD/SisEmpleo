@@ -155,5 +155,33 @@ namespace SisEmpleo.Controllers
 
             return View(reporteData);
         }
+
+        // Reporte 6 - Empresas registradas
+        public IActionResult ReporteEmpresasRegistradas()
+        {
+            // Obtener datos necesarios sin usar relaciones de navegación
+            var empresas = _context.Empresa.ToList();
+            var usuarios = _context.Usuario.ToList();
+            var contactos = _context.Contacto.ToList();
+
+            // Combinar los datos
+            var reporteData = empresas.Select(e => new
+            {
+                EmpresaId = e.id_empresa,
+                NombreEmpresa = e.nombre,
+                Email = usuarios.FirstOrDefault(u => u.id_usuario == e.id_usuario)?.email ?? "No disponible",
+                Telefono = contactos.FirstOrDefault(c => c.id_usuario == e.id_usuario)?.telefono ?? "No disponible",
+                Direccion = e.direccion,
+                Sector = e.sector_empresa
+            })
+            .OrderBy(e => e.NombreEmpresa)
+            .ToList();
+
+            ViewBag.TituloReporte = "Empresas Registradas en el Sistema";
+            ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            ViewBag.TotalEmpresas = empresas.Count;
+
+            return View(reporteData);
+        }
     }
 }
