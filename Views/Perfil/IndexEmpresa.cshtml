@@ -1,80 +1,167 @@
 ﻿@model SisEmpleo.Models.Viewmodels.EmpresaViewModel
 
-@if (Model == null)
-{
-    <div class="alert alert-warning text-center py-4 fs-5">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        No hay datos de la empresa para mostrar.
-    </div>
+@{
+    ViewData["Title"] = Model != null ? Model.Nombre : "Perfil de Empresa";
+    string nombreEmpresaAvatar = Model != null && !string.IsNullOrWhiteSpace(Model.Nombre) ? Model.Nombre : "Empresa";
+    string nombreUrlAvatar = System.Net.WebUtility.UrlEncode(nombreEmpresaAvatar);
+    string fotoEmpresaUrl = $"https://ui-avatars.com/api/?name={nombreUrlAvatar}&size=200&rounded=true&background=1E3A8A&color=fff&font-size=0.33&bold=true";
+
+    // Colores para consistencia
+    string colorPrimario = "#1E3A8A";
+    string colorAcento = "#F97316";
 }
-else
-{
-<div class="container my-5">
-    <div class="card shadow-lg rounded-4 overflow-hidden border-0">
-        <div class="row g-0">
-            <!-- "Logo" ;) de la empresa -->
-            <div class="col-md-4 bg-light d-flex align-items-center justify-content-center p-5">
-                <img src="https://ui-avatars.com/api/?name=@Model.Nombre&background=0D8ABC&color=fff&size=256&rounded=true"
-                     alt="Logo de la empresa" class="rounded-circle shadow" width="180" height="180">
-            </div>
 
-            <!-- Información de la empresa -->
-            <div class="col-md-8">
-                <div class="card-body p-5">
-                    <h1 class="card-title fw-bold text-primary mb-1">@Model.Nombre</h1>
-                    <p class="text-muted fst-italic mb-4">Perfil de empresa</p>
+<style>
+    .empresa-profile-header {
+        background: linear-gradient(135deg, @(colorPrimario) 20%, @(colorAcento) 100%);
+        color: white;
+        padding: 2.5rem 1.5rem;
+        border-radius: .75rem;
+        margin-bottom: 2.5rem;
+    }
 
-                    <div class="mb-4">
-                        <h5 class="fw-semibold text-dark mb-2">
-                            <i class="bi bi-envelope-fill me-2 text-primary"></i>Correo Electrónico
-                        </h5>
-                        <p class="fs-5">@Model.Email</p>
+    .empresa-avatar {
+        width: 160px;
+        height: 160px;
+        object-fit: cover;
+        border: 5px solid white;
+    }
+
+    .info-card {
+        border: none;
+        border-radius: .75rem;
+    }
+
+    .info-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .info-card .card-title-icon {
+        color: @colorAcento;
+    }
+
+    .info-card .card-body p {
+        font-size: 1.05rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+     .info-card .card-body h5{
+        color: @colorPrimario;
+
+    .btn-edit-empresa {
+        background-color: @colorAcento;
+        border-color: @colorAcento;
+        color: white;
+        font-weight: 600;
+    }
+    .btn-edit-empresa:hover {
+        background-color: darken(@colorAcento, 10%);
+        border-color: darken(@colorAcento, 10%);
+        color: white;
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning text-center py-4 fs-5 shadow-sm rounded-3">
+            <i class="bi bi-exclamation-triangle-fill display-4 mb-3 text-warning"></i>
+            <h4 class="alert-heading">Perfil de Empresa no Encontrado</h4>
+            <p>No hay datos de la empresa para mostrar. Si esta es tu empresa, por favor completa el perfil.</p>
+            <hr class="my-3">
+            <a href="@Url.Action("EditarEmpresa", "Perfil")" class="btn btn-primary btn-lg">
+                <i class="bi bi-pencil-fill me-2"></i>Completar o Crear Perfil de Empresa
+            </a>
+        </div>
+    }
+    else
+    {
+        <header class="empresa-profile-header text-center shadow-lg">
+            <img src="@fotoEmpresaUrl" alt="Logo de @nombreEmpresaAvatar" class="rounded-circle empresa-avatar mb-3">
+            <h1 class="display-4 fw-bolder">@Model.Nombre</h1>
+            @if (!string.IsNullOrWhiteSpace(Model.Sector))
+            {
+                <p class="lead fs-5 mb-4">Sector: <span class="fw-semibold">@Model.Sector</span></p>
+            }
+             <a href="@Url.Action("EditarEmpresa", "Perfil")" class="btn btn-light btn-lg px-5 py-2 shadow-sm">
+                <i class="bi bi-pencil-square me-2"></i>Editar Perfil de Empresa
+            </a>
+        </header>
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card shadow-sm info-card mb-4">
+                     <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill fs-4 me-2 card-title-icon"></i>
+                        <h5 class="mb-0 text-dark fw-semibold">Acerca de Nosotros</h5>
                     </div>
-
-                    <div class="mb-4">
-                        <h5 class="fw-semibold text-dark mb-2">
-                            <i class="bi bi-geo-alt-fill me-2 text-primary"></i>Dirección
-                        </h5>
-                        <p class="fs-5">
-                            @Html.Raw(string.IsNullOrWhiteSpace(Model.Direccion)
-                                                        ? "<span class='text-muted fst-italic'>No especificada</span>"
-                                                        : Model.Direccion)
-                        </p>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="fw-semibold text-dark mb-2">
-                            <i class="bi bi-building me-2 text-primary"></i>Sector de Trabajo
-                        </h5>
-                        <p class="fs-5">
-                            @Html.Raw(string.IsNullOrWhiteSpace(Model.Sector)
-                                                        ? "<span class='text-muted fst-italic'>No especificado</span>"
-                                                        : Model.Sector)
-                        </p>
-                    </div>
-
-                    <div class="mb-4">
-                        <h5 class="fw-semibold text-dark mb-2">
-                            <i class="bi bi-info-circle-fill me-2 text-primary"></i>Descripción
-                        </h5>
-                        <p class="fs-5">
+                    <div class="card-body p-4">
+                        <p>
                             @Html.Raw(string.IsNullOrWhiteSpace(Model.Descripcion)
-                                                        ? "<span class='text-muted fst-italic'>No especificada</span>"
-                                                        : Model.Descripcion)
+                                ? "<span class='text-muted fst-italic'>No hay descripción disponible.</span>"
+                                : Model.Descripcion.Replace("\n", "<br />"))
                         </p>
-                    </div>
-
-                    <div class="d-flex flex-wrap gap-3 mt-4">
-                        <a href="@Url.Action("EditarEmpresa", "Perfil")" class="btn btn-primary btn-lg shadow-sm">
-                            <i class="bi bi-pencil-square me-2"></i>Editar Perfil
-                        </a>
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary btn-lg shadow-sm">
-                            <i class="bi bi-arrow-left-circle me-2"></i>Volver al Inicio
-                        </a>
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-5">
+                <div class="card shadow-sm info-card">
+                     <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-person-rolodex fs-4 me-2 card-title-icon"></i>
+                        <h5 class="mb-0 text-dark fw-semibold">Información de Contacto</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item py-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-envelope-fill fs-5 me-3 text-primary"></i>
+                                <div>
+                                    <h6 class="mb-0 text-secondary">Correo Electrónico</h6>
+                                    <span>@Model.Email</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="list-group-item py-3">
+                             <div class="d-flex align-items-center">
+                                <i class="bi bi-geo-alt-fill fs-5 me-3 text-primary"></i>
+                                <div>
+                                    <h6 class="mb-0 text-secondary">Dirección</h6>
+                                    <span>
+                                        @Html.Raw(string.IsNullOrWhiteSpace(Model.Direccion)
+                                            ? "<span class='text-muted fst-italic'>No especificada</span>"
+                                            : Model.Direccion)
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+                        @if (!string.IsNullOrWhiteSpace(Model.Sector))
+                        {
+                            <li class="list-group-item py-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-building fs-5 me-3 text-primary"></i>
+                                    <div>
+                                        <h6 class="mb-0 text-secondary">Sector</h6>
+                                        <span>@Model.Sector</span>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <div class="text-center mt-5">
+            <a href="@Url.Action("NuevaOferta", "OfertaEmpleoEmpresa")" class="btn btn-orange btn-lg px-5 py-3 me-2 shadow-sm">
+                <i class="bi bi-plus-circle-fill me-2"></i>Publicar Nueva Oferta
+            </a>
+            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary btn-lg px-5 py-3 shadow-sm">
+                <i class="bi bi-house-door-fill me-2"></i>Volver al Inicio
+            </a>
+        </div>
+    }
 </div>
-}
