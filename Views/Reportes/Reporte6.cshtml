@@ -1,0 +1,23 @@
+﻿@{
+    ViewData["Title"] = "Reporte de Empresas Registradas";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title">@ViewData["Title"]</h3>
+        </div>
+        <div class="card-body">
+            <p class="card-text">
+                Este reporte muestra todas las empresas registradas en el sistema con sus datos de contacto.
+            </p>
+
+            <form method="post" action="@Url.Action("GenerarReporte", "Reporte6")">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+

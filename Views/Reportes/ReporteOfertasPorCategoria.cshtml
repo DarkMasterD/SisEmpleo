@@ -1,0 +1,252 @@
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = null;
+    string Titulo = ViewBag.TituloReporte;
+    string Fecha = ViewBag.FechaGeneracion;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Titulo</title>
+    <style>
+        :root {
+            --color-primario: #3498db;
+            --color-secundario: #2c3e50;
+            --color-exito: #2ecc71;
+            --color-advertencia: #f39c12;
+            --color-peligro: #e74c3c;
+            --color-texto: #333;
+            --color-fondo: #f9f9f9;
+            --color-borde: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--color-texto);
+            background-color: var(--color-fondo);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .reporte {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .reporte-header {
+            background: linear-gradient(135deg, var(--color-secundario), var(--color-primario));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .reporte-title {
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        .reporte-subtitle {
+            margin-top: 10px;
+            font-weight: 300;
+            font-size: 0.95rem;
+        }
+
+        .reporte-body {
+            padding: 30px;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+            .tabla-reporte th,
+            .tabla-reporte td {
+                padding: 12px;
+                text-align: left;
+            }
+
+            .tabla-reporte th {
+                background-color: var(--color-primario);
+                color: white;
+            }
+
+            .tabla-reporte tr:nth-child(even) {
+                background-color: #f4f4f4;
+            }
+
+            .tabla-reporte tr:hover {
+                background-color: #f0f8ff;
+            }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 20px;
+            background-color: var(--color-primario);
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--color-exito);
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: #eaeaea;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--color-primario);
+            text-align: center;
+            color: white;
+            font-size: 12px;
+            line-height: 20px;
+        }
+
+        .resumen {
+            margin-top: 30px;
+        }
+
+            .resumen h3 {
+                margin-bottom: 10px;
+                color: var(--color-secundario);
+            }
+
+        .print-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .print-btn {
+            background: var(--color-secundario);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+            .print-btn:hover {
+                background: var(--color-primario);
+                transform: translateY(-2px);
+            }
+
+        @@media print {
+            .print-controls
+
+        {
+            display: none;
+        }
+
+        body {
+            background: white;
+            padding: 0;
+        }
+
+        .reporte {
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <main class="reporte">
+        <header class="reporte-header">
+            <h1 class="reporte-title">@Titulo</h1>
+            <p class="reporte-subtitle">Generado el: @Fecha</p>
+        </header>
+
+        <section class="reporte-body">
+            <table class="tabla-reporte">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ID Categoría</th>
+                        <th>Nombre de Categoría</th>
+                        <th class="text-center">Ofertas Activas</th>
+                        <th>Distribución</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int contador = 1;
+                        int totalOfertas = Model.Sum(x => (int)x.CantidadOfertas);
+                        foreach (var item in Model)
+                        {
+                            decimal porcentaje = totalOfertas > 0
+                            ? Math.Round((decimal)item.CantidadOfertas / totalOfertas * 100, 2)
+                            : 0;
+
+                            <tr>
+                                <td>@contador</td>
+                                <td>@item.CategoriaId</td>
+                                <td>@item.NombreCategoria</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.CantidadOfertas > 0 ? "badge-success" : "")">
+                                        @item.CantidadOfertas
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress">
+                                        <div class="progress-bar" style="width:@porcentaje%">
+                                            @porcentaje%
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            contador++;
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="resumen">
+                <h3>Resumen Estadístico</h3>
+                <p>Total de categorías: @Model.Count()</p>
+                <p>Total de ofertas activas: @Model.Sum(x => (int)x.CantidadOfertas)</p>
+                @if (Model.Any())
+                {
+                    var topCat = Model.OrderByDescending(x => x.CantidadOfertas).FirstOrDefault();
+                    <p>
+                        Categoría con más ofertas: @topCat.NombreCategoria (@topCat.CantidadOfertas ofertas)
+                    </p>
+                }
+            </div>
+        </section>
+    </main>
+
+    <div class="print-controls">
+        <button class="print-btn" onclick="window.print()">🖨 Imprimir Reporte</button>
+    </div>
+</body>
+</html>
