@@ -216,5 +216,94 @@ namespace SisEmpleo.Controllers
 
             return View(reporteData);
         }
+
+        // Reporte 8 - Postulantes por formación académica (estilo consistente)
+        public IActionResult ReportePostulantesPorFormacion()
+        {
+            try
+            {
+                // 1. Obtener datos básicos
+                var postulantes = _context.Postulante.ToList();
+                var usuarios = _context.Usuario.ToList();
+                var contactos = _context.Contacto.ToList();
+
+                // 2. Obtener datos de formación académica
+                var formacionData = (
+                    from p in postulantes
+                    join c in _context.Curriculum on p.id_postulante equals c.id_postulante
+                    join fa in _context.FormacionAcademica on c.id_curriculum equals fa.id_curriculum
+                    join t in _context.Titulo on fa.id_titulo equals t.id_titulo
+                    join e in _context.Especialidad on t.id_especialidad equals e.id_especialidad
+                    join i in _context.Institucion on fa.id_institucion equals i.id_institucion
+                    select new
+                    {
+                        p.id_postulante,
+                        p.nombre,
+                        p.apellido,
+                        p.id_usuario,
+                        fa.id_titulo,
+                        Titulo = t.nombre, // Cambiado de TituloNombre a Titulo
+                        TipoTitulo = t.tipo,
+                        Especialidad = e.nombre,
+                        Institucion = i.nombre
+                    }).ToList();
+
+                // 3. Combinar datos para el reporte
+                var reporteData = postulantes.Select(p => new
+                {
+                    PostulanteId = p.id_postulante,
+                    NombreCompleto = $"{p.nombre} {p.apellido}",
+                    Email = usuarios.FirstOrDefault(u => u.id_usuario == p.id_usuario)?.email ?? "No disponible",
+                    Telefono = contactos.FirstOrDefault(c => c.id_usuario == p.id_usuario)?.telefono ?? "No disponible",
+                    Formaciones = formacionData
+                        .Where(f => f.id_postulante == p.id_postulante)
+                        .Select(f => new
+                        {
+                            Titulo = f.Titulo, // Cambiado para coincidir con la vista
+                            f.TipoTitulo,
+                            f.Especialidad,
+                            f.Institucion
+                        })
+                        .Distinct()
+                        .ToList()
+                })
+                .OrderBy(p => p.NombreCompleto)
+                .ToList();
+
+                // 4. Preparar estadísticas para ViewBag (ajustado para coincidir con la vista)
+                var tiposTitulo = reporteData
+                    .SelectMany(p => p.Formaciones)
+                    .GroupBy(f => f.TipoTitulo)
+                    .Select(g => new
+                    {
+                        Tipo = g.Key,
+                        Cantidad = g.Count() // Cambiado para contar ocurrencias como hace la vista
+                    })
+                    .OrderByDescending(t => t.Cantidad)
+                    .ToList();
+
+                ViewBag.TituloReporte = "Postulantes según Formación Académica";
+                ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                ViewBag.TotalPostulantes = postulantes.Count;
+                ViewBag.PostulantesConFormacion = reporteData.Count(p => p.Formaciones.Count > 0);
+                ViewBag.TiposTitulo = tiposTitulo;
+
+                return View(reporteData);
+            }
+            catch (Exception ex)
+            {
+                // Log del error (puedes implementar un sistema de logging aquí)
+                Console.WriteLine($"Error en ReportePostulantesPorFormacion: {ex.Message}");
+
+                // Retornar vista con datos vacíos para evitar interrumpir la aplicación
+                ViewBag.TituloReporte = "Postulantes según Formación Académica";
+                ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                ViewBag.TotalPostulantes = 0;
+                ViewBag.PostulantesConFormacion = 0;
+                ViewBag.TiposTitulo = new List<dynamic>();
+
+                return View(new List<dynamic>());
+            }
+        }
     }
 }
