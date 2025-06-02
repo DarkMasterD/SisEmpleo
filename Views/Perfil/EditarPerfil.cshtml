@@ -2,224 +2,375 @@
 
 @{
     ViewData["Title"] = "Editar Mi Perfil";
+    string nombreCompleto = $"{(string.IsNullOrWhiteSpace(Model.Nombre) ? "Usuario" : Model.Nombre)} {(string.IsNullOrWhiteSpace(Model.Apellidos) ? "" : Model.Apellidos)}".Trim();
+    string nombreUrl = System.Net.WebUtility.UrlEncode(nombreCompleto);
+    string fotoPerfilUrl = $"https://ui-avatars.com/api/?name={nombreUrl}&size=150&rounded=true&background=f0ad4e&color=ffffff&font-size=0.33&bold=true";
 }
 
-<div class="container my-5">
-    <h2 class="mb-4 text-primary fw-bold">@ViewData["Title"]</h2>
-
-    @if (TempData["SuccessMessage"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-    }
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show">@Html.Raw(TempData["ErrorMessage"].ToString().Replace("\n", "<br />"))<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
-    }
-    @if (TempData["InfoMessage"] != null)
-    {
-        <div class="alert alert-info alert-dismissible fade show">@TempData["InfoMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+<style>
+    .sidebar-sticky {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 80px;
+        height: calc(100vh - 100px);
+        overflow-y: auto;
+        padding-top: .5rem;
     }
 
-    @* --- FORMULARIO PRINCIPAL PARA DATOS PERSONALES, UBICACIÓN E IDIOMA PRINCIPAL --- *@
-    <form asp-action="EditarPerfil" method="post" novalidate id="formPrincipalEditarPerfil">
-        @Html.AntiForgeryToken()
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+    .card-header-custom {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1.25rem;
+    }
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0">Información Personal y de Contacto</h5></div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="Nombre" class="form-label fw-semibold"></label>
-                        <input asp-for="Nombre" class="form-control" />
-                        <span asp-validation-for="Nombre" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="Apellidos" class="form-label fw-semibold"></label>
-                        <input asp-for="Apellidos" class="form-control" />
-                        <span asp-validation-for="Apellidos" class="text-danger"></span>
-                    </div>
-                    <div class="col-12">
-                        <label asp-for="Email" class="form-label fw-semibold"></label>
-                        <input asp-for="Email" type="email" class="form-control" readonly />
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="Telefono" class="form-label fw-semibold"></label>
-                        <input asp-for="Telefono" class="form-control" placeholder="Opcional" />
-                        <span asp-validation-for="Telefono" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="EmailContacto" class="form-label fw-semibold"></label>
-                        <input asp-for="EmailContacto" type="email" class="form-control" placeholder="Opcional" />
-                        <span asp-validation-for="EmailContacto" class="text-danger"></span>
+    .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+        background-color: #ff6600;
+    }
 
+    .nav-pills .nav-link {
+        color: #495057;
+        border-radius: .25rem;
+        margin-bottom: .25rem;
+    }
 
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="Fecha_Nacimiento" class="form-label fw-semibold"></label>
-                        <input asp-for="Fecha_Nacimiento" type="date" class="form-control" />
-                        <span asp-validation-for="Fecha_Nacimiento" class="text-danger"></span>
+        .nav-pills .nav-link:hover {
+            background-color: #e9ecef;
+        }
+
+    .text-orange {
+        color: #ff6600 !important;
+    }
+
+    .btn-orange {
+        background-color: #ff6600;
+        border-color: #ff6600;
+        color: #fff;
+    }
+
+        .btn-orange:hover {
+            background-color: #e65c00;
+            border-color: #cc5200;
+            color: #fff;
+        }
+
+    .form-control-sm, .form-select-sm {
+        font-size: .875rem;
+    }
+
+    .badge.bg-custom-skill {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .badge.bg-custom-language {
+        background-color: #17a2b8;
+        color: white;
+    }
+    .btn-link.text-custom-delete {
+        color: #dc3545;
+    }
+
+        .btn-link.text-custom-delete:hover {
+            color: #a71d2a;
+        }
+
+    .btn-view-profile {
+        font-weight: 600;
+        color: #0d6efd;
+        border: 1px solid #0d6efd;
+        padding: 0.375rem 0.75rem;
+    }
+
+        .btn-view-profile:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+    .section-card .card-header {
+        background-color: #f8f9fa;
+    }
+
+    .section-card .card-title-icon {
+        color: #ff6600;
+    }
+    .btn-save-main {
+        padding: 0.5rem 1.5rem;
+        font-size: 1rem;
+    }
+</style>
+
+<div class="container-fluid mt-4 mb-5">
+    <div class="row justify-content-center">
+        <aside class="col-lg-3 d-none d-lg-block">
+            <div class="sidebar-sticky">
+                <div class="card text-center mb-4 shadow-sm border-light">
+                    <div class="card-body p-4">
+                        <img src="@fotoPerfilUrl" alt="Avatar de @Model.Nombre"
+                             class="rounded-circle shadow-sm mb-3" style="width:100px;height:100px;object-fit:cover;">
+                        <h5 class="fw-bold mb-1 text-truncate">@nombreCompleto</h5>
+                        <p class="text-muted small mb-0 text-truncate">@Model.Email</p>
                     </div>
                 </div>
+                <nav class="nav flex-column nav-pills card shadow-sm border-light p-3" id="perfil-nav">
+                    <a class="nav-link active" href="#info-personal-card"><i class="bi bi-person-badge me-2"></i>Personal</a>
+                    <a class="nav-link" href="#ubicacion-idioma-card"><i class="bi bi-geo-alt me-2"></i>Ubicación e Idioma</a>
+                    <a class="nav-link" href="#habilidades-card"><i class="bi bi-award me-2"></i>Habilidades</a>
+                    <a class="nav-link" href="#otros-idiomas-card"><i class="bi bi-chat-left-text me-2"></i>Otros Idiomas</a>
+                </nav>
             </div>
-        </div>
+        </aside>
 
-        <div class="card shadow-sm mb-4">
-            <div class="card-header"><h5 class="mb-0">Ubicación e Idioma Principal</h5></div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label asp-for="PaisId" class="form-label fw-semibold"></label>
-                        <select asp-for="PaisId" asp-items="Model.Paises" class="form-select" id="selectPaisResidencia">
-                            <option value="">Seleccione un país</option>
-                        </select>
-                        <span asp-validation-for="PaisId" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="ProvinciaId" class="form-label fw-semibold"></label>
-                        <select asp-for="ProvinciaId" asp-items="Model.Provincias" class="form-select" id="selectProvinciaResidencia">
-                            <option value="">Seleccione una provincia</option>
-                        </select>
-                        <span asp-validation-for="ProvinciaId" class="text-danger"></span>
-                    </div>
-                    <div class="col-md-12">
-                        <label asp-for="PrimaryIdiomaId" class="form-label fw-semibold"></label>
-                        <select asp-for="PrimaryIdiomaId" asp-items="Model.IdiomasPrincipalesDisponibles" class="form-select">
-                            <option value="">Seleccione su idioma principal</option>
-                        </select>
-                        <span asp-validation-for="PrimaryIdiomaId" class="text-danger"></span>
-                    </div>
-                </div>
+        <main class="col-lg-9 col-xl-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary fw-bolder mb-0">@ViewData["Title"]</h2>
+                <a href="@Url.Action("Index", "Perfil")" class="btn btn-view-profile">
+                    <i class="bi bi-eye-fill me-1"></i> Ver Mi Perfil Público
+                </a>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-12 text-center mt-3 mb-5">
-                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm">
-                    <i class="bi bi-save me-2"></i> Guardar Cambios Principales
-                </button>
-            </div>
-        </div>
-    </form> @* FIN DEL FORMULARIO PRINCIPAL *@
-
-    <hr class="my-5">
-
-    @* --- SECCIÓN PARA GESTIONAR HABILIDADES --- *@
-    <div class="card shadow-sm mb-4">
-        <div class="card-header"><h5 class="mb-0">Mis Habilidades</h5></div>
-        <div class="card-body">
-            @if (Model.HabilidadesActuales.Any())
+            @if (TempData["SuccessMessage"] != null)
             {
-                <h6 class="mb-3 text-muted">Habilidades Guardadas:</h6>
-                <ul class="list-group list-group-flush mb-3">
-                    @foreach (var habilidadCv in Model.HabilidadesActuales)
-                    {
-                        <li class="list-group-item d-flex justify-content-between align-items-center ps-0">
-                            @habilidadCv.NombreHabilidad
-                            <form asp-action="EliminarHabilidadCv" asp-controller="Perfil" method="post" class="ms-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="idHabilidadCurriculum" value="@habilidadCv.IdHabilidadCurriculum" />
-                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar @habilidadCv.NombreHabilidad">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </li>
-                    }
-                </ul>
+                <div class="alert alert-success alert-dismissible fade show shadow-sm">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
             }
-            else
+            @if (TempData["ErrorMessage"] != null)
             {
-                <p class="text-muted fst-italic">Aún no has agregado habilidades a tu perfil.</p>
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm">@Html.Raw(TempData["ErrorMessage"].ToString().Replace("\n", "<br />"))<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show shadow-sm">@TempData["InfoMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
             }
 
-            <h6 class="mt-4 pt-3 border-top">Añadir Nueva Habilidad:</h6>
-            <form asp-action="AnadirHabilidadCv" asp-controller="Perfil" method="post" class="row g-2 align-items-end">
+            <form asp-action="EditarPerfil" method="post" novalidate id="formPrincipalEditarPerfil">
                 @Html.AntiForgeryToken()
-                <div class="col">
-                    <label asp-for="IdHabilidadSeleccionadaParaAnadir" class="form-label visually-hidden">Habilidad</label>
-                    <select asp-for="IdHabilidadSeleccionadaParaAnadir" asp-items="Model.HabilidadesDisponiblesParaAnadir" class="form-select">
-                        <option value="">Seleccione habilidad...</option>
-                    </select>
-                    <span asp-validation-for="IdHabilidadSeleccionadaParaAnadir" class="text-danger"></span>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-plus-circle me-1"></i> Añadir
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
 
-    @* --- SECCIÓN PARA GESTIONAR "OTROS IDIOMAS" (con institución y fecha) --- *@
-    <div class="card shadow-sm mb-4">
-        <div class="card-header"><h5 class="mb-0">Otros Idiomas (Certificados/Estudiados)</h5></div>
-        <div class="card-body">
-            @if (Model.OtrosIdiomasActuales.Any())
-            {
-                <h6 class="mb-3 text-muted">Idiomas Guardados en CV:</h6>
-                <ul class="list-group list-group-flush mb-3">
-                    @foreach (var idiomaCv in Model.OtrosIdiomasActuales)
-                    {
-                        <li class="list-group-item ps-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@idiomaCv.NombreIdioma</strong><br />
-                                    <small class="text-muted">Institución: @idiomaCv.NombreInstitucion</small><br />
-                                    <small class="text-muted">Fecha: @idiomaCv.FechaObtencionFormateada</small>
-                                </div>
-                                <form asp-action="EliminarOtroIdiomaCv" asp-controller="Perfil" method="post" class="ms-2">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="idIdiomaCurriculum" value="@idiomaCv.IdIdiomaCurriculum" />
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Eliminar @idiomaCv.NombreIdioma del CV">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                <section id="info-personal-card" class="card shadow-sm mb-4 border-light">
+                    <div class="card-header card-header-custom d-flex align-items-center">
+                        <i class="bi bi-person-lines-fill fs-4 me-2 text-orange"></i>
+                        <h5 class="mb-0 text-dark">Información Personal y de Contacto</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="Nombre" class="form-label"></label>
+                                <input asp-for="Nombre" class="form-control" />
+                                <span asp-validation-for="Nombre" class="text-danger small"></span>
                             </div>
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="text-muted fst-italic">Aún no has agregado otros idiomas a tu CV.</p>
-            }
+                            <div class="col-md-6">
+                                <label asp-for="Apellidos" class="form-label"></label>
+                                <input asp-for="Apellidos" class="form-control" />
+                                <span asp-validation-for="Apellidos" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" type="email" class="form-control" readonly />
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Telefono" class="form-label"></label>
+                                <input asp-for="Telefono" class="form-control" placeholder="Opcional" />
+                                <span asp-validation-for="Telefono" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EmailContacto" class="form-label"></label>
+                                <input asp-for="EmailContacto" type="email" class="form-control" placeholder="Opcional" />
+                                <span asp-validation-for="EmailContacto" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Fecha_Nacimiento" class="form-label"></label>
+                                <input asp-for="Fecha_Nacimiento" type="date" class="form-control" />
+                                <span asp-validation-for="Fecha_Nacimiento" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-            <form asp-action="AnadirOtroIdiomaCv" asp-controller="Perfil" method="post" class="row g-3 align-items-start">
-                @Html.AntiForgeryToken()
-                @* Los campos deben bindear a Model.NuevoOtroIdioma.*@
-                <div class="col-md-4">
-                    <label asp-for="NuevoOtroIdioma.IdiomaId" class="form-label">Idioma</label>
-                    <select asp-for="NuevoOtroIdioma.IdiomaId" asp-items="Model.TodosLosIdiomasDisponibles" class="form-select">
-                        <option value="">Seleccione idioma...</option>
-                    </select>
-                    <span asp-validation-for="NuevoOtroIdioma.IdiomaId" class="text-danger"></span>
-                </div>
-                <div class="col-md-4">
-                    <label asp-for="NuevoOtroIdioma.InstitucionId" class="form-label">Institución donde lo aprendió/certificó</label>
-                    <select asp-for="NuevoOtroIdioma.InstitucionId" asp-items="Model.InstitucionesRegistradasPorUsuario" class="form-select">
-                        <option value="">Seleccione institución...</option>
-                    </select>
-                    <span asp-validation-for="NuevoOtroIdioma.InstitucionId" class="text-danger"></span>
-                </div>
-                <div class="col-md-3">
-                    <label asp-for="NuevoOtroIdioma.FechaObtencion" class="form-label">Fecha Obtención/Cert.</label>
-                    <input asp-for="NuevoOtroIdioma.FechaObtencion" type="date" class="form-control" />
-                    <span asp-validation-for="NuevoOtroIdioma.FechaObtencion" class="text-danger"></span>
-                </div>
-                <div class="col-md-1 align-self-end text-end">
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-plus-circle me-1"></i> Añadir
+                <section id="ubicacion-idioma-card" class="card shadow-sm mb-4 border-light">
+                    <div class="card-header card-header-custom d-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill fs-4 me-2 text-orange"></i>
+                        <h5 class="mb-0 text-dark">Ubicación e Idioma Principal</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="PaisId" class="form-label"></label>
+                                <select asp-for="PaisId" asp-items="Model.Paises" class="form-select" id="selectPaisResidencia">
+                                    <option value="">Seleccione un país</option>
+                                </select>
+                                <span asp-validation-for="PaisId" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="ProvinciaId" class="form-label"></label>
+                                <select asp-for="ProvinciaId" asp-items="Model.Provincias" class="form-select" id="selectProvinciaResidencia">
+                                    <option value="">Seleccione una provincia</option>
+                                </select>
+                                <span asp-validation-for="ProvinciaId" class="text-danger small"></span>
+                            </div>
+                            <div class="col-12">
+                                <label asp-for="PrimaryIdiomaId" class="form-label"></label>
+                                <select asp-for="PrimaryIdiomaId" asp-items="Model.IdiomasPrincipalesDisponibles" class="form-select">
+                                    <option value="">Seleccione su idioma principal</option>
+                                </select>
+                                <span asp-validation-for="PrimaryIdiomaId" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="text-center text-lg-end mt-4 mb-5">
+                    <button type="submit" class="btn btn-orange btn-save-main shadow-sm">
+                        <i class="bi bi-save2-fill me-2"></i> Guardar Perfil
                     </button>
                 </div>
             </form>
-        </div>
+
+            <hr class="my-5" />
+
+            <section id="habilidades-card" class="card shadow-sm mb-4 border-light">
+                <div class="card-header card-header-custom d-flex align-items-center">
+                    <i class="bi bi-award-fill fs-4 me-2 text-orange"></i>
+                    <h5 class="mb-0 text-dark">Mis Habilidades</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["SuccessMessageHabilidad"] != null)
+                    {
+                        <div class="alert alert-success py-2 px-3 small alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessageHabilidad"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+                    @if (TempData["ErrorMessageHabilidad"] != null)
+                    {
+                        <div class="alert alert-danger py-2 px-3 small alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessageHabilidad"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+                    @if (TempData["InfoMessageHabilidad"] != null)
+                    {
+                        <div class="alert alert-info py-2 px-3 small alert-dismissible fade show"><i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessageHabilidad"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+
+                    @if (Model.HabilidadesActuales.Any())
+                    {
+                        <div class="mb-3">
+                            @foreach (var habilidadCv in Model.HabilidadesActuales)
+                            {
+                                <span class="badge rounded-pill bg-custom-skill fs-6 me-2 mb-2 p-2 d-inline-flex align-items-center">
+                                    @habilidadCv.NombreHabilidad
+                                    <form asp-action="EliminarHabilidadCv" asp-controller="Perfil" method="post" class="ms-1 d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="idHabilidadCurriculum" value="@habilidadCv.IdHabilidadCurriculum" />
+                                        <button type="submit" class="btn btn-link text-white p-0 lh-1" style="font-size:0.8em; vertical-align: middle;" title="Eliminar">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                        </button>
+                                    </form>
+                                </span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+
+                        <p class="text-muted fst-italic">Aún no has agregado habilidades.</p>
+                    }
+
+                    <form asp-action="AnadirHabilidadCv" asp-controller="Perfil" method="post" class="row g-2 align-items-center pt-3 border-top mt-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col">
+                            <label asp-for="IdHabilidadSeleccionadaParaAnadir" class="form-label visually-hidden">Añadir Habilidad</label>
+                            <select asp-for="IdHabilidadSeleccionadaParaAnadir" asp-items="Model.HabilidadesDisponiblesParaAnadir" class="form-select form-select-sm">
+                                <option value="">Añadir nueva habilidad...</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-orange btn-sm"><i class="bi bi-plus-lg me-1"></i>Añadir</button>
+                        </div>
+                        <div class="col-12"><span asp-validation-for="IdHabilidadSeleccionadaParaAnadir" class="text-danger small"></span></div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="otros-idiomas-card" class="card shadow-sm mb-4 border-light">
+                <div class="card-header card-header-custom d-flex align-items-center">
+                    <i class="bi bi-chat-left-text-fill fs-4 me-2 text-orange"></i>
+                    <h5 class="mb-0 text-dark">Otros Idiomas (Certificados/Estudiados)</h5>
+                </div>
+                <div class="card-body p-4">
+                    @if (TempData["SuccessMessageOtroIdioma"] != null)
+                    {
+                        <div class="alert alert-success py-2 px-3 small alert-dismissible fade show"><i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessageOtroIdioma"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+                    @if (TempData["ErrorMessageOtroIdioma"] != null)
+                    {
+                        <div class="alert alert-danger py-2 px-3 small alert-dismissible fade show"><i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessageOtroIdioma"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+                    @if (TempData["InfoMessageOtroIdioma"] != null)
+                    {
+                        <div class="alert alert-info py-2 px-3 small alert-dismissible fade show"><i class="bi bi-info-circle-fill me-2"></i>@TempData["InfoMessageOtroIdioma"]<button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button></div>
+                    }
+
+                    @if (Model.OtrosIdiomasActuales.Any())
+                    {
+                        <ul class="list-group list-group-flush mb-3">
+                            @foreach (var idiomaCv in Model.OtrosIdiomasActuales)
+                            {
+                                <li class="list-group-item ps-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <span class="badge bg-custom-language text-white fs-6">@idiomaCv.NombreIdioma</span>
+                                            <div class="small text-muted mt-1">
+                                                <i class="bi bi-building me-1"></i>@idiomaCv.NombreInstitucion <br />
+                                                <i class="bi bi-calendar-check me-1"></i>@idiomaCv.FechaObtencionFormateada
+                                            </div>
+                                        </div>
+                                        <form asp-action="EliminarOtroIdiomaCv" asp-controller="Perfil" method="post" class="ms-2">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="idIdiomaCurriculum" value="@idiomaCv.IdIdiomaCurriculum" />
+                                            <button type="submit" class="btn btn-link text-custom-delete p-0" title="Eliminar">
+                                                <i class="bi bi-x-circle-fill"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+
+                        <p class="text-muted fst-italic">Aún no has agregado otros idiomas a tu CV.</p>
+                    }
+
+                    <form asp-action="AnadirOtroIdiomaCv" asp-controller="Perfil" method="post" class="row g-3 align-items-start pt-3 border-top mt-3">
+                        @Html.AntiForgeryToken()
+                        <div class="col-md-4">
+                            <label asp-for="NuevoOtroIdioma.IdiomaId" class="form-label small">Idioma</label>
+                            <select asp-for="NuevoOtroIdioma.IdiomaId" asp-items="Model.TodosLosIdiomasDisponibles" class="form-select form-select-sm">
+                                <option value="">Seleccione...</option>
+                            </select>
+                            <span asp-validation-for="NuevoOtroIdioma.IdiomaId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="NuevoOtroIdioma.InstitucionId" class="form-label small">Institución</label>
+                            <select asp-for="NuevoOtroIdioma.InstitucionId" asp-items="Model.InstitucionesRegistradasPorUsuario" class="form-select form-select-sm">
+                                <option value="">Seleccione...</option>
+                            </select>
+                            <span asp-validation-for="NuevoOtroIdioma.InstitucionId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="NuevoOtroIdioma.FechaObtencion" class="form-label small">Fecha</label>
+                            <input asp-for="NuevoOtroIdioma.FechaObtencion" type="date" class="form-control form-control-sm" />
+                            <span asp-validation-for="NuevoOtroIdioma.FechaObtencion" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-1 text-end align-self-end">
+                            <button type="submit" class="btn btn-orange btn-sm"><i class="bi bi-plus-lg"></i> Añadir</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
     </div>
 </div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
             function actualizarProvincias(selectPaisElement, selectProvinciaElementId, idProvinciaPreseleccionada) {
@@ -228,13 +379,11 @@
                 $selectProvincia.empty().append('<option value="">Cargando...</option>');
                 if (idPaisSeleccionado && idPaisSeleccionado !== "") {
                     $.getJSON('@Url.Action("GetProvinciasPorPais", "Perfil")', { id_pais: idPaisSeleccionado }, function (data) {
-                        $selectProvincia.empty().append('<option value="">Seleccione una provincia</option>');
+                        $selectProvincia.empty().append('<option value="">Seleccione provincia</option>');
                         if (data && data.length > 0) {
                             $.each(data, function (index, provincia) {
                                 var option = $('<option></option>').val(provincia.id_provincia).text(provincia.nombre);
-                                if (provincia.id_provincia == idProvinciaPreseleccionada) {
-                                    option.prop('selected', true);
-                                }
+                                if (provincia.id_provincia == idProvinciaPreseleccionada) { option.prop('selected', true); }
                                 $selectProvincia.append(option);
                             });
                         } else { $selectProvincia.append('<option value="">No hay provincias</option>'); }
@@ -248,6 +397,29 @@
                  $('#selectPaisResidencia').val(paisResidenciaInicial);
                 actualizarProvincias('#selectPaisResidencia', 'selectProvinciaResidencia', provinciaResidenciaSeleccionadaId);
             }
+
+            // Activar ScrollSpy de Bootstrap
+             var scrollSpy = new bootstrap.ScrollSpy(document.body, {
+                 target: '#perfil-nav',
+                 offset: 120 // Aumenta este offset para que no se active tan pronto
+             });
+
+            $('#perfil-nav a[href*="#"]:not([href="#"])').on('click', function (event) {
+                if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
+                    var target = $(this.hash);
+                    target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+                    if (target.length) {
+                        event.preventDefault();
+                        $('html, body').animate({
+                            scrollTop: target.offset().top - 80
+                        }, 600, function () {
+                        });
+                        $('#perfil-nav a').removeClass('active');
+                        $(this).addClass('active');
+                        return false;
+                    }
+                }
+            });
         });
     </script>
 }

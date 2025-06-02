@@ -500,7 +500,7 @@ namespace SisEmpleo.Controllers
                 var institucionDb = await _context.Institucion.FindAsync(inputIdioma.InstitucionId); // Ya validamos que pertenece al postulante
 
                 if (idiomaDb != null && institucionDb != null)
-                { // Asegurarse que ambos existen
+                {
                     _context.Idioma_Curriculum.Add(new Idioma_Curriculum
                     {
                         Curriculum = curriculum,
@@ -510,8 +510,8 @@ namespace SisEmpleo.Controllers
                         Institucion = institucionDb,
                         fecha = inputIdioma.FechaObtencion
                     });
-                    await _context.SaveChangesAsync(); // Guardar todos los cambios (Postulante, Curriculum nuevo, Institucion nueva, Idioma_Curriculum nuevo)
-                    TempData["SuccessMessage"] = $"Idioma '{idiomaDb.nombre}' añadido al CV."; // Mensaje general
+                    await _context.SaveChangesAsync();
+                    TempData["SuccessMessage"] = $"Idioma '{idiomaDb.nombre}' añadido al CV.";
                 }
                 else
                 {
