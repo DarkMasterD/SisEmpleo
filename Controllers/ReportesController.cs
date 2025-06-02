@@ -183,5 +183,38 @@ namespace SisEmpleo.Controllers
 
             return View(reporteData);
         }
+
+        // Reporte 7 - Candidatos por formación académica
+        // Reporte 7 - Candidatos por formación académica (sin relaciones)
+        public IActionResult ReporteCandidatosPorFormacion()
+        {
+            // Obtener todas las tablas necesarias
+            var titulos = _context.Titulo.ToList();
+            var especialidades = _context.Especialidad.ToList();
+            var formaciones = _context.FormacionAcademica.ToList();
+            var curriculums = _context.Curriculum.ToList();
+            var postulantes = _context.Postulante.ToList();
+
+            // Crear el reporte combinando los datos
+            var reporteData = titulos.Select(t => new
+            {
+                TituloId = t.id_titulo,
+                NombreTitulo = t.nombre,
+                TipoTitulo = t.tipo,
+                Especialidad = especialidades.FirstOrDefault(e => e.id_especialidad == t.id_especialidad)?.nombre ?? "Sin especificar",
+                CantidadPostulantes = formaciones.Count(f =>
+                    f.id_titulo == t.id_titulo &&
+                    curriculums.Any(c => c.id_curriculum == f.id_curriculum) &&
+                    postulantes.Any(p => p.id_postulante == curriculums.First(c => c.id_curriculum == f.id_curriculum).id_postulante))
+            })
+            .OrderByDescending(x => x.CantidadPostulantes)
+            .ToList();
+
+            ViewBag.TituloReporte = "Candidatos por Formación Académica";
+            ViewBag.FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+            ViewBag.TotalPostulantes = postulantes.Count;
+
+            return View(reporteData);
+        }
     }
 }

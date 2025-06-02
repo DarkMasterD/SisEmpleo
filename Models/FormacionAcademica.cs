@@ -10,8 +10,10 @@ namespace SisEmpleo.Models
         public int id_institucion { get; set; }
         public int id_titulo { get; set; }
 
-        public virtual Especialidad Especialidad { get; set; }
-        public virtual Titulo Titulo { get; set; }
-        public virtual Institucion Institucion { get; set; }
+        //Comentado por reportes (No se si lo ocupan)
+
+        //public virtual Especialidad Especialidad { get; set; }
+        //public virtual Titulo Titulo { get; set; }
+        //public virtual Institucion Institucion { get; set; }
     }
 }
