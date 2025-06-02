@@ -1,47 +1,65 @@
 ﻿@model SisEmpleo.Models.Viewmodels.PostulanteViewModel
 
+@{
+    ViewData["Title"] = "Mi Perfil";
+}
+
 @if (Model == null)
 {
     <div class="alert alert-warning">
         No hay datos para mostrar. Por favor completa tu perfil.
+        <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-sm btn-primary ml-2">Crear Perfil</a>
+        @* Enlace para crear si el modelo es nulo y se asume que no hay perfil *@
     </div>
 }
 else
 {
     var camposFaltantes = new List<string>();
     if (string.IsNullOrWhiteSpace(Model.Telefono)) { camposFaltantes.Add("Teléfono"); }
-    if (string.IsNullOrWhiteSpace(Model.Pais)) { camposFaltantes.Add("País"); }
-    if (string.IsNullOrWhiteSpace(Model.Provincia)) { camposFaltantes.Add("Provincia"); }
+    if (string.IsNullOrWhiteSpace(Model.Pais)) { camposFaltantes.Add("País de Residencia"); }
+    if (string.IsNullOrWhiteSpace(Model.Provincia)) { camposFaltantes.Add("Provincia de Residencia"); }
     if (Model.Idiomas == null || !Model.Idiomas.Any()) { camposFaltantes.Add("Idiomas"); }
     if (Model.Habilidades == null || !Model.Habilidades.Any()) { camposFaltantes.Add("Habilidades"); }
 
-    if (camposFaltantes.Any())
+    @if (camposFaltantes.Any())
     {
-        <div class="alert alert-info">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
             <strong>¡Tu perfil está incompleto!</strong>
             <br />
             Faltan los siguientes campos: @string.Join(", ", camposFaltantes).
-            <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-sm btn-primary ml-2">Completa tu perfil aquí</a>
+            <a asp-action="EditarPerfil" asp-controller="Perfil" class="btn btn-sm btn-primary ms-2">Completa tu perfil aquí</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
+    @* Tarjeta de Información Personal *@
     <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2>@Model.Nombre @Model.Apellidos</h2>
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">@Model.Nombre @Model.Apellidos</h4>
+            @* --- INICIO: Botón Editar Perfil --- *@
+            <a asp-action="EditarPerfil" asp-controller="Perfil" class="btn btn-light btn-sm">
+                <i class="bi bi-pencil-square"></i> Editar Perfil
+            </a>
+            @* --- FIN: Botón Editar Perfil --- *@
         </div>
         <div class="card-body">
             <p><strong>Email:</strong> @Model.Email</p>
             <p><strong>Teléfono:</strong> @(string.IsNullOrWhiteSpace(Model.Telefono) ? "No especificado" : Model.Telefono)</p>
-            <p><strong>País:</strong> @(string.IsNullOrWhiteSpace(Model.Pais) ? "No especificado" : Model.Pais)</p>
-            <p><strong>Provincia:</strong> @(string.IsNullOrWhiteSpace(Model.Provincia) ? "No especificado" : Model.Provincia)</p>
+            <p><strong>País de Residencia:</strong> @(string.IsNullOrWhiteSpace(Model.Pais) ? "No especificado" : Model.Pais)</p>
+            <p><strong>Provincia de Residencia:</strong> @(string.IsNullOrWhiteSpace(Model.Provincia) ? "No especificado" : Model.Provincia)</p>
+            @if (Model.Fecha_Nacimiento.HasValue)
+            {
+                <p><strong>Fecha de Nacimiento:</strong> @Model.Fecha_Nacimiento.Value.ToString("dd/MM/yyyy")</p>
+            }
         </div>
     </div>
 
+    @* Fila para Idiomas y Habilidades *@
     <div class="row">
         <div class="col-md-6">
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h4>Idiomas</h4>
+                    <h5 class="mb-0">Idiomas</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.Idiomas != null && Model.Idiomas.Any())
@@ -55,15 +73,15 @@ else
                     }
                     else
                     {
-                        <span class="text-danger">No especificado</span>
+                        <p class="text-muted mb-0">No hay idiomas especificados.</p>
                     }
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header bg-info text-white">
-                    <h4>Habilidades</h4>
+                    <h5 class="mb-0">Habilidades</h5>
                 </div>
                 <div class="card-body">
                     @if (Model.Habilidades != null && Model.Habilidades.Any())
@@ -77,7 +95,7 @@ else
                     }
                     else
                     {
-                        <span class="text-danger">No especificado</span>
+                        <p class="text-muted mb-0">No hay habilidades especificadas.</p>
                     }
                 </div>
             </div>
