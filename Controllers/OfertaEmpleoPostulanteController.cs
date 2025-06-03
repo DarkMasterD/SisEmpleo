@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SisEmpleo.Models;
 using System;
 using System.Collections.Generic;
@@ -162,69 +163,118 @@ namespace SisEmpleo.Controllers
             }
         }
 
+        // En SisEmpleo/Controllers/OfertaEmpleoPostulanteController.cs
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult PostularseOferta(int id_ofertaempleo)
+        public async Task<IActionResult> PostularseOferta(int id_ofertaempleo)
         {
-            if (HttpContext.Session.GetString("tipo_usuario") != "P")
+            var tipoUsuario = HttpContext.Session.GetString("tipo_usuario");
+            if (tipoUsuario != "P")
             {
-                return Json(new { success = false, message = "Debes iniciar sesión como postulante." });
+                return Json(new { success = false, message = "Acceso denegado. Debes iniciar sesión como postulante.", redirectTo = Url.Action("Login", "Account") });
             }
 
-            int id_usuario = HttpContext.Session.GetInt32("id_usuario") ?? 0;
-            int id_postulante = HttpContext.Session.GetInt32("id_postulante") ?? 0;
+            int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+            int? idPostulante = HttpContext.Session.GetInt32("id_postulante");
+
+            if (idUsuario == null || idUsuario.Value == 0 || idPostulante == null || idPostulante.Value == 0) // Más robusto
+            {
+                return Json(new { success = false, message = "Sesión inválida o información de postulante faltante.", redirectTo = Url.Action("Login", "Account") });
+            }
+
+            System.Diagnostics.Debug.WriteLine($"Iniciando PostularseOferta para id_ofertaempleo: {id_ofertaempleo}, id_usuario: {idUsuario.Value}, id_postulante: {idPostulante.Value}");
 
             try
             {
-                if (_EmpleoContext.OfertaCandidatos.Any(oc => oc.id_ofertaempleo == id_ofertaempleo && oc.id_usuario == id_usuario))
+                bool yaPostulado = await _EmpleoContext.OfertaCandidatos
+                    .AnyAsync(oc => oc.id_ofertaempleo == id_ofertaempleo && oc.id_usuario == idUsuario.Value);
+                if (yaPostulado)
                 {
+                    System.Diagnostics.Debug.WriteLine("Error: Ya postulado.");
                     return Json(new { success = false, message = "Ya te has postulado a esta oferta." });
                 }
 
-                bool hasContact = _EmpleoContext.Contacto.Any(c => c.id_usuario == id_usuario);
-                bool hasCurriculum = _EmpleoContext.Curriculum.Any(c => c.id_postulante == id_postulante);
-                bool hasFormacion = _EmpleoContext.FormacionAcademica.Any(f => _EmpleoContext.Curriculum.Any(c => c.id_postulante == id_postulante && c.id_curriculum == f.id_curriculum));
-
-                if (!hasContact || !hasCurriculum || !hasFormacion)
+                // Verificar perfil completo
+                var contactoPostulante = await _EmpleoContext.Contacto.AsNoTracking().FirstOrDefaultAsync(c => c.id_usuario == idUsuario.Value);
+                if (contactoPostulante == null || string.IsNullOrWhiteSpace(contactoPostulante.telefono))
                 {
-                    return Json(new { success = false, message = "Debes completar tu perfil (información de contacto, currículum y formación académica) antes de postularte." });
+                    System.Diagnostics.Debug.WriteLine("Error: Falta información de contacto (teléfono).");
+                    return Json(new { success = false, message = "Completa tu información de contacto (teléfono) en tu perfil antes de postularte.", redirectTo = Url.Action("EditarPerfil", "Perfil") });
                 }
 
-                var requiredSkills = _EmpleoContext.RequisitoOferta
+                var curriculumPostulante = await _EmpleoContext.Curriculum.AsNoTracking()
+                                .Include(c => c.FormacionesAcademicas)
+                                .Include(c => c.HabilidadCurriculums)
+                                .FirstOrDefaultAsync(c => c.id_postulante == idPostulante.Value);
+
+                if (curriculumPostulante == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Error: Curriculum no encontrado.");
+                    return Json(new { success = false, message = "Completa tu currículum en tu perfil antes de postularte.", redirectTo = Url.Action("EditarPerfil", "Perfil") });
+                }
+                if (curriculumPostulante.FormacionesAcademicas == null || !curriculumPostulante.FormacionesAcademicas.Any())
+                {
+                    System.Diagnostics.Debug.WriteLine("Error: Falta formación académica.");
+                    return Json(new { success = false, message = "Añade al menos una formación académica a tu currículum antes de postularte.", redirectTo = Url.Action("EditarPerfil", "Perfil") });
+                }
+
+                // Verificar requisitos de habilidades
+                var habilidadesRequeridasIds = await _EmpleoContext.RequisitoOferta
                     .Where(r => r.id_ofertaempleo == id_ofertaempleo)
                     .Select(r => r.id_habilidad)
-                    .ToList();
+                    .ToListAsync();
 
-                var candidateSkills = (from hc in _EmpleoContext.Habilidad_Curriculum
-                                       join c in _EmpleoContext.Curriculum on hc.id_curriculum equals c.id_curriculum
-                                       where c.id_postulante == id_postulante
-                                       select hc.id_habilidad).ToList();
+                System.Diagnostics.Debug.WriteLine($"Habilidades requeridas para oferta {id_ofertaempleo}: {string.Join(", ", habilidadesRequeridasIds)}");
 
-                bool meetsRequirements = requiredSkills.All(rs => candidateSkills.Contains(rs));
-
-                if (!meetsRequirements)
+                if (habilidadesRequeridasIds.Any())
                 {
-                    return Json(new { success = false, message = "No cumples con los requisitos de la oferta." });
+                    // Obtener IDs de habilidades del candidato desde Habilidad_Curriculum
+                    // Asegúrate que curriculumPostulante.HabilidadCurriculums no sea null
+                    var habilidadesCandidatoIds = curriculumPostulante.HabilidadCurriculums?
+                                                    .Select(hc => hc.id_habilidad).ToList() ?? new List<int>();
+
+                    System.Diagnostics.Debug.WriteLine($"Habilidades del candidato {idPostulante.Value}: {string.Join(", ", habilidadesCandidatoIds)}");
+
+                    bool cumpleHabilidades = habilidadesRequeridasIds.All(reqId => habilidadesCandidatoIds.Contains(reqId));
+                    if (!cumpleHabilidades)
+                    {
+                        var nombresHabilidadesFaltantes = await _EmpleoContext.Habilidad
+                            .Where(h => habilidadesRequeridasIds.Except(habilidadesCandidatoIds).Contains(h.id_habilidad))
+                            .Select(h => h.nombre).ToListAsync();
+
+                        string mensajeErrorHabilidades = "No cumples con todas las habilidades requeridas para esta oferta. ";
+                        if (nombresHabilidadesFaltantes.Any())
+                        {
+                            mensajeErrorHabilidades += $"Te faltan: {string.Join(", ", nombresHabilidadesFaltantes)}. ";
+                        }
+                        mensajeErrorHabilidades += "Por favor, actualiza tus habilidades en tu perfil.";
+                        System.Diagnostics.Debug.WriteLine($"Error: No cumple habilidades. Faltantes: {string.Join(", ", nombresHabilidadesFaltantes)}");
+                        return Json(new { success = false, message = mensajeErrorHabilidades, redirectTo = Url.Action("EditarPerfil", "Perfil") });
+                    }
                 }
 
                 var candidato = new OfertaCandidatos
                 {
-                    id_usuario = id_usuario,
+                    id_usuario = idUsuario.Value,
                     id_ofertaempleo = id_ofertaempleo,
                     estado = "En Espera",
                     visto = false
                 };
 
                 _EmpleoContext.OfertaCandidatos.Add(candidato);
-                _EmpleoContext.SaveChanges();
-
-                return Json(new { success = true, message = "Postulación registrada con éxito." });
+                await _EmpleoContext.SaveChangesAsync();
+                System.Diagnostics.Debug.WriteLine("Postulación registrada con éxito.");
+                return Json(new { success = true, message = "¡Postulación exitosa! Tu aplicación ha sido enviada." });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error al procesar la postulación: " + ex.Message });
+                System.Diagnostics.Debug.WriteLine($"EXCEPCIÓN en PostularseOferta: {ex.ToString()}");
+                // En producción, loguear ex.ToString() a un sistema de logging.
+                return Json(new { success = false, message = "Ocurrió un error inesperado al procesar tu postulación. Por favor, inténtalo de nuevo más tarde." });
             }
         }
+
 
         [HttpGet]
         public IActionResult VerOfertaPostulado()

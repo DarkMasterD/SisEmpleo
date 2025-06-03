@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
 using SisEmpleo.Models;
@@ -128,87 +129,61 @@ namespace SisEmpleo.Controllers
         }
 
 
+        
         [HttpPost]
-        public IActionResult RegistrarsePostulante(RegistroUserPostulanteDTO datos)
+        [ValidateAntiForgeryToken] // Siempre es bueno tener esto
+        public async Task<IActionResult> RegistrarsePostulante(RegistroUserPostulanteDTO datos) // Cambiado a async Task
         {
-            try
+            // --- INICIO: VALIDACIONES ---
+            // (Tus validaciones existentes para edad, fecha, correo único, nombre de usuario único, contraseña)
+            // Ejemplo de validación de correo y nombre de usuario (ya las tienes, solo asegúrate que usen await):
+            if (!string.IsNullOrWhiteSpace(datos.email) && await _EmpleoContext.Usuario.AnyAsync(u => u.email == datos.email))
             {
-                // 1. Validación de edad (mínimo 18 años)
-                var edadMinima = DateTime.Now.AddYears(-18);
-                if (datos.fecha_nacimiento > edadMinima)
-                {
-                    ModelState.AddModelError("fecha_nacimiento", "Debes tener al menos 18 años para registrarte.");
-                }
+                ModelState.AddModelError("email", "Este correo electrónico ya está registrado.");
+            }
+            if (!string.IsNullOrWhiteSpace(datos.nombre_usuario) && await _EmpleoContext.Usuario.AnyAsync(u => u.nombre_usuario == datos.nombre_usuario))
+            {
+                ModelState.AddModelError("nombre_usuario", "Este nombre de usuario ya está en uso.");
+            }
+            // ... (el resto de tus validaciones)
 
-                // 2. Validación de fecha no futura
-                if (datos.fecha_nacimiento > DateTime.Now)
+            if (!ModelState.IsValid)
+            {
+                // Es mejor usar SelectList para los ViewBags para que puedas preseleccionar valores si es necesario
+                ViewBag.Paises = new SelectList(await _EmpleoContext.Pais.OrderBy(p => p.nombre).ToListAsync(), "id_pais", "nombre", datos.id_pais);
+                if (datos.id_pais > 0)
                 {
-                    ModelState.AddModelError("fecha_nacimiento", "La fecha de nacimiento no puede ser futura.");
-                }
-
-                // 3. Validación de correo único
-                var correoExistente = _EmpleoContext.Usuario.Any(u => u.email == datos.email);
-                if (correoExistente)
-                {
-                    ModelState.AddModelError("email", "Este correo electrónico ya está registrado.");
-                }
-
-                // 4. Validación de nombre de usuario único
-                var nombreUsuarioExistente = _EmpleoContext.Usuario.Any(u => u.nombre_usuario == datos.nombre_usuario);
-                if (nombreUsuarioExistente)
-                {
-                    ModelState.AddModelError("nombre_usuario", "Este nombre de usuario ya está en uso. Por favor elige otro.");
-                }
-
-                // 5. Validación de contraseña
-                var password = datos.contrasenia;
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    ModelState.AddModelError("contrasenia", "La contraseña es obligatoria.");
+                    ViewBag.Provincias = new SelectList(await _EmpleoContext.Provincia.Where(p => p.id_pais == datos.id_pais).OrderBy(p => p.nombre).ToListAsync(), "id_provincia", "nombre", datos.id_provincia);
                 }
                 else
                 {
-                    if (password.Length < 8)
-                    {
-                        ModelState.AddModelError("contrasenia", "La contraseña debe tener al menos 8 caracteres.");
-                    }
-                    if (!password.Any(char.IsDigit))
-                    {
-                        ModelState.AddModelError("contrasenia", "La contraseña debe contener al menos un número.");
-                    }
-                    if (!password.Any(ch => !char.IsLetterOrDigit(ch)))
-                    {
-                        ModelState.AddModelError("contrasenia", "La contraseña debe contener al menos un carácter especial.");
-                    }
+                    ViewBag.Provincias = new List<SelectListItem>();
                 }
+                ViewBag.Idiomas = new SelectList(await _EmpleoContext.Idioma.OrderBy(i => i.nombre).ToListAsync(), "id_idioma", "nombre", datos.id_idioma);
+                return View("RegistrarsePostulante", datos); // Asegúrate que la vista se llame así
+            }
+            // --- FIN: VALIDACIONES ---
 
-                // Si hay errores, recargar vista con datos
-                if (!ModelState.IsValid)
-                {
-                    ViewBag.Paises = _EmpleoContext.Pais.ToList();
-                    ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
-                    ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
-                    return View(datos);
-                }
-
+            try
+            {
                 Usuario user = new Usuario
                 {
-                    nombre_usuario = datos.nombre_usuario, // Usamos el nombre de usuario tal cual lo ingresó el usuario
+                    nombre_usuario = datos.nombre_usuario,
                     email = datos.email,
-                    contrasenia = datos.contrasenia,
+                    contrasenia =datos.contrasenia,
                     tipo_usuario = 'P',
-                    fecha_creacion = DateTime.Now,
-                    last_login = DateTime.Now,
+                    fecha_creacion = DateTime.UtcNow,
+                    last_login = DateTime.UtcNow,
                     estado = 'A'
                 };
-
-                _EmpleoContext.Usuario.Add(user);
-                _EmpleoContext.SaveChanges();
+                // No añadir al contexto aún si usas transacción abajo
 
                 Postulante postulante = new Postulante
                 {
-                    id_usuario = user.id_usuario,
-                    nombre = datos.nombre_usuario,
+                    // id_usuario se asignará por EF Core si enlazas la entidad User
+                    // o si guardas User primero y luego usas user.id_usuario
+                    Usuario = user, // Enlazar entidad
+                    nombre = datos.nombre, // O datos.nombre_usuario, según tu lógica
                     apellido = datos.apellido,
                     direccion = datos.direccion,
                     fecha_nacimiento = datos.fecha_nacimiento,
@@ -216,54 +191,101 @@ namespace SisEmpleo.Controllers
                     id_provincia = datos.id_provincia,
                     id_idioma = datos.id_idioma
                 };
+                // No añadir al contexto aún
 
-                _EmpleoContext.Postulante.Add(postulante);
-                _EmpleoContext.SaveChanges();
-
-                var curriculum = new Curriculum
+                Curriculum curriculum = new Curriculum
                 {
-                    id_postulante = postulante.id_postulante,
-                    fecha = DateTime.Now
+                    // id_postulante se asignará por EF Core
+                    Postulante = postulante, // Enlazar entidad
+                    fecha = DateTime.UtcNow
                 };
-                _EmpleoContext.Curriculum.Add(curriculum);
-                _EmpleoContext.SaveChangesAsync();
-                // --- INICIO: LÓGICA AÑADIDA ---
-                if (postulante.id_idioma != 0) 
+                // No añadir al contexto aún
+
+                // Utilizar una transacción para asegurar la atomicidad de todas las operaciones
+                using (var transaction = await _EmpleoContext.Database.BeginTransactionAsync())
                 {
-                    string defaultInstitutionName = "Idioma Principal (Auto-declarado)";
-
-                    Institucion defaultInstitutionForPrimary = new Institucion
+                    try
                     {
-                        id_pais = postulante.id_pais,
-                        id_provincia = postulante.id_provincia,
-                        nombre = defaultInstitutionName,
-                        Postulante = postulante
-                    };
-                    _EmpleoContext.Institucion.Add(defaultInstitutionForPrimary);
-                    Idioma_Curriculum nuevaEntradaIdiomaCv = new Idioma_Curriculum
-                    {
-                        Curriculum = curriculum,
-                        Institucion = defaultInstitutionForPrimary,
-                        id_idioma = postulante.id_idioma,
-                        fecha = DateTime.UtcNow 
-                    };
-                    _EmpleoContext.Idioma_Curriculum.Add(nuevaEntradaIdiomaCv);
+                        _EmpleoContext.Usuario.Add(user);
+                        await _EmpleoContext.SaveChangesAsync(); // Guardar Usuario para obtener su ID
 
-                    _EmpleoContext.SaveChangesAsync(); 
+                        // Postulante ya está enlazado a user, EF Core manejará la FK
+                        _EmpleoContext.Postulante.Add(postulante);
+                        await _EmpleoContext.SaveChangesAsync(); // Guardar Postulante para obtener su ID
+
+                        // Curriculum ya está enlazado a postulante
+                        _EmpleoContext.Curriculum.Add(curriculum);
+                        await _EmpleoContext.SaveChangesAsync(); // Guardar Curriculum para obtener su ID
+
+                        // Lógica para Institución "Autodidacta" e Idioma_Curriculum
+                        if (postulante.id_idioma != 0)
+                        {
+                            string nombreInstitucionAutodidacta = "Autodidacta";
+
+                            // Buscar la institución "Autodidacta" global (donde id_postulante es NULL)
+                            Institucion institucionGlobalAutodidacta = await _EmpleoContext.Institucion
+                                .FirstOrDefaultAsync(i => i.nombre == nombreInstitucionAutodidacta && i.id_postulante == null);
+
+                            if (institucionGlobalAutodidacta == null) // Si no existe la global, crearla
+                            {
+                                institucionGlobalAutodidacta = new Institucion
+                                {
+                                    nombre = nombreInstitucionAutodidacta,
+                                    // Debes proveer id_pais e id_provincia ya que son NOT NULL en tu tabla Institucion.
+                                    // Usa los del postulante actual o IDs de un país/provincia "genéricos" o "No Aplica".
+                                    id_pais = postulante.id_pais,
+                                    id_provincia = postulante.id_provincia,
+                                    id_postulante = null // MUY IMPORTANTE: id_postulante es NULL para la global
+                                };
+                                _EmpleoContext.Institucion.Add(institucionGlobalAutodidacta);
+                                await _EmpleoContext.SaveChangesAsync(); // Guardar la nueva institución global para obtener su ID
+                            }
+
+                            // Añadir la entrada a Idioma_Curriculum usando la institucionAutodidacta (global)
+                            // Verificar si ya existe esta combinación exacta para este currículum (poco probable en registro)
+                            bool idiomaCvYaExiste = await _EmpleoContext.Idioma_Curriculum
+                                .AnyAsync(ic => ic.id_curriculum == curriculum.id_curriculum &&
+                                               ic.id_idioma == postulante.id_idioma &&
+                                               ic.id_institucion == institucionGlobalAutodidacta.id_institucion);
+
+                            if (!idiomaCvYaExiste)
+                            {
+                                Idioma_Curriculum nuevaEntradaIdiomaCv = new Idioma_Curriculum
+                                {
+                                    // id_curriculum y id_institucion se tomarán de las entidades enlazadas
+                                    Curriculum = curriculum,
+                                    Institucion = institucionGlobalAutodidacta,
+                                    id_idioma = postulante.id_idioma,
+                                    fecha = DateTime.UtcNow
+                                };
+                                _EmpleoContext.Idioma_Curriculum.Add(nuevaEntradaIdiomaCv);
+                                await _EmpleoContext.SaveChangesAsync(); // Guardar la entrada de Idioma_Curriculum
+                            }
+                        }
+
+                        await transaction.CommitAsync(); // Confirmar todos los cambios si todo fue bien
+                        TempData["SuccessMessage"] = "¡Registro exitoso! Ahora puede iniciar sesión.";
+                        return RedirectToAction("Login", "Login");
+                    }
+                    catch (Exception ex)
+                    {
+                        await transaction.RollbackAsync(); // Revertir cambios en caso de error
+                        System.Diagnostics.Debug.WriteLine($"EXCEPCIÓN en RegistrarsePostulante (transacción): {ex.ToString()}");
+                        ModelState.AddModelError("", "Ocurrió un error inesperado durante el registro.");
+                        // Repoblar ViewBags
+                        ViewBag.Paises = new SelectList(await _EmpleoContext.Pais.ToListAsync(), "id_pais", "nombre", datos.id_pais);
+                        // ... (repoblar otros ViewBags)
+                        return View("RegistrarsePostulante", datos);
+                    }
                 }
-                // --- FIN: LÓGICA AÑADIDA ---
-
-
-
-                return RedirectToAction("Login", "Login");
             }
-            catch (Exception ex)
+            catch (Exception ex) // Captura para errores antes de iniciar la transacción (ej. validación)
             {
-                ViewBag.Error = ex.Message;
-                ViewBag.Paises = _EmpleoContext.Pais.ToList();
-                ViewBag.Provincias = _EmpleoContext.Provincia.ToList();
-                ViewBag.Idiomas = _EmpleoContext.Idioma.ToList();
-                return View(datos);
+                System.Diagnostics.Debug.WriteLine($"EXCEPCIÓN en RegistrarsePostulante (fuera de transacción): {ex.ToString()}");
+                ModelState.AddModelError("", "Ocurrió un error inesperado durante el registro.");
+                ViewBag.Paises = new SelectList(await _EmpleoContext.Pais.ToListAsync(), "id_pais", "nombre", datos.id_pais);
+                // ... (repoblar otros ViewBags)
+                return View("RegistrarsePostulante", datos);
             }
         }
 

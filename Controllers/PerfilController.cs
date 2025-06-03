@@ -18,8 +18,6 @@ namespace SisEmpleo.Controllers
         {
             _context = context;
         }
-
-
         private async Task CargarListasParaEditarViewModel(EditarPerfilViewModel model, int idUsuario, int? idPaisActual = null, int? idPostulante = null)
         {
             model.Paises = await _context.Pais
@@ -40,12 +38,12 @@ namespace SisEmpleo.Controllers
                 model.Provincias = new List<SelectListItem>();
             }
 
-            model.IdiomasPrincipalesDisponibles = await _context.Idioma
+            var todosLosIdiomas = await _context.Idioma
                 .OrderBy(i => i.nombre)
                 .Select(i => new SelectListItem { Value = i.id_idioma.ToString(), Text = i.nombre })
                 .ToListAsync();
-
-            model.TodosLosIdiomasDisponibles = model.IdiomasPrincipalesDisponibles;
+            model.IdiomasPrincipalesDisponibles = todosLosIdiomas;
+            model.TodosLosIdiomasDisponibles = todosLosIdiomas;
 
             var idsHabilidadesActuales = model.HabilidadesActuales?.Select(h => h.IdHabilidad).ToList() ?? new List<int>();
             model.HabilidadesDisponiblesParaAnadir = await _context.Habilidad
@@ -54,10 +52,14 @@ namespace SisEmpleo.Controllers
                 .Select(h => new SelectListItem { Value = h.id_habilidad.ToString(), Text = h.nombre })
                 .ToListAsync();
 
-            // --- INICIO: LÓGICA PARA CARGAR INSTITUCIONES DEL USUARIO ---
+            var institucionesDelUsuario = new List<SelectListItem>();
+            var titulosDelUsuario = new List<SelectListItem>();
+
             if (idPostulante.HasValue && idPostulante.Value > 0)
             {
-                model.InstitucionesRegistradasPorUsuario = await _context.Institucion
+                // Load institutions created by this postulante, EXCLUDING "Autodidacta"
+                institucionesDelUsuario = await _context.Institucion
+                    .Where(i => i.id_postulante == idPostulante.Value && i.nombre != "Autodidacta")
                     .OrderBy(i => i.nombre)
                     .Select(i => new SelectListItem
                     {
@@ -65,32 +67,72 @@ namespace SisEmpleo.Controllers
                         Text = i.nombre
                     })
                     .ToListAsync();
+
+                // Load titles created by this postulante
+                model.TitulosRegistradosPorUsuario = await _context.Titulo
+                    .Where(t => t.id_postulante == idPostulante.Value)
+                    .OrderBy(t => t.nombre)
+                    .Select(t => new SelectListItem
+                    {
+                        Value = t.id_titulo.ToString(),
+                        Text = $"{t.nombre} ({t.tipo})"
+                    })
+                    .ToListAsync();
             }
-            // --- FIN: LÓGICA PARA CARGAR INSTITUCIONES DEL USUARIO ---
+
+            var institucionAutodidactaGlobal = await _context.Institucion
+        .FirstOrDefaultAsync(i => i.nombre == "Autodidacta" && i.id_postulante == null);
+
+            if (institucionAutodidactaGlobal != null)
+            {
+                if (!institucionesDelUsuario.Any(sli => sli.Value == institucionAutodidactaGlobal.id_institucion.ToString()))
+                {
+                    institucionesDelUsuario.Add(new SelectListItem
+                    {
+                        Value = institucionAutodidactaGlobal.id_institucion.ToString(),
+                        Text = institucionAutodidactaGlobal.nombre
+                    });
+                }
+            }
+
+            model.InstitucionesRegistradasPorUsuario = institucionesDelUsuario.OrderBy(i => i.Text).ToList();
+
+            model.EspecialidadesDisponibles = await _context.Especialidad
+                .OrderBy(e => e.nombre)
+                .Select(e => new SelectListItem
+                {
+                    Value = e.id_especialidad.ToString(),
+                    Text = e.nombre
+                })
+                .ToListAsync();
+
         }
-
-
         public async Task<IActionResult> Index()
         {
-            // ... (Tu código actual para Index, que ya funciona, se mantiene)
             int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
             if (idUsuario == null) return RedirectToAction("Login", "Account");
             var usuario = await _context.Usuario.FindAsync(idUsuario.Value);
             if (usuario == null) return RedirectToAction("Login", "Account");
+
             var postulante = await _context.Postulante
                 .Include(p => p.Pais).Include(p => p.Provincia)
                 .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
+
             if (postulante == null)
             {
                 TempData["InfoMessage"] = "Aún no has completado tu perfil.";
                 return RedirectToAction(nameof(EditarPerfil));
             }
+
             var contacto = await _context.Contacto.AsNoTracking().FirstOrDefaultAsync(c => c.id_usuario == idUsuario.Value);
             var curriculum = await _context.Curriculum.AsNoTracking()
                 .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Idioma)
                 .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
                 .Include(c => c.HabilidadCurriculums).ThenInclude(hc => hc.Habilidad)
+                .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
+                .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Institucion)
                 .FirstOrDefaultAsync(c => c.id_postulante == postulante.id_postulante);
+
             var model = new PostulanteViewModel
             {
                 Nombre = postulante.nombre,
@@ -102,15 +144,24 @@ namespace SisEmpleo.Controllers
                 Provincia = postulante.Provincia?.nombre,
                 TipoUsuario = usuario.tipo_usuario.ToString(),
                 Idiomas = curriculum?.IdiomaCurriculums?
-                            .OrderBy(ic => ic.Institucion?.nombre == "Idioma Principal (Auto-declarado)" ? 0 : 1)
+                            .OrderBy(ic => ic.Institucion?.nombre == "Autodidacta" ? 0 : 1)
                             .ThenBy(ic => ic.Idioma?.nombre)
                             .Select(ic => ic.Idioma?.nombre).Where(n => n != null).Distinct().ToList() ?? new List<string>(),
                 Habilidades = curriculum?.HabilidadCurriculums?
                                 .OrderBy(hc => hc.Habilidad?.nombre)
-                                .Select(hc => hc.Habilidad?.nombre).Where(n => n != null).Distinct().ToList() ?? new List<string>()
+                                .Select(hc => hc.Habilidad?.nombre).Where(n => n != null).Distinct().ToList() ?? new List<string>(),
+                FormacionesAcademicas = curriculum?.FormacionesAcademicas?
+                                        .Select(fa => new FormacionAcademicaViewModel
+                                        {
+                                            NombreTitulo = fa.Titulo?.nombre,
+                                            TipoTitulo = fa.Titulo?.tipo,
+                                            NombreInstitucion = fa.Institucion?.nombre,
+                                            NombreEspecialidad = fa.Titulo?.Especialidad?.nombre
+                                        }).OrderBy(fa => fa.NombreTitulo).ToList() ?? new List<FormacionAcademicaViewModel>()
             };
             return View(model);
         }
+
 
         [HttpGet]
         public async Task<IActionResult> EditarPerfil()
@@ -122,21 +173,20 @@ namespace SisEmpleo.Controllers
             if (usuario == null) return NotFound("Usuario no encontrado.");
 
             var postulante = await _context.Postulante.AsNoTracking()
-                                    .Include(p => p.Curriculum) // Necesario para obtener id_curriculum
+                                    .Include(p => p.Curriculum)
                                     .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
 
             EditarPerfilViewModel model;
-            int? idPostulanteActual = null; // Necesario para CargarListasParaEditarViewModel
+            int? idPostulanteActual = null;
 
             if (postulante == null)
             {
                 model = new EditarPerfilViewModel { Email = usuario.email, TipoUsuario = usuario.tipo_usuario.ToString() };
                 TempData["InfoMessage"] = "Completa tu perfil para continuar.";
-                // idPostulanteActual sigue siendo null, CargarListasParaEditarViewModel manejará esto
             }
             else
             {
-                idPostulanteActual = postulante.id_postulante; // Obtener el id del postulante
+                idPostulanteActual = postulante.id_postulante;
                 var contacto = await _context.Contacto.AsNoTracking().FirstOrDefaultAsync(c => c.id_usuario == idUsuario.Value);
 
                 model = new EditarPerfilViewModel
@@ -153,11 +203,19 @@ namespace SisEmpleo.Controllers
                     TipoUsuario = usuario.tipo_usuario.ToString()
                 };
 
-                // Cargar Habilidades e Idiomas Actuales para mostrar en las listas
                 if (postulante.Curriculum != null)
                 {
-                    // Cargar HabilidadesActuales
-                    model.HabilidadesActuales = await _context.Habilidad_Curriculum
+                    var curriculumDb = await _context.Curriculum.AsNoTracking()
+                        .Include(c => c.HabilidadCurriculums).ThenInclude(hc => hc.Habilidad)
+                        .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Idioma)
+                        .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Institucion)
+                        .FirstOrDefaultAsync(c => c.id_curriculum == postulante.Curriculum.id_curriculum);
+
+                    if (curriculumDb != null)
+                    {
+                        model.HabilidadesActuales = await _context.Habilidad_Curriculum
                         .Where(hc => hc.id_curriculum == postulante.Curriculum.id_curriculum)
                         .Include(hc => hc.Habilidad)
                         .Select(hc => new HabilidadCvViewModel
@@ -167,26 +225,33 @@ namespace SisEmpleo.Controllers
                             NombreHabilidad = hc.Habilidad.nombre
                         }).OrderBy(h => h.NombreHabilidad).ToListAsync();
 
-                    // Cargar OtrosIdiomasActuales
-                    model.OtrosIdiomasActuales = await _context.Idioma_Curriculum
-                        .Where(ic => ic.id_curriculum == postulante.Curriculum.id_curriculum &&
-                                     ic.Institucion != null &&
-                                     ic.Institucion.nombre != "Idioma Principal (Auto-declarado)")
-                        .Include(ic => ic.Idioma)
-                        .Include(ic => ic.Institucion)
-                        .Select(ic => new IdiomaCvDisplayViewModel
-                        {
-                            IdIdiomaCurriculum = ic.id_idioma_curriculum,
-                            NombreIdioma = ic.Idioma.nombre,
-                            NombreInstitucion = ic.Institucion.nombre,
-                            FechaObtencionFormateada = ic.fecha.ToString("dd/MM/yyyy")
-                        }).OrderBy(i => i.NombreIdioma).ToListAsync();
+                        model.OtrosIdiomasActuales = await _context.Idioma_Curriculum
+                            .Where(ic => ic.id_curriculum == postulante.Curriculum.id_curriculum &&
+                                         ic.Institucion != null)
+                            .Include(ic => ic.Idioma)
+                            .Include(ic => ic.Institucion)
+                            .Select(ic => new IdiomaCvDisplayViewModel
+                            {
+                                IdIdiomaCurriculum = ic.id_idioma_curriculum,
+                                NombreIdioma = ic.Idioma.nombre,
+                                NombreInstitucion = ic.Institucion.nombre,
+                                FechaObtencionFormateada = ic.fecha.ToString("dd/MM/yyyy")
+                            }).OrderBy(i => i.NombreIdioma).ToListAsync();
+
+                        model.FormacionesAcademicasActuales = curriculumDb.FormacionesAcademicas
+                            .Select(fa => new FormacionAcademicaDisplayViewModel
+                            {
+                                IdFormacionAcademica = fa.id_formacionacademica,
+                                NombreTitulo = fa.Titulo.nombre,
+                                TipoTitulo = fa.Titulo.tipo,
+                                NombreInstitucion = fa.Institucion.nombre,
+                                NombreEspecialidad = fa.Titulo.Especialidad?.nombre ?? "N/A"
+                            }).OrderBy(f => f.NombreTitulo).ToList();
+                    }
                 }
             }
 
-            // Llamar al método auxiliar para poblar todas las listas necesarias para los dropdowns/selects
             await CargarListasParaEditarViewModel(model, idUsuario.Value, model.PaisId, idPostulanteActual);
-
             return View(model);
         }
 
@@ -200,33 +265,42 @@ namespace SisEmpleo.Controllers
             var usuarioParaValidacion = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.id_usuario == idUsuario.Value);
             if (usuarioParaValidacion == null) return Unauthorized("Usuario no válido.");
 
-            // --- INICIO: Limpiar errores de ModelState para NuevoOtroIdioma ---
-            // Estos campos solo se validan cuando se envía el formulario AnadirOtroIdiomaCv
+            // --- Limpiar errores de ModelState para sub-formularios que no se envían con este POST principal ---
             ModelState.Remove("NuevoOtroIdioma.IdiomaId");
             ModelState.Remove("NuevoOtroIdioma.InstitucionId");
             ModelState.Remove("NuevoOtroIdioma.FechaObtencion");
-            // Opcionalmente, para estar más seguro, puedes intentar remover el nodo raíz del submodelo
-            // aunque a veces con solo remover los campos individuales es suficiente.
-            // ModelState.Remove("NuevoOtroIdioma"); 
-            // --- FIN: Limpiar errores ---
-
-            // Validaciones manuales si es necesario para el formulario principal
+            ModelState.Remove("NuevaFormacionAcademica.TituloId");
+            ModelState.Remove("NuevaFormacionAcademica.InstitucionId");
+            ModelState.Remove("NuevoTitulo.Nombre");
+            ModelState.Remove("NuevoTitulo.Tipo");
+            ModelState.Remove("NuevoTitulo.EspecialidadId");
+            ModelState.Remove("IdHabilidadSeleccionadaParaAnadir");
             if (!model.Fecha_Nacimiento.HasValue)
-            { // Por ejemplo, si [Required] no es suficiente por alguna razón.
+            {
                 ModelState.AddModelError(nameof(model.Fecha_Nacimiento), "La fecha de nacimiento es obligatoria.");
             }
-            else // Solo validar edad y fecha futura si se proveyó una fecha
+            else
             {
                 if (model.Fecha_Nacimiento.Value > DateTime.Now)
                     ModelState.AddModelError(nameof(model.Fecha_Nacimiento), "La fecha de nacimiento no puede ser futura.");
                 if (model.Fecha_Nacimiento.Value > DateTime.Now.AddYears(-18))
                     ModelState.AddModelError(nameof(model.Fecha_Nacimiento), "Debes tener al menos 18 años.");
             }
-            // Puedes añadir más validaciones manuales aquí si es necesario
+
+            var postulanteExistenteParaValidar = await _context.Postulante.AsNoTracking().FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
+            if (model.PrimaryIdiomaId == 0 && postulanteExistenteParaValidar != null && postulanteExistenteParaValidar.id_idioma != 0)
+            {
+                model.PrimaryIdiomaId = postulanteExistenteParaValidar.id_idioma;
+                if (ModelState.ContainsKey(nameof(model.PrimaryIdiomaId)))
+                {
+                    ModelState[nameof(model.PrimaryIdiomaId)].Errors.Clear(); // Limpiar el error si [Range] ya lo marcó
+                }
+            }
+            // --- Fin Validaciones Manuales ---
 
             if (!ModelState.IsValid)
             {
-                string errorsText = "Por favor corrija los errores del formulario: ";
+                string errorsText = "Por favor corrija los errores del formulario principal: ";
                 foreach (var ms in ModelState.Where(ms => ms.Value.Errors.Any()))
                 {
                     errorsText += $"\n- Campo '{ms.Key}': {string.Join(", ", ms.Value.Errors.Select(e => e.ErrorMessage))}";
@@ -234,19 +308,45 @@ namespace SisEmpleo.Controllers
                 }
                 TempData["ErrorMessage"] = errorsText;
 
-                var postulanteExistente = await _context.Postulante.AsNoTracking().FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
-                await CargarListasParaEditarViewModel(model, idUsuario.Value, model.PaisId, postulanteExistente?.id_postulante);
+                // Repoblar todas las listas necesarias, incluyendo las que se cargan en el GET para Habilidades, OtrosIdiomas, Formacion
+                if (postulanteExistenteParaValidar != null && postulanteExistenteParaValidar.Curriculum != null)
+                {
+                    var curriculumDb = await _context.Curriculum.AsNoTracking()
+                        .Include(c => c.HabilidadCurriculums).ThenInclude(hc => hc.Habilidad)
+                        .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Idioma)
+                        .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Institucion)
+                        .FirstOrDefaultAsync(c => c.id_curriculum == postulanteExistenteParaValidar.Curriculum.id_curriculum);
+
+                    if (curriculumDb != null)
+                    {
+                        model.HabilidadesActuales = curriculumDb.HabilidadCurriculums
+                            .Select(hc => new HabilidadCvViewModel { IdHabilidadCurriculum = hc.id_habilidad_curriculum, IdHabilidad = hc.id_habilidad, NombreHabilidad = hc.Habilidad.nombre })
+                            .OrderBy(h => h.NombreHabilidad).ToList();
+                        model.OtrosIdiomasActuales = curriculumDb.IdiomaCurriculums
+                            .Where(ic => ic.Institucion?.nombre != "Autodidacta")
+                            .Select(ic => new IdiomaCvDisplayViewModel { IdIdiomaCurriculum = ic.id_idioma_curriculum, NombreIdioma = ic.Idioma.nombre, NombreInstitucion = ic.Institucion.nombre, FechaObtencionFormateada = ic.fecha.ToString("dd/MM/yyyy") })
+                            .OrderBy(i => i.NombreIdioma).ToList();
+                        model.FormacionesAcademicasActuales = curriculumDb.FormacionesAcademicas
+                            .Select(fa => new FormacionAcademicaDisplayViewModel { IdFormacionAcademica = fa.id_formacionacademica, NombreTitulo = fa.Titulo.nombre, TipoTitulo = fa.Titulo.tipo, NombreInstitucion = fa.Institucion.nombre, NombreEspecialidad = fa.Titulo.Especialidad?.nombre ?? "N/A" })
+                            .OrderBy(f => f.NombreTitulo).ToList();
+                    }
+                }
+                // Asegurarse de que las listas no sean null si no se poblaron arriba
+                if (model.HabilidadesActuales == null) model.HabilidadesActuales = new List<HabilidadCvViewModel>();
+                if (model.OtrosIdiomasActuales == null) model.OtrosIdiomasActuales = new List<IdiomaCvDisplayViewModel>();
+                if (model.FormacionesAcademicasActuales == null) model.FormacionesAcademicasActuales = new List<FormacionAcademicaDisplayViewModel>();
+
+                await CargarListasParaEditarViewModel(model, idUsuario.Value, model.PaisId, postulanteExistenteParaValidar?.id_postulante);
                 return View(model);
             }
 
-            // ... (resto de tu lógica de guardado para Postulante, Contacto, Curriculum, Idioma Principal) ...
-            // ¡Importante! Esta acción EditarPerfil YA NO DEBE MODIFICAR Habilidad_Curriculum
-            // ni las entradas de Idioma_Curriculum para "Otros Idiomas". Esas se manejan
-            // por sus propias acciones POST (AnadirHabilidadCv, EliminarHabilidadCv, AnadirOtroIdiomaCv, EliminarOtroIdiomaCv).
-
             var postulante = await _context.Postulante
-                                 .Include(p => p.Curriculum).ThenInclude(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
-                                 .Include(p => p.Instituciones)
+                                 .Include(p => p.Curriculum) // Para acceder y modificar p.Curriculum
+                                    .ThenInclude(c => c.IdiomaCurriculums) // Para modificar Idioma_Curriculum
+                                        .ThenInclude(ic => ic.Institucion) // Para acceder a Institucion.nombre
+                                 .Include(p => p.Instituciones) // Para la colección de instituciones del postulante
                                  .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
 
             if (postulante == null)
@@ -255,13 +355,15 @@ namespace SisEmpleo.Controllers
                 _context.Postulante.Add(postulante);
             }
 
+            // 1. Actualizar datos del Postulante
             postulante.nombre = model.Nombre;
             postulante.apellido = model.Apellidos;
             postulante.id_pais = model.PaisId;
             postulante.id_provincia = model.ProvinciaId;
-            if (model.Fecha_Nacimiento.HasValue) postulante.fecha_nacimiento = model.Fecha_Nacimiento.Value;
+            postulante.fecha_nacimiento = model.Fecha_Nacimiento.Value; // Ya validado que tiene valor
             postulante.id_idioma = model.PrimaryIdiomaId;
 
+            // 2. Actualizar/Crear Contacto
             var contacto = await _context.Contacto.FirstOrDefaultAsync(c => c.id_usuario == idUsuario.Value);
             if (contacto == null)
             {
@@ -277,41 +379,69 @@ namespace SisEmpleo.Controllers
                 contacto.email = string.IsNullOrWhiteSpace(model.EmailContacto) ? null : model.EmailContacto;
             }
 
+            // 3. Manejar Curriculum
             var curriculum = postulante.Curriculum;
             if (curriculum == null)
             {
                 curriculum = new Curriculum { fecha = DateTime.UtcNow };
-                postulante.Curriculum = curriculum;
+                postulante.Curriculum = curriculum; // EF Core lo asociará al guardar Postulante
             }
             else
             {
                 curriculum.fecha = DateTime.UtcNow;
             }
 
-            // Manejo del Idioma Principal en Idioma_Curriculum (como antes)
-            string defaultInstitutionName = "Idioma Principal (Auto-declarado)";
-            if (postulante.id_idioma != 0)
+            // --- 4.A. Manejo del Idioma Principal con Institución "Autodidacta" GLOBAL ---
+            string nombreInstitucionAutodidacta = "Autodidacta";
+            Institucion institucionGlobalAutodidacta = null;
+
+            if (postulante.id_idioma != 0) // Si se seleccionó un idioma principal
             {
-                var defaultInstitution = postulante.Instituciones?.FirstOrDefault(i => i.nombre == defaultInstitutionName);
-                if (defaultInstitution == null)
+                institucionGlobalAutodidacta = await _context.Institucion
+                    .FirstOrDefaultAsync(i => i.nombre == nombreInstitucionAutodidacta && i.id_postulante == null);
+                if (institucionGlobalAutodidacta == null) // Si no existe, la creamos
                 {
-                    defaultInstitution = new Institucion { id_pais = postulante.id_pais, id_provincia = postulante.id_provincia, nombre = defaultInstitutionName };
-                    if (postulante.Instituciones == null) postulante.Instituciones = new List<Institucion>();
-                    postulante.Instituciones.Add(defaultInstitution);
+                    institucionGlobalAutodidacta = new Institucion
+                    {
+                        nombre = nombreInstitucionAutodidacta,
+                        id_pais = postulante.id_pais,
+                        id_provincia = postulante.id_provincia,
+                        id_postulante = null // Es global
+                    };
+                    _context.Institucion.Add(institucionGlobalAutodidacta);
                 }
                 if (curriculum.IdiomaCurriculums == null) curriculum.IdiomaCurriculums = new List<Idioma_Curriculum>();
-                var oldEntries = curriculum.IdiomaCurriculums.Where(ic => ic.Institucion?.nombre == defaultInstitutionName && ic.id_idioma != postulante.id_idioma).ToList();
-                _context.Idioma_Curriculum.RemoveRange(oldEntries);
-                if (!curriculum.IdiomaCurriculums.Any(ic => ic.Institucion?.nombre == defaultInstitutionName && ic.id_idioma == postulante.id_idioma))
+                var oldPrimaryEntries = curriculum.IdiomaCurriculums
+                    .Where(ic => (ic.Institucion?.nombre == nombreInstitucionAutodidacta && ic.Institucion?.id_postulante == null && ic.id_idioma != postulante.id_idioma) || // Era "Autodidacta" pero cambió el idioma
+                                 (ic.id_idioma == postulante.id_idioma && (ic.Institucion?.nombre != nombreInstitucionAutodidacta || ic.Institucion?.id_postulante != null)) // Mismo idioma pero estaba con otra institución
+                    ).ToList();
+                _context.Idioma_Curriculum.RemoveRange(oldPrimaryEntries);
+                bool currentPrimaryInCvExists = false;
+                if (institucionGlobalAutodidacta.id_institucion > 0) // Si la institución Autodidacta ya existía (tiene ID)
                 {
-                    _context.Idioma_Curriculum.Add(new Idioma_Curriculum { Curriculum = curriculum, Institucion = defaultInstitution, id_idioma = postulante.id_idioma, fecha = DateTime.UtcNow });
+                    currentPrimaryInCvExists = curriculum.IdiomaCurriculums
+                        .Any(ic => ic.id_institucion == institucionGlobalAutodidacta.id_institucion &&
+                                   ic.id_idioma == postulante.id_idioma);
+                }
+
+                if (!currentPrimaryInCvExists)
+                {
+                    _context.Idioma_Curriculum.Add(new Idioma_Curriculum
+                    {
+                        Curriculum = curriculum,
+                        Institucion = institucionGlobalAutodidacta, // Enlazar la entidad global (nueva o existente)
+                        id_idioma = postulante.id_idioma,
+                        fecha = DateTime.UtcNow
+                    });
                 }
             }
-            else
+            else // No se seleccionó idioma principal (o es 0), eliminar la entrada de la institución global "Autodidacta"
             {
                 if (curriculum.IdiomaCurriculums != null)
                 {
-                    var entriesToRemove = curriculum.IdiomaCurriculums.Where(ic => ic.Institucion?.nombre == defaultInstitutionName).ToList();
+                    var entriesToRemove = curriculum.IdiomaCurriculums
+                        .Where(ic => ic.Institucion?.nombre == nombreInstitucionAutodidacta && ic.Institucion?.id_postulante == null)
+                        .ToList();
                     _context.Idioma_Curriculum.RemoveRange(entriesToRemove);
                 }
             }
@@ -320,7 +450,6 @@ namespace SisEmpleo.Controllers
             {
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Cambios principales del perfil actualizados con éxito.";
-                // Redirige a la misma página para que el usuario vea los cambios y pueda seguir editando habilidades/idiomas
                 return RedirectToAction(nameof(EditarPerfil));
             }
             catch (DbUpdateException ex)
@@ -329,14 +458,37 @@ namespace SisEmpleo.Controllers
                 if (ex.InnerException != null) { System.Diagnostics.Debug.WriteLine($"Inner Exception: {ex.InnerException.ToString()}"); }
                 ModelState.AddModelError("", "No se pudieron guardar los cambios. Detalles: " + (ex.InnerException?.Message ?? ex.Message));
                 TempData["ErrorMessage"] = "Error al guardar el perfil: " + (ex.InnerException?.Message ?? ex.Message);
-                await CargarListasParaEditarViewModel(model, idUsuario.Value, model.PaisId, postulante?.id_postulante);
+
+                var postulanteIdOnErrorRetry = (await _context.Postulante.AsNoTracking().FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value))?.id_postulante;
+                if (postulanteIdOnErrorRetry.HasValue && postulanteIdOnErrorRetry.Value > 0)
+                {
+                    var curriculumParaError = await _context.Curriculum.AsNoTracking()
+                        .Include(c => c.HabilidadCurriculums).ThenInclude(hc => hc.Habilidad)
+                         .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Idioma)
+                        .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
+                        .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Institucion)
+                        .FirstOrDefaultAsync(c => c.id_postulante == postulanteIdOnErrorRetry.Value);
+                    if (curriculumParaError != null)
+                    {
+                        model.HabilidadesActuales = curriculumParaError.HabilidadCurriculums.Select(hc => new HabilidadCvViewModel { /*...*/ }).ToList();
+                        model.OtrosIdiomasActuales = curriculumParaError.IdiomaCurriculums.Where(ic => ic.Institucion?.nombre != "Autodidacta").Select(ic => new IdiomaCvDisplayViewModel { /*...*/ }).ToList();
+                        model.FormacionesAcademicasActuales = curriculumParaError.FormacionesAcademicas.Select(fa => new FormacionAcademicaDisplayViewModel { /*...*/ }).ToList();
+                    }
+                }
+                if (model.HabilidadesActuales == null) model.HabilidadesActuales = new List<HabilidadCvViewModel>();
+                if (model.OtrosIdiomasActuales == null) model.OtrosIdiomasActuales = new List<IdiomaCvDisplayViewModel>();
+                if (model.FormacionesAcademicasActuales == null) model.FormacionesAcademicasActuales = new List<FormacionAcademicaDisplayViewModel>();
+
+                await CargarListasParaEditarViewModel(model, idUsuario.Value, model.PaisId, postulanteIdOnErrorRetry);
                 return View(model);
             }
         }
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AnadirHabilidadCv(EditarPerfilViewModel model) // Recibe el ViewModel completo para el binding de IdHabilidadSeleccionadaParaAnadir
+        public async Task<IActionResult> AnadirHabilidadCv(EditarPerfilViewModel model)
         {
             int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
             if (idUsuario == null) return Json(new { success = false, message = "Sesión expirada." }); // Mejor para AJAX
@@ -417,49 +569,69 @@ namespace SisEmpleo.Controllers
             return RedirectToAction(nameof(EditarPerfil));
         }
 
-        // --- ACCIONES PARA "OTROS IDIOMAS" ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AnadirOtroIdiomaCv(EditarPerfilViewModel model) // El model binding intentará poblar model.NuevoOtroIdioma
+        public async Task<IActionResult> AnadirTitulo(EditarPerfilViewModel model)
+        {
+            int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+            if (idUsuario == null) { TempData["ErrorMessageFormacion"] = "Sesión expirada."; return RedirectToAction(nameof(EditarPerfil)); }
+
+            var postulante = await _context.Postulante.FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
+            if (postulante == null) { TempData["ErrorMessageFormacion"] = "Debe guardar su perfil básico primero."; return RedirectToAction(nameof(EditarPerfil)); }
+
+            var nuevoTituloInput = model.NuevoTitulo;
+            if (string.IsNullOrWhiteSpace(nuevoTituloInput.Nombre) || string.IsNullOrWhiteSpace(nuevoTituloInput.Tipo) || nuevoTituloInput.EspecialidadId <= 0)
+            {
+                TempData["ErrorMessageFormacion"] = "Para añadir un título, el nombre, tipo y especialidad son requeridos.";
+                return RedirectToAction(nameof(EditarPerfil));
+            }
+
+            bool tituloExiste = await _context.Titulo.AnyAsync(t => t.id_postulante == postulante.id_postulante &&
+                               t.nombre.ToLower() == nuevoTituloInput.Nombre.ToLower() &&
+                               t.tipo == nuevoTituloInput.Tipo && t.id_especialidad == nuevoTituloInput.EspecialidadId);
+            if (tituloExiste)
+            {
+                TempData["InfoMessageFormacion"] = "Este título ya lo ha registrado previamente.";
+                return RedirectToAction(nameof(EditarPerfil));
+            }
+
+            Titulo tituloEntidad = new Titulo
+            {
+                nombre = nuevoTituloInput.Nombre,
+                descripcion = nuevoTituloInput.Descripcion,
+                tipo = nuevoTituloInput.Tipo,
+                id_especialidad = nuevoTituloInput.EspecialidadId,
+                id_postulante = postulante.id_postulante
+            };
+            _context.Titulo.Add(tituloEntidad);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessageFormacion"] = $"Título '{tituloEntidad.nombre}' registrado. Ahora puede asignarlo a su formación.";
+            return RedirectToAction(nameof(EditarPerfil));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AnadirOtroIdiomaCv(EditarPerfilViewModel model)
         {
             int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
             if (idUsuario == null)
             {
-                // Considera retornar un error JSON si es una llamada AJAX, o redirigir
                 TempData["ErrorMessageOtroIdioma"] = "Sesión expirada o inválida.";
-                return RedirectToAction(nameof(EditarPerfil)); // O a Login
+                return RedirectToAction(nameof(EditarPerfil));
             }
 
-            var inputIdioma = model.NuevoOtroIdioma; // Acceder al sub-modelo que contiene los datos del formulario
+            var inputIdioma = model.NuevoOtroIdioma;
 
-            // Validar manualmente los datos de inputIdioma
-            // porque `ModelState.IsValid` en este punto validaría TODO el `EditarPerfilViewModel`
-            bool esValidoInputIdioma = true;
-            if (inputIdioma.IdiomaId <= 0)
+            if (inputIdioma.IdiomaId <= 0 || inputIdioma.InstitucionId <= 0 || inputIdioma.FechaObtencion == default(DateTime) || inputIdioma.FechaObtencion > DateTime.Now)
             {
-                TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "Debe seleccionar un idioma. ";
-                esValidoInputIdioma = false;
-            }
-            if (inputIdioma.InstitucionId <= 0)
-            {
-                TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "Debe seleccionar una institución. ";
-                esValidoInputIdioma = false;
-            }
-            if (inputIdioma.FechaObtencion == default(DateTime) || inputIdioma.FechaObtencion > DateTime.Now)
-            { // Fecha no puede ser default o futura
-                TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "La fecha de obtención no es válida. ";
-                esValidoInputIdioma = false;
+                if (inputIdioma.IdiomaId <= 0) TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "Debe seleccionar un idioma. ";
+                if (inputIdioma.InstitucionId <= 0) TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "Debe seleccionar una institución. ";
+                if (inputIdioma.FechaObtencion == default(DateTime) || inputIdioma.FechaObtencion > DateTime.Now) TempData["ErrorMessageOtroIdioma"] = (TempData["ErrorMessageOtroIdioma"]?.ToString() ?? "") + "La fecha de obtención no es válida. ";
+                return RedirectToAction(nameof(EditarPerfil));
             }
 
-            if (!esValidoInputIdioma)
-            {
-                return RedirectToAction(nameof(EditarPerfil)); // Redirige de vuelta para mostrar el TempData
-            }
-
-            var postulante = await _context.Postulante
-                .Include(p => p.Curriculum) // Asegurar que Curriculum se carga
-                .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
-
+            var postulante = await _context.Postulante.Include(p => p.Curriculum)
+                                    .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
             if (postulante == null)
             {
                 TempData["ErrorMessageOtroIdioma"] = "Postulante no encontrado.";
@@ -471,25 +643,36 @@ namespace SisEmpleo.Controllers
             {
                 curriculum = new Curriculum { fecha = DateTime.UtcNow };
                 postulante.Curriculum = curriculum;
-                // Si el currículum es nuevo, necesitará ser guardado para tener un ID
-                // antes de añadir Idioma_Curriculum, o EF Core lo manejará si SaveChanges es al final.
             }
 
-            // Validar que la institución seleccionada pertenezca al postulante y no sea la por defecto
-            bool institucionValida = await _context.Institucion
-                .AnyAsync(i => i.id_institucion == inputIdioma.InstitucionId &&
-                               i.id_postulante == postulante.id_postulante &&
-                               i.nombre != "Idioma Principal (Auto-declarado)");
-            if (!institucionValida)
+            var institucionSeleccionada = await _context.Institucion
+                                              .AsNoTracking() // No necesitamos rastrearla para esta validación
+                                              .FirstOrDefaultAsync(i => i.id_institucion == inputIdioma.InstitucionId);
+
+            bool institucionValidaParaEsteUso = false;
+            if (institucionSeleccionada != null)
             {
-                TempData["ErrorMessageOtroIdioma"] = "La institución seleccionada no es válida o no le pertenece.";
+                if (institucionSeleccionada.nombre == "Autodidacta" && institucionSeleccionada.id_postulante == null)
+                {
+                    institucionValidaParaEsteUso = true;
+                }
+                else if (institucionSeleccionada.id_postulante == postulante.id_postulante && institucionSeleccionada.nombre != "Autodidacta")
+                {
+                    institucionValidaParaEsteUso = true;
+                }
+            }
+
+            if (!institucionValidaParaEsteUso)
+            {
+                TempData["ErrorMessageOtroIdioma"] = "La institución seleccionada no es válida. Puede seleccionar 'Autodidacta' o una de sus instituciones personales (que no se llame 'Autodidacta').";
                 return RedirectToAction(nameof(EditarPerfil));
             }
 
             bool yaExiste = await _context.Idioma_Curriculum
                 .AnyAsync(ic => ic.id_curriculum == curriculum.id_curriculum &&
                                ic.id_idioma == inputIdioma.IdiomaId &&
-                               ic.id_institucion == inputIdioma.InstitucionId);
+                               ic.id_institucion == inputIdioma.InstitucionId); // Usar el ID de la institución seleccionada
+
             if (yaExiste)
             {
                 TempData["InfoMessageOtroIdioma"] = "Este idioma con esta institución ya existe en tu CV.";
@@ -497,26 +680,83 @@ namespace SisEmpleo.Controllers
             else
             {
                 var idiomaDb = await _context.Idioma.FindAsync(inputIdioma.IdiomaId);
-                var institucionDb = await _context.Institucion.FindAsync(inputIdioma.InstitucionId); // Ya validamos que pertenece al postulante
+                // No necesitamos re-buscar 'institucionSeleccionada' si ya la tenemos y es válida
 
-                if (idiomaDb != null && institucionDb != null)
+                if (idiomaDb != null && institucionSeleccionada != null)
                 {
+                    // Validar que la institucionSeleccionada tenga un ID válido (no sea una entidad nueva con ID=0 si no la guardaste antes)
+                    if (institucionSeleccionada.id_institucion <= 0)
+                    {
+                        TempData["ErrorMessageOtroIdioma"] = "La institución seleccionada no tiene un ID válido. Intente de nuevo.";
+                        return RedirectToAction(nameof(EditarPerfil));
+                    }
+
+
                     _context.Idioma_Curriculum.Add(new Idioma_Curriculum
                     {
-                        Curriculum = curriculum,
-                        // id_idioma = inputIdioma.IdiomaId, // O enlazar entidad Idioma
-                        // id_institucion = inputIdioma.InstitucionId, // O enlazar entidad Institucion
-                        Idioma = idiomaDb,
-                        Institucion = institucionDb,
+                        Curriculum = curriculum,          // Puedes enlazar la entidad Curriculum
+                        id_idioma = inputIdioma.IdiomaId, // Asigna la FK de Idioma
+
+                        // Para Institucion, asigna SOLO la FK si ya existe en la BD y no la estás modificando
+                        id_institucion = institucionSeleccionada.id_institucion, // <--- USA ESTO
+                                                                                 // Institucion = institucionSeleccionada, // Evita esto si solo quieres crear la relación
+
                         fecha = inputIdioma.FechaObtencion
                     });
                     await _context.SaveChangesAsync();
-                    TempData["SuccessMessage"] = $"Idioma '{idiomaDb.nombre}' añadido al CV.";
+                    TempData["SuccessMessageOtroIdioma"] = $"Idioma '{idiomaDb.nombre}' en '{institucionSeleccionada.nombre}' añadido al CV.";
                 }
-                else
+            }
+            return RedirectToAction(nameof(EditarPerfil));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AnadirFormacionAcademica(EditarPerfilViewModel model)
+        {
+            int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+            if (idUsuario == null) { TempData["ErrorMessageFormacion"] = "Sesión expirada."; return RedirectToAction(nameof(EditarPerfil)); }
+
+            var formacionInput = model.NuevaFormacionAcademica;
+            if (formacionInput.TituloId <= 0 || formacionInput.InstitucionId <= 0)
+            {
+                TempData["ErrorMessageFormacion"] = "Debe seleccionar un título y una institución. Si no hay opciones disponibles, cree un título o institución primero.";
+                return RedirectToAction(nameof(EditarPerfil));
+            }
+
+            var postulante = await _context.Postulante.Include(p => p.Curriculum)
+                .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
+            if (postulante == null) { TempData["ErrorMessageFormacion"] = "Postulante no encontrado."; return RedirectToAction(nameof(EditarPerfil)); }
+
+            var curriculum = postulante.Curriculum;
+            if (curriculum == null) { curriculum = new Curriculum { fecha = DateTime.UtcNow }; postulante.Curriculum = curriculum; }
+            bool institucionValida = await _context.Institucion.AnyAsync(i =>
+                i.id_institucion == formacionInput.InstitucionId &&
+                (i.id_postulante == postulante.id_postulante || (i.nombre == "Autodidacta" && i.id_postulante == null)));
+            bool tituloValido = await _context.Titulo.AnyAsync(t => t.id_titulo == formacionInput.TituloId && t.id_postulante == postulante.id_postulante);
+
+            if (!institucionValida || !tituloValido)
+            {
+                TempData["ErrorMessageFormacion"] = "El título o la institución seleccionada no son válidos o no le pertenecen. Asegúrese de seleccionar una institución válida.";
+                return RedirectToAction(nameof(EditarPerfil));
+            }
+
+            bool yaExiste = await _context.FormacionAcademica.AnyAsync(fa => fa.id_curriculum == curriculum.id_curriculum &&
+                                   fa.id_titulo == formacionInput.TituloId && fa.id_institucion == formacionInput.InstitucionId);
+            if (yaExiste)
+            {
+                TempData["InfoMessageFormacion"] = "Esta formación académica ya existe en tu CV.";
+            }
+            else
+            {
+                _context.FormacionAcademica.Add(new FormacionAcademica
                 {
-                    TempData["ErrorMessageOtroIdioma"] = "El idioma o la institución seleccionados no son válidos.";
-                }
+                    Curriculum = curriculum,
+                    id_titulo = formacionInput.TituloId,
+                    id_institucion = formacionInput.InstitucionId
+                });
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessageFormacion"] = "Formación académica añadida al CV.";
             }
             return RedirectToAction(nameof(EditarPerfil));
         }
@@ -532,10 +772,10 @@ namespace SisEmpleo.Controllers
             var idiomaCvAEliminar = await _context.Idioma_Curriculum
                 .Include(ic => ic.Curriculum).ThenInclude(c => c.Postulante)
                 .Include(ic => ic.Idioma)
-                .Include(ic => ic.Institucion) // Importante para la validación
+                .Include(ic => ic.Institucion) 
                 .FirstOrDefaultAsync(ic => ic.id_idioma_curriculum == idIdiomaCurriculum &&
                                             ic.Curriculum.Postulante.id_usuario == idUsuario.Value &&
-                                            ic.Institucion.nombre != "Idioma Principal (Auto-declarado)");
+                                            ic.Institucion.nombre != "Autodidacta");
 
             if (idiomaCvAEliminar != null)
             {
@@ -546,6 +786,31 @@ namespace SisEmpleo.Controllers
             else
             {
                 TempData["ErrorMessageOtroIdioma"] = "No se pudo eliminar el idioma del CV.";
+            }
+            return RedirectToAction(nameof(EditarPerfil));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarFormacionAcademica(int idFormacionAcademica)
+        {
+            int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
+            if (idUsuario == null) { TempData["ErrorMessageFormacion"] = "Sesión expirada."; return RedirectToAction(nameof(EditarPerfil)); }
+
+            var formacionAEliminar = await _context.FormacionAcademica
+                .Include(fa => fa.Curriculum).ThenInclude(c => c.Postulante)
+                .Include(fa => fa.Titulo).Include(fa => fa.Institucion) // Para el mensaje
+                .FirstOrDefaultAsync(fa => fa.id_formacionacademica == idFormacionAcademica &&
+                                            fa.Curriculum.Postulante.id_usuario == idUsuario.Value);
+            if (formacionAEliminar != null)
+            {
+                _context.FormacionAcademica.Remove(formacionAEliminar);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessageFormacion"] = $"Formación '{formacionAEliminar.Titulo?.nombre}' en '{formacionAEliminar.Institucion?.nombre}' eliminada.";
+            }
+            else
+            {
+                TempData["ErrorMessageFormacion"] = "No se pudo eliminar la formación académica.";
             }
             return RedirectToAction(nameof(EditarPerfil));
         }
@@ -630,35 +895,88 @@ namespace SisEmpleo.Controllers
             if (idUsuario == null) return RedirectToAction("Login", "Account");
 
             var usuarioParaValidacion = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.id_usuario == idUsuario.Value);
-            if (usuarioParaValidacion == null || usuarioParaValidacion.tipo_usuario != 'E') return Unauthorized();
+            if (usuarioParaValidacion == null || usuarioParaValidacion.tipo_usuario != 'E')
+            {
+                TempData["ErrorMessage"] = "Acceso no autorizado."; // Mensaje más claro
+                return RedirectToAction("Index", "Home"); // O a una página de error
+            }
 
             if (!ModelState.IsValid)
             {
+                string errorsText = "Por favor corrija los errores del formulario (Empresa): ";
+                foreach (var ms in ModelState.Where(ms => ms.Value.Errors.Any()))
+                {
+                    errorsText += $"\n- Campo '{ms.Key}': ";
+                    foreach (var error in ms.Value.Errors)
+                    {
+                        errorsText += error.ErrorMessage + " ";
+                        System.Diagnostics.Debug.WriteLine($"Error ModelState (Empresa) en '{ms.Key}': {error.ErrorMessage}");
+                    }
+                }
+                TempData["ErrorMessage"] = errorsText;
+
                 model.Email = usuarioParaValidacion.email;
                 model.TipoUsuario = usuarioParaValidacion.tipo_usuario.ToString();
-                return View(model);
+                return View(model); // Retorna a la vista EditarEmpresa.cshtml
             }
 
             var empresa = await _context.Empresa.FirstOrDefaultAsync(e => e.id_usuario == idUsuario.Value);
+            bool isNewEmpresa = false;
             if (empresa == null)
             {
                 empresa = new Empresa { id_usuario = idUsuario.Value };
                 _context.Empresa.Add(empresa);
+                isNewEmpresa = true;
+                System.Diagnostics.Debug.WriteLine($"Creando nueva entidad Empresa para id_usuario: {idUsuario.Value}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"Actualizando entidad Empresa existente (ID DB: {empresa.id_empresa}) para id_usuario: {idUsuario.Value}");
+            }
+            bool hasChanges = false;
+
+            if (empresa.nombre != model.Nombre)
+            {
+                empresa.nombre = model.Nombre;
+                hasChanges = true;
+            }
+            if (empresa.direccion != model.Direccion)
+            {
+                empresa.direccion = model.Direccion; // Permitir que sea null si el ViewModel lo envía así y la BD lo permite
+                hasChanges = true;
+            }
+            if (empresa.sector_empresa != model.Sector)
+            { // ViewModel usa "Sector", Entidad usa "sector_empresa"
+                empresa.sector_empresa = model.Sector;
+                hasChanges = true;
+            }
+            if (empresa.descripcion_empresa != model.Descripcion)
+            { // ViewModel usa "Descripcion", Entidad usa "descripcion_empresa"
+                empresa.descripcion_empresa = model.Descripcion;
+                hasChanges = true;
             }
 
-            empresa.nombre = model.Nombre;
-            empresa.direccion = model.Direccion;
-            empresa.sector_empresa = model.Sector;
-            empresa.descripcion_empresa = model.Descripcion;
+            if (!isNewEmpresa && !hasChanges)
+            {
+                TempData["InfoMessage"] = "No se detectaron cambios para guardar en el perfil de la empresa.";
+                return RedirectToAction("IndexEmpresa");
+            }
 
             try
             {
-                await _context.SaveChangesAsync();
+                int cambios = await _context.SaveChangesAsync();
+                System.Diagnostics.Debug.WriteLine($"SaveChangesAsync() para Empresa ejecutado. Cambios guardados en DB: {cambios}");
+
                 TempData["SuccessMessage"] = "Perfil de empresa actualizado con éxito.";
                 return RedirectToAction("IndexEmpresa");
             }
             catch (DbUpdateException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"DbUpdateException al guardar Empresa: {ex.ToString()}");
+                if (ex.InnerException != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Inner Exception (Guardando Empresa): {ex.InnerException.ToString()}");
+                }
                 ModelState.AddModelError("", "No se pudieron guardar los cambios. Detalles: " + (ex.InnerException?.Message ?? ex.Message));
                 TempData["ErrorMessage"] = "Error al guardar el perfil de empresa: " + (ex.InnerException?.Message ?? ex.Message);
                 model.Email = usuarioParaValidacion.email;
@@ -666,5 +984,6 @@ namespace SisEmpleo.Controllers
                 return View(model);
             }
         }
+
     }
 }
