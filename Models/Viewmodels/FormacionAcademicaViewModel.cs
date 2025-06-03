@@ -1,9 +1,10 @@
 ﻿namespace SisEmpleo.Models.Viewmodels
 {
-    public class FormacionAcademicaViewModel
+    public class FormacionAcademicaViewModel // Esta clase se usa en PostulanteViewModel
     {
-        public string Titulo { get; set; }
-        public string Especialidad { get; set; }
-        public string Institucion { get; set; }
+        public string? NombreTitulo { get; set; }
+        public string? TipoTitulo { get; set; }
+        public string? NombreInstitucion { get; set; }
+        public string? NombreEspecialidad { get; set; }
     }
 }
