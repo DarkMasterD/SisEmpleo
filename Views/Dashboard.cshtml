@@ -88,6 +88,99 @@
     </div>
 </div>
 
+    {
+    ViewData["Title"] = "Sistema de Reportes";
+    }
+
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h2><i class="fas fa-chart-line"></i> Panel de Reportes</h2>
+            <p>Genera reportes detallados del proceso de reclutamiento</p>
+        </div>
+
+        <div class="graph-selection-container">
+            <!-- Reporte 1 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteCandidatosPorOferta')">
+                <div class="graph-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Candidatos por Oferta</h3>
+                <p>Reporte de inscripciones por cada oferta de empleo</p>
+            </div>
+
+            <!-- Reporte 2 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteOfertasPorCategoria')">
+                <div class="graph-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <h3>Ofertas por Categoría</h3>
+                <p>Distribución de ofertas por categoría profesional</p>
+            </div>
+
+            <!-- Reporte 3 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteEmpresasTopOfertas')">
+                <div class="graph-icon">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h3>Empresas Top</h3>
+                <p>Empresas con mayor cantidad de ofertas publicadas</p>
+            </div>
+
+            <!-- Reporte 4 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteRequisitosFrecuentes')">
+                <div class="graph-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>Requisitos Frecuentes</h3>
+                <p>Habilidades más demandadas en las ofertas</p>
+            </div>
+
+            <!-- Reporte 5 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteSuscripcionesCategorias')">
+                <div class="graph-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Suscripciones</h3>
+                <p>Preferencias de categorías por los candidatos</p>
+            </div>
+
+            <!-- Reporte 6 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteEmpresasRegistradas')">
+                <div class="graph-icon">
+                    <i class="fas fa-address-book"></i>
+                </div>
+                <h3>Empresas Registradas</h3>
+                <p>Directorio completo de empresas registradas</p>
+            </div>
+
+            <!-- Reporte 7 -->
+            <div class="graph-card" onclick="navigateToReport('ReporteCandidatosPorFormacion')">
+                <div class="graph-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3>Candidatos por Formación</h3>
+                <p>Distribución académica de los candidatos</p>
+            </div>
+
+            <!-- Reporte 8 -->
+            <div class="graph-card" onclick="navigateToReport('ReportePostulantesPorFormacion')">
+                <div class="graph-icon">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <h3>Postulantes Detallados</h3>
+                <p>Formación académica detallada de postulantes</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de carga -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Generando reporte...</p>
+        </div>
+    </div>
+
 <style>
     .dashboard-container {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

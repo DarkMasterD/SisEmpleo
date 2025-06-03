@@ -84,6 +84,21 @@
                 transform: translateY(-2px);
             }
 
+        .btn-analisis {
+            background-color: #10B981; /* Verde esmeralda */
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-analisis:hover {
+                background-color: #0F9E6A; /* Un tono más oscuro al pasar el mouse */
+                transform: translateY(-2px);
+            }
+
         .notification-badge {
             position: relative;
             display: inline-block;
@@ -167,6 +182,9 @@
                 {
                     <a href="/OfertaEmpleoEmpresa/NuevaOferta" class="btn btn-post-offer me-2">Publicar Oferta</a>
                     <a href="/Perfil/IndexEmpresa" class="btn btn-profile me-2">Mi Perfil</a>
+                    <a asp-controller="AnalisisEmpresarial" asp-action="AnalisisEmpresarial" class="btn btn-analisis me-2">
+                        Análisis Empresarial
+                    </a>
                     <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
                 }
             </div>
