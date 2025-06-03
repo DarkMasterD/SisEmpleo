@@ -24,6 +24,9 @@ namespace SisEmpleo.Controllers
         {
             try
             {
+                //Obtenemos el tipo de usuario desde la sesión
+                string tipoUsuario = HttpContext.Session.GetString("tipo_usuario");
+
                 // Consulta para obtener el total de vacantes por empresa
                 var datos = await (from e in _context.Empresa
                                    join oe in _context.OfertaEmpleo on e.id_empresa equals oe.id_empresa into ofertas
@@ -33,8 +36,10 @@ namespace SisEmpleo.Controllers
                                    {
                                        Empresa = g.Key,
                                        TotalVacantes = g.Sum(x => x != null ? x.vacante : 0),
-                                       TipoUsuario = "E"
+                                       TipoUsuario = tipoUsuario
                                    }).ToListAsync();
+
+                ViewBag.TipoUsuario = tipoUsuario;
 
                 // Depuración
                 System.Diagnostics.Debug.WriteLine($"Datos obtenidos (Vacantes por Empresa): {Newtonsoft.Json.JsonConvert.SerializeObject(datos)}");

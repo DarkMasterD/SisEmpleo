@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var tipoUsuario = ViewBag.TipoUsuario ?? Model?.TipoUsuario as string;
+}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -151,7 +154,7 @@
                 <img src="/img/logo.png"> Workeen
             </a>
             <div class="d-flex align-items-center">
-                @if (Model != null && Model.TipoUsuario == "P")
+                @if (tipoUsuario == "P")
                 {
                     <a href="/Home/Notificaciones" class="notification-badge me-3">
                         <i class="bi bi-bell"></i>
@@ -160,7 +163,7 @@
                     <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                     <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
                 }
-                else if (Model != null && Model.TipoUsuario == "E")
+                else if (tipoUsuario == "E")
                 {
                     <a href="/OfertaEmpleoEmpresa/NuevaOferta" class="btn btn-post-offer me-2">Publicar Oferta</a>
                     <a href="/Perfil/IndexEmpresa" class="btn btn-profile me-2">Mi Perfil</a>
