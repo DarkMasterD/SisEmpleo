@@ -10,6 +10,9 @@
 <head>
     <title>@Titulo</title>
     <style>
+        /* Asegúrate de incluir Font Awesome si no lo has hecho */
+        @@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+
         /* Estilos modernos para el reporte */
         :root {
             --color-primario: #3498db;
@@ -191,6 +194,31 @@
                 page-break-inside: avoid;
             }
         }
+
+        /* Botón Atrás */
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--color-secundario);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+            .back-button:hover {
+                background: var(--color-primario);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }
     </style>
 </head>
 <body>
@@ -262,12 +290,18 @@
         </div>
     </div>
 
-    <!-- Botón de impresión -->
     <div class="print-controls">
         <button class="print-btn" onclick="window.print()">
-            <!-- Icono de impresión -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z" />
+                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" />
+            </svg>
             Imprimir Reporte
         </button>
+    </div>
+
+    <div class="back-button" onclick="window.history.back()">
+        <i class="fas fa-arrow-left fa-lg"></i>
     </div>
 </body>
 </html>
