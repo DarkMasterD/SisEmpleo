@@ -8,6 +8,7 @@ namespace SisEmpleo.Models
         [Key]
         public int id_formacionacademica { get; set; }
 
+
         public int id_curriculum { get; set; } // Propiedad FK
         [ForeignKey("id_curriculum")]
         public virtual Curriculum Curriculum { get; set; }

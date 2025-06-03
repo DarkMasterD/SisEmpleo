@@ -1,0 +1,322 @@
+﻿@model IEnumerable<dynamic>
+@{
+    Layout = null;
+    string Titulo = ViewBag.TituloReporte;
+    string Fecha = ViewBag.FechaGeneracion;
+    int TotalSuscripciones = ViewBag.TotalSuscripciones;
+    int TotalCandidatos = ViewBag.TotalPostulantes;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Titulo</title>
+
+    <style>
+        :root {
+            --color-primario: #3498db;
+            --color-secundario: #2c3e50;
+            --color-exito: #2ecc71;
+            --color-advertencia: #f39c12;
+            --color-peligro: #e74c3c;
+            --color-texto: #333;
+            --color-fondo: #f9f9f9;
+            --color-borde: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--color-texto);
+            background-color: var(--color-fondo);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .reporte {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .reporte-header {
+            background: linear-gradient(135deg, var(--color-secundario), var(--color-primario));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .reporte-title {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .reporte-subtitle {
+            margin-top: 10px;
+            font-weight: 300;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .reporte-body {
+            padding: 30px;
+        }
+
+        .tabla-reporte {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        .tabla-reporte th,
+        .tabla-reporte td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-borde);
+        }
+
+        .tabla-reporte th {
+            background-color: var(--color-primario);
+            color: white;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+
+        .tabla-reporte tr:nth-child(even) {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .tabla-reporte tr:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Badges para cantidad de suscriptores */
+        .badge-suscriptores {
+            display: inline-block;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-radius: 16px;
+            color: white;
+            min-width: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        /* Barras de participación */
+        .progress-container {
+            width: 100%;
+            position: relative;
+        }
+
+        .progress {
+            width: 100%;
+            height: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+        }
+
+        /* Resumen estadístico */
+        .resumen {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: rgba(52, 152, 219, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid var(--color-primario);
+        }
+
+        .resumen h3 {
+            margin-bottom: 15px;
+            color: var(--color-secundario);
+            font-size: 1.2rem;
+        }
+
+        .resumen p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+        }
+
+        /* Controles de impresión */
+        .print-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        .print-btn {
+            background: var(--color-secundario);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-btn:hover {
+            background: var(--color-primario);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        /* Estilos para impresión */
+        @@media print {
+            .print-controls {
+                display: none;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .reporte {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .tabla-reporte th {
+                background-color: #3498db !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="reporte">
+        <header class="reporte-header">
+            <h1 class="reporte-title">@Titulo</h1>
+            <p class="reporte-subtitle">
+                Generado el: @Fecha | 
+                Total suscripciones: @TotalSuscripciones | 
+                Total candidatos: @TotalCandidatos
+            </p>
+        </header>
+
+        <section class="reporte-body">
+            <table class="tabla-reporte">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>ID Categoría</th>
+                        <th>Nombre de Categoría</th>
+                        <th class="text-center">Suscriptores</th>
+                        <th>Participación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int contador = 1;
+                        foreach (var item in Model)
+                        {
+                            decimal porcentaje = TotalCandidatos > 0 
+                                ? Math.Round((decimal)item.CantidadSuscriptores / TotalCandidatos * 100, 2) 
+                                : 0;
+
+                            <tr>
+                                <td>@contador</td>
+                                <td>@item.CategoriaId</td>
+                                <td>@item.NombreCategoria</td>
+                                <td class="text-center">
+                                    <span class="badge-suscriptores">
+                                        @item.CantidadSuscriptores
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress-container">
+                                        <div class="progress">
+                                            <div class="progress-bar" style="width:@porcentaje%">
+                                                @porcentaje%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            contador++;
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="resumen">
+                <h3>Resumen Estadístico</h3>
+                <p>Total de categorías profesionales: @Model.Count()</p>
+    
+                @if (Model.Any())
+                {
+                    var categoriaTop = Model.OrderByDescending(x => x.CantidadSuscriptores).FirstOrDefault();
+                    var porcentajeTop = ViewBag.TotalPostulantes > 0 ? 
+                        ((decimal)categoriaTop.CantidadSuscriptores / (decimal)ViewBag.TotalPostulantes * 100) : 0;
+        
+                    <p>
+                        Categoría más popular: <strong>@categoriaTop.NombreCategoria</strong> 
+                        con @categoriaTop.CantidadSuscriptores suscriptores
+                        (@Math.Round(porcentajeTop, 1)% de los postulantes)
+                    </p>
+        
+                    var categoriasConSuscripciones = Model.Count(x => x.CantidadSuscriptores > 0);
+                    <p>Categorías con suscriptores: @categoriasConSuscripciones de @Model.Count()</p>
+        
+                    @if (ViewBag.TotalPostulantes > 0)
+                    {
+                        var promedioSuscripciones = Model.Average(x => (decimal)x.CantidadSuscriptores) / (decimal)ViewBag.TotalPostulantes * 100;
+                        <p>Participación promedio: @Math.Round(promedioSuscripciones, 1)%</p>
+                    }
+                    else
+                    {
+                        <p>Participación promedio: 0%</p>
+                    }
+                }
+            </div>
+        </section>
+    </main>
+
+    <div class="print-controls">
+        <button class="print-btn" onclick="window.print()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
+                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+            </svg>
+            Imprimir Reporte
+        </button>
+    </div>
+</body>
+</html>
