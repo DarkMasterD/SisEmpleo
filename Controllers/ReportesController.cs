@@ -14,6 +14,11 @@ namespace SisEmpleo.Controllers
             _context = context;
         }
 
+        public IActionResult MenuReportes()
+        {
+            return View("~/Views/MenuReportes.cshtml"); // Esto mostrará la vista que te proporcioné
+        }
+
         //Reporte 1
         public IActionResult ReporteCandidatosPorOferta()
         {
