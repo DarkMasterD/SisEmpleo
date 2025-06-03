@@ -1,0 +1,142 @@
+﻿@model SisEmpleo.Models.Viewmodels.EmpresaViewModel
+
+@{
+    ViewData["Title"] = "Editar Perfil de Empresa";
+    string nombreEmpresa = string.IsNullOrWhiteSpace(Model.Nombre) ? "Empresa" : Model.Nombre;
+    string nombreUrlAvatar = System.Net.WebUtility.UrlEncode(nombreEmpresa);
+    string fotoPerfilUrl = $"https://ui-avatars.com/api/?name={nombreUrlAvatar}&size=150&rounded=true&background=0d6efd&color=ffffff&font-size=0.33&bold=true"; // Fondo azul, texto blanco
+}
+
+<style>
+    .card-header-custom {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1.25rem;
+    }
+
+    .text-orange {
+        color: #ff6600 !important;
+    }
+
+    .btn-orange {
+        background-color: #ff6600;
+        border-color: #ff6600;
+        color: #fff;
+    }
+
+        .btn-orange:hover {
+            background-color: #e65c00;
+            border-color: #cc5200;
+            color: #fff;
+        }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    .form-control, .form-select {
+    }
+
+    .validation-message {
+        font-size: 0.875em;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary fw-bolder mb-0">@ViewData["Title"]</h2>
+                <a href="@Url.Action("IndexEmpresa", "Perfil")" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left-circle me-1"></i> Volver al Perfil de Empresa
+                </a>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show shadow-sm">@TempData["SuccessMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm">@Html.Raw(TempData["ErrorMessage"].ToString().Replace("\n", "<br />"))<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+            @if (TempData["InfoMessage"] != null)
+            {
+                <div class="alert alert-info alert-dismissible fade show shadow-sm">@TempData["InfoMessage"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            }
+
+            <form asp-action="EditarEmpresa" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+
+                <div class="card shadow-sm mb-4 border-light">
+                    <div class="card-header card-header-custom d-flex align-items-center">
+                        <img src="@fotoPerfilUrl" alt="Avatar de @nombreEmpresa" class="rounded-circle me-3" style="width:50px;height:50px;object-fit:cover; border: 2px solid #fff;">
+                        <h5 class="mb-0 text-dark">Datos de la Empresa</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Nombre" class="form-label"></label>
+                                <input asp-for="Nombre" class="form-control" />
+                                <span asp-validation-for="Nombre" class="text-danger validation-message"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Email" class="form-label"></label>
+                                <input asp-for="Email" class="form-control" readonly />
+                                <small class="form-text text-muted">El email de la cuenta no se puede cambiar desde aquí.</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Direccion" class="form-label"></label>
+                                <input asp-for="Direccion" class="form-control" />
+                                <span asp-validation-for="Direccion" class="text-danger validation-message"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Sector" class="form-label"></label>
+                                <select asp-for="Sector" class="form-select">
+                                    <option value="">Seleccione un sector...</option>
+                                    <option value="Primario">Primario</option>
+                                    <option value="Secundario">Secundario</option>
+                                    <option value="Terciario">Terciario</option>
+                                    <option value="Cuaternario">Cuaternario</option>
+                                    <option value="Quinario">Quinario</option>
+                                </select>
+                                <span asp-validation-for="Sector" class="text-danger validation-message"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4 border-light">
+                    <div class="card-header card-header-custom d-flex align-items-center">
+                        <i class="bi bi-card-text fs-4 me-2 text-orange"></i>
+                        <h5 class="mb-0 text-dark">Descripción</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="mb-3">
+                            <label asp-for="Descripcion" class="form-label"></label>
+                            <textarea asp-for="Descripcion" class="form-control" rows="6"></textarea>
+                            <span asp-validation-for="Descripcion" class="text-danger validation-message"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-4">
+                    <a asp-action="IndexEmpresa" asp-controller="Perfil" class="btn btn-outline-secondary px-4 me-2">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-orange px-5 py-2 fw-semibold">
+                        <i class="bi bi-save me-2"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
