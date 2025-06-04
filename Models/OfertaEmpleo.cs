@@ -19,6 +19,9 @@ namespace SisEmpleo.Models
         public DateTime fecha_publicacion { get; set; }
         public bool? estado { get; set; }
 
+
+
+
         //
         [NotMapped]
         public string PaisNombre { get; set; }
