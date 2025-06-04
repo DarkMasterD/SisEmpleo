@@ -1,8 +1,17 @@
 ﻿@model SisEmpleo.Models.OfertaEmpleo
 
+
 @{
-    var ofertaEmp = ViewBag.Oferta as OfertaEmpleo;
-    var horario = ViewBag.Horario as string[];
+    var ofertaEmp = ViewBag.Oferta as OfertaEmpleo ?? new OfertaEmpleo();
+    string[] horario;
+    if (ViewBag.Horario is string[] h && h.Length == 28)
+    {
+        horario = h;
+    }
+    else
+    {
+        horario = Enumerable.Repeat("", 28).ToArray();
+    }
 }
 
 <!DOCTYPE html>
@@ -20,7 +29,7 @@
             padding: 0;
         }
 
-        
+
 
         .btn-profile {
             background-color: #1E3A8A;
@@ -31,11 +40,11 @@
         }
 
             .btn-profile:hover {
-                background-color: #152A66; 
+                background-color: #152A66;
             }
 
         .btn-logout {
-            background-color: #F97316; 
+            background-color: #F97316;
             border: none;
             color: #FFFFFF;
             padding: 0.5rem 1.5rem;
@@ -121,18 +130,21 @@
         <h2>Editar Oferta de Empleo</h2>
         <form asp-action="EditarOferta" method="post">
             <div class="form-group">
-                <label for="opcEstado">Estado</label>
-                @Html.DropDownList("opcEstado", (IEnumerable<SelectListItem>)ViewBag.OpcEstado, new { @class = "form-control", id = "cboEstado" })
+                <label for="estado">Estado</label>
+                <select name="estado" id="estado" class="form-control" required>
+                    <option value="">Seleccione...</option>
+                    <option value="1" selected="@(ofertaEmp.estado == true)">Activo</option>
+                    <option value="0" selected="@(ofertaEmp.estado == false)">Inactivo</option>
+                </select>
+                <span asp-validation-for="estado" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label for="id_pais">País</label>
-                @Html.DropDownList("id_pais", ViewBag.Pais as SelectList, "Seleccione un país", new { @class = "form-control", id = "cboPais" })
+                @Html.DropDownList("id_pais", ViewBag.Pais as IEnumerable<SelectListItem>, "Seleccione un país", new { @class = "form-control", id = "cboPais" })
             </div>
             <div class="form-group">
                 <label for="id_provincia">Provincia</label>
-                <select id="cboProvincia" name="id_provincia" class="form-control">
-                    <option value="">Seleccione una provincia</option>
-                </select>
+                @Html.DropDownList("id_provincia", ViewBag.Provincia as SelectList, "Seleccione una provincia", new { @class = "form-control", id = "cboProvincia" })
             </div>
             <div class="form-group">
                 <label for="titulo">Título</label>
@@ -144,7 +156,7 @@
             </div>
             <div class="form-group">
                 <label for="vacantes">Vacantes</label>
-                @Html.TextBox("vacantes", ofertaEmp.vacante, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+                @Html.TextBox("vacante", ofertaEmp.vacante, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
             </div>
             <div class="form-group">
                 <label for="salario">Salario</label>
@@ -161,18 +173,18 @@
                 <h4>Lunes</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("lunes1", horario[0], new { @class = "form-control", type = "time" })
+                        <input type="time" name="lunes1" value="@(horario.Length > 0 ? horario[0] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("lunes2", horario[1], new { @class = "form-control", type = "time" })
+                        <input type="time" name="lunes2" value="@(horario.Length > 1 ? horario[1] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("lunes3", horario[2], new { @class = "form-control", type = "time" })
+                        <input type="time" name="lunes3" value="@(horario.Length > 2 ? horario[2] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("lunes4", horario[3], new { @class = "form-control", type = "time" })
+                        <input type="time" name="lunes4" value="@(horario.Length > 3 ? horario[3] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
@@ -180,37 +192,37 @@
                 <h4>Martes</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("martes1", horario[4], new { @class = "form-control", type = "time" })
+                        <input type="time" name="martes1" value="@(horario.Length > 0 ? horario[4] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("martes2", horario[5], new { @class = "form-control", type = "time" })
+                        <input type="time" name="martes2" value="@(horario.Length > 1 ? horario[5] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("martes3", horario[6], new { @class = "form-control", type = "time" })
+                        <input type="time" name="martes3" value="@(horario.Length > 2 ? horario[6] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("martes4", horario[7], new { @class = "form-control", type = "time" })
+                        <input type="time" name="martes4" value="@(horario.Length > 3 ? horario[7] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
             <div class="day-schedule">
-                <h4>Miércoles</h4>
+                <h4>Miercoles</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("miercoles1", horario[8], new { @class = "form-control", type = "time" })
+                        <input type="time" name="miercoles1" value="@(horario.Length > 0 ? horario[8] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("miercoles2", horario[9], new { @class = "form-control", type = "time" })
+                        <input type="time" name="miercoles2" value="@(horario.Length > 1 ? horario[9] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("miercoles3", horario[10], new { @class = "form-control", type = "time" })
+                        <input type="time" name="miercoles3" value="@(horario.Length > 2 ? horario[10] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("miercoles4", horario[11], new { @class = "form-control", type = "time" })
+                        <input type="time" name="miercoles4" value="@(horario.Length > 3 ? horario[11] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
@@ -218,18 +230,18 @@
                 <h4>Jueves</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("jueves1", horario[12], new { @class = "form-control", type = "time" })
+                        <input type="time" name="jueves1" value="@(horario.Length > 0 ? horario[12] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("jueves2", horario[13], new { @class = "form-control", type = "time" })
+                        <input type="time" name="jueves2" value="@(horario.Length > 1 ? horario[13] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("jueves3", horario[14], new { @class = "form-control", type = "time" })
+                        <input type="time" name="jueves3" value="@(horario.Length > 2 ? horario[14] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("jueves4", horario[15], new { @class = "form-control", type = "time" })
+                        <input type="time" name="jueves4" value="@(horario.Length > 3 ? horario[15] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
@@ -237,18 +249,18 @@
                 <h4>Viernes</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("viernes1", horario[16], new { @class = "form-control", type = "time" })
+                        <input type="time" name="viernes1" value="@(horario.Length > 0 ? horario[16] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("viernes2", horario[17], new { @class = "form-control", type = "time" })
+                        <input type="time" name="viernes2" value="@(horario.Length > 1 ? horario[17] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("viernes3", horario[18], new { @class = "form-control", type = "time" })
+                        <input type="time" name="viernes3" value="@(horario.Length > 2 ? horario[18] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("viernes4", horario[19], new { @class = "form-control", type = "time" })
+                        <input type="time" name="viernes4" value="@(horario.Length > 3 ? horario[19] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
@@ -256,18 +268,18 @@
                 <h4>Sábado</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("sabado1", horario[20], new { @class = "form-control", type = "time" })
+                        <input type="time" name="sabado1" value="@(horario.Length > 0 ? horario[20] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("sabado2", horario[21], new { @class = "form-control", type = "time" })
+                        <input type="time" name="sabado2" value="@(horario.Length > 1 ? horario[21] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("sabado3", horario[22], new { @class = "form-control", type = "time" })
+                        <input type="time" name="sabado3" value="@(horario.Length > 2 ? horario[22] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("sabado4", horario[23], new { @class = "form-control", type = "time" })
+                        <input type="time" name="sabado4" value="@(horario.Length > 3 ? horario[23] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
@@ -275,26 +287,28 @@
                 <h4>Domingo</h4>
                 <div class="row">
                     <div class="col-6">
-                        @Html.TextBox("domingo1", horario[24], new { @class = "form-control", type = "time" })
+                        <input type="time" name="domingo1" value="@(horario.Length > 0 ? horario[24] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("domingo2", horario[25], new { @class = "form-control", type = "time" })
+                        <input type="time" name="domingo2" value="@(horario.Length > 1 ? horario[25] : "")" class="form-control" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
-                        @Html.TextBox("domingo3", horario[26], new { @class = "form-control", type = "time" })
+                        <input type="time" name="domingo3" value="@(horario.Length > 2 ? horario[26] : "")" class="form-control" />
                     </div>
                     <div class="col-6">
-                        @Html.TextBox("domingo4", horario[27], new { @class = "form-control", type = "time" })
+                        <input type="time" name="domingo4" value="@(horario.Length > 3 ? horario[27] : "")" class="form-control" />
                     </div>
                 </div>
             </div>
 
             <!-- Campos ocultos -->
-            <input type="hidden" id="horario" name="horario">
-            <input type="hidden" id="estado" name="estado" />
+            <input type="hidden" id="horario" name="horario" value="@string.Join(";", horario)" />
             <input type="hidden" value="@ofertaEmp.id_ofertaempleo" name="id_ofertaempleo" />
+            <input type="hidden" name="PaisNombre" value="" />
+            <input type="hidden" name="EmpresaNombre" value="" />
+            <input type="hidden" name="ProvinciaNombre" value="" />
 
             <!-- Botones -->
             <div class="row mt-4">
@@ -310,73 +324,173 @@
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
-            $("#cboPais").change(function () {
-                var paisId = $(this).val();
-                $("#cboProvincia").empty().append('<option value="">Cargando...</option>');
+            console.log("jQuery cargado");
 
-                if (paisId != 0) {
-                    $.getJSON('/OfertaEmpleoEmpresa/ObtenerProvincia', { id_pais: paisId }, function (data) {
-                        $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
-                        $.each(data, function (i, item) {
-                            $("#cboProvincia").append('<option value="' + item.id_provincia + '">' + item.nombre + '</option>');
-                        });
-                    });
+            // Solo se usará al inicio para seleccionar la provincia original
+            var provinciaInicial = '@(ofertaEmp?.id_provincia ?? 0)';
+            var paisInicial = '@(ofertaEmp?.id_pais ?? 0)';
+            var primerCarga = true;
+
+            function cargarProvincias(idPais) {
+                if (!idPais) {
+                    $('#cboProvincia').html('<option value="">Seleccione un país primero</option>');
+                    return;
+                }
+
+                $('#cboProvincia').html('<option value="">Cargando provincias...</option>');
+
+                $.ajax({
+                    url: '/OfertaEmpleoEmpresa/ObtenerProvincia',
+                    type: 'GET',
+                    data: { id_pais: idPais },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data && data.length > 0) {
+                            var options = '<option value="">Seleccione una provincia</option>';
+                            $.each(data, function (index, provincia) {
+                                options += '<option value="' + provincia.id_provincia + '">' + provincia.nombre + '</option>';
+                            });
+                            $('#cboProvincia').html(options);
+
+                            if (primerCarga && idPais == paisInicial) {
+                                $('#cboProvincia').val(provinciaInicial);
+                            }
+
+                            primerCarga = false;
+                        } else {
+                            $('#cboProvincia').html('<option value="">No hay provincias para este país</option>');
+                        }
+                    },
+                    error: function () {
+                        $('#cboProvincia').html('<option value="">Error al cargar provincias</option>');
+                    }
+                });
+            }
+
+            // Evento de cambio en país
+            $('#cboPais').change(function () {
+                var idPais = $(this).val();
+                cargarProvincias(idPais);
+            });
+
+            // Primera carga si hay país preseleccionado
+            if ($('#cboPais').val()) {
+                cargarProvincias($('#cboPais').val());
+            }
+
+            // Manejo del envío del formulario
+            $('form').on('submit', function (e) {
+                let hasErrors = false;
+
+                $('[required]').each(function () {
+                    const $field = $(this);
+                    const fieldValue = $field.val();
+
+                    if (!fieldValue) {
+                        markFieldAsInvalid($field, 'Este campo es requerido');
+                        hasErrors = true;
+                    } else {
+                        markFieldAsValid($field);
+                    }
+                });
+
+                // Validación específica del estado (1/0)
+                const $estadoField = $('[name="estado"]');
+                const estadoValue = $estadoField.val();
+
+                if (estadoValue !== "1" && estadoValue !== "0") {
+                    markFieldAsInvalid($estadoField, 'Seleccione un estado válido');
+                    hasErrors = true;
                 } else {
-                    $("#cboProvincia").empty().append('<option value="">Seleccione una provincia</option>');
+                    markFieldAsValid($estadoField);
+                    // NO modificar el valor (dejar como "1" o "0")
+                }
+
+                if (hasErrors) {
+                    e.preventDefault();
+                    scrollToFirstError();
+                    return;
+                }
+
+                buildHorarioString();
+            });
+
+            function buildHorarioString() {
+                const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+                const timeSlots = [];
+
+                days.forEach(day => {
+                    for (let i = 1; i <= 4; i++) {
+                        const timeValue = $(`[name="${day}${i}"]`).val() || '';
+                        timeSlots.push(timeValue);
+                    }
+                });
+
+                while (timeSlots.length < 28) {
+                    timeSlots.push('');
+                }
+
+                $('#horario').val(timeSlots.join(';'));
+                console.log('Horario a enviar:', $('#horario').val());
+            }
+
+            // Función para marcar campo como inválido
+            function markFieldAsInvalid($field, message) {
+                $field.addClass('is-invalid');
+                if ($field.next('.field-error').length === 0) {
+                    $field.after(`<span class="text-danger field-error">${message}</span>`);
+                }
+            }
+
+            // Función para marcar campo como válido
+            function markFieldAsValid($field) {
+                $field.removeClass('is-invalid');
+                $field.next('.field-error').remove();
+            }
+
+            // Función para desplazarse al primer error
+            function scrollToFirstError() {
+                const $firstError = $('.is-invalid').first();
+                if ($firstError.length) {
+                    $('html, body').animate({
+                        scrollTop: $firstError.offset().top - 100
+                    }, 500);
+                }
+            }
+
+            // Validación en tiempo real para campos requeridos
+            $('[required]').on('blur change', function () {
+                const $field = $(this);
+                if (!$field.val()) {
+                    markFieldAsInvalid($field, 'Este campo es requerido');
+                } else {
+                    markFieldAsValid($field);
                 }
             });
 
-            document.querySelector('form').addEventListener('submit', function (e) {
-                const estadoValue = document.querySelector('#cboEstado').value;
-                const estadoChar = document.getElementById('estado');
-                estadoChar.value = estadoValue.charAt(0);
-
-                const lunes1 = document.getElementById('lunes1').value;
-                const lunes2 = document.getElementById('lunes2').value;
-                const lunes3 = document.getElementById('lunes3').value;
-                const lunes4 = document.getElementById('lunes4').value;
-
-                const martes1 = document.getElementById('martes1').value;
-                const martes2 = document.getElementById('martes2').value;
-                const martes3 = document.getElementById('martes3').value;
-                const martes4 = document.getElementById('martes4').value;
-
-                const miercoles1 = document.getElementById('miercoles1').value;
-                const miercoles2 = document.getElementById('miercoles2').value;
-                const miercoles3 = document.getElementById('miercoles3').value;
-                const miercoles4 = document.getElementById('miercoles4').value;
-
-                const jueves1 = document.getElementById('jueves1').value;
-                const jueves2 = document.getElementById('jueves2').value;
-                const jueves3 = document.getElementById('jueves3').value;
-                const jueves4 = document.getElementById('jueves4').value;
-
-                const viernes1 = document.getElementById('viernes1').value;
-                const viernes2 = document.getElementById('viernes2').value;
-                const viernes3 = document.getElementById('viernes3').value;
-                const viernes4 = document.getElementById('viernes4').value;
-
-                const sabado1 = document.getElementById('sabado1').value;
-                const sabado2 = document.getElementById('sabado2').value;
-                const sabado3 = document.getElementById('sabado3').value;
-                const sabado4 = document.getElementById('sabado4').value;
-
-                const domingo1 = document.getElementById('domingo1').value;
-                const domingo2 = document.getElementById('domingo2').value;
-                const domingo3 = document.getElementById('domingo3').value;
-                const domingo4 = document.getElementById('domingo4').value;
-
-                const horario = `${lunes1};${lunes2};${lunes3};${lunes4};${martes1};${martes2};${martes3};${martes4};` +
-                    `${miercoles1};${miercoles2};${miercoles3};${miercoles4};${jueves1};${jueves2};${jueves3};${jueves4};` +
-                    `${viernes1};${viernes2};${viernes3};${viernes4};${sabado1};${sabado2};${sabado3};${sabado4};${domingo1};${domingo2};${domingo3};${domingo4}`;
-
-                const horarioField = document.getElementById('horario');
-                horarioField.value = horario;
+            // Validación especial para el campo estado
+            $('[name="estado"]').on('change', function () {
+                const value = $(this).val();
+                if (value === "1" || value === "0") {
+                    markFieldAsValid($(this));
+                } else {
+                    markFieldAsInvalid($(this), 'Seleccione un estado válido');
+                }
             });
         });
     </script>
+
+
+
+
+
 </body>
 </html>
