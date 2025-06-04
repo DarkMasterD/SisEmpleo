@@ -64,51 +64,148 @@
                 text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             }
 
-        .category-card {
-            background-color: #FFFFFF;
-            border-radius: 15px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            height: 240px;
+        /* Estilos compactos para muchas categorías */
+        .categories-section {
+            padding: 3rem 1rem;
+            background-color: #F8FAFC;
+        }
+
+        .compact-categories-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .compact-category-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            height: 120px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: center;
-            overflow: hidden;
         }
 
-            .category-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            .compact-category-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+                border-color: #F97316;
             }
 
-            .category-card img {
-                width: 65px;
-                margin-bottom: 1.2rem;
-                transition: transform 0.3s ease;
+            .compact-category-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 4px;
+                height: 100%;
+                background: linear-gradient(to bottom, #1E3A8A, #F97316);
+                transition: width 0.3s ease;
             }
 
-            .category-card:hover img {
-                transform: scale(1.1);
+            .compact-category-card:hover::before {
+                width: 6px;
             }
 
-            .category-card h3 {
-                color: #374151;
-                font-size: 1.4rem;
+            .compact-category-card h3 {
+                color: #1E3A8A;
+                font-size: 1.1rem;
                 font-weight: 600;
-                margin-bottom: 0.75rem;
+                margin-bottom: 0.5rem;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                padding: 0 0.5rem;
             }
 
-            .category-card p {
-                color: #6B7280;
-                font-size: 1.05rem;
-                margin: 0;
+            .compact-category-card .badge {
+                background-color: #F97316;
+                color: white;
+                font-size: 0.7rem;
+                padding: 0.2rem 0.5rem;
+                border-radius: 10px;
+                display: inline-block;
+                margin-top: 0.5rem;
             }
+
+            .compact-category-card:hover .badge {
+                background-color: #1E3A8A;
+            }
+
+        /* Filtro y búsqueda */
+        .category-filter {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .category-search {
+            flex-grow: 1;
+            min-width: 250px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .category-filter-btn {
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .category-filter-btn:hover,
+            .category-filter-btn.active {
+                background: #1E3A8A;
+                color: white;
+                border-color: #1E3A8A;
+            }
+
+        /* Paginación */
+        .category-pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            gap: 0.5rem;
+        }
+
+        .page-link {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+            .page-link.active {
+                background: #1E3A8A;
+                color: white;
+                border-color: #1E3A8A;
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .compact-categories-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .compact-category-card {
+                height: 100px;
+                padding: 1rem 0.5rem;
+            }
+
+                .compact-category-card h3 {
+                    font-size: 1rem;
+                }
+        }
 
         .jobs-section {
             padding: 5rem 2rem;
@@ -216,28 +313,45 @@
     </div>
 </section>
 
-<!-- Categories (Postulante) -->
+<!-- Categories Section - Versión Compacta -->
 @if (Model.TipoUsuario == "P")
 {
     <section class="categories-section">
-        <h2>Observa todas nuestras categorías</h2>
         <div class="container">
-            <div class="row">
+            <h2 class="mb-4">Explora por categorías</h2>
+
+            <!-- Filtro y búsqueda -->
+            <div class="category-filter">
+                <input type="text" class="category-search" placeholder="Buscar categoría..." id="categorySearch">
+                <button class="category-filter-btn active" data-filter="all">Todas</button>
+                <button class="category-filter-btn" data-filter="popular">Más populares</button>
+                <button class="category-filter-btn" data-filter="recent">Recientes</button>
+            </div>
+
+            <!-- Grid de categorías -->
+            <div class="compact-categories-container" id="categoriesContainer">
                 @foreach (var categoria in Model.Categorias)
                 {
-                    <div class="col-md-3 col-sm-6 mb-4">
-                        <div class="category-card">
-                            <img src="/img/@(categoria.nombre.ToLower())-icon.png" alt="@categoria.nombre">
+                    <a href="@Url.Action("OfertasPorCategoria", "OfertaEmpleoPostulante", new { idCategoria = categoria.id_categoriaprofesional })"
+                       class="text-decoration-none">
+                        <div class="compact-category-card">
                             <h3>@categoria.nombre</h3>
-                            <p>Explora empleos en @categoria.nombre</p>
                         </div>
-                    </div>
+                    </a>
                 }
+            </div>
+
+            <!-- Paginación -->
+            <div class="category-pagination">
+                <span class="page-link active">1</span>
+                <span class="page-link">2</span>
+                <span class="page-link">3</span>
+                <span class="page-link">...</span>
+                <span class="page-link">10</span>
             </div>
         </div>
     </section>
 }
-
 <!-- Jobs -->
 <section class="jobs-section">
     @if (Model.TipoUsuario == "E")
@@ -321,5 +435,42 @@
                 }
             });
         }
+
+        // Búsqueda en tiempo real
+        document.getElementById('categorySearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.compact-category-card h3');
+
+            cards.forEach(card => {
+                const cardText = card.textContent.toLowerCase();
+                const cardParent = card.closest('.compact-category-card').parentElement;
+
+                if (cardText.includes(searchTerm)) {
+                    cardParent.style.display = 'block';
+                } else {
+                    cardParent.style.display = 'none';
+                }
+            });
+        });
+
+        // Filtros
+        document.querySelectorAll('.category-filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                // Aquí iría la lógica para filtrar las categorías
+                // Por ahora es solo visual
+            });
+        });
+
+        // Paginación (ejemplo básico)
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('.page-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                // Aquí iría la lógica para cargar la página correspondiente
+            });
+        });
     </script>
 }

@@ -73,39 +73,82 @@ namespace SisEmpleo.Controllers
         private List<Dictionary<string, string>> SepararHorario(string horario)
         {
             List<Dictionary<string, string>> SepHorario = new();
-            string[] Horas = horario.Split(";");
-            string[] Dias = { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
+            string[] diasSemana = { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" };
 
-            for (int i = 0; i < Dias.Length; i++)
+            // Verificar si el horar io es nulo o vacío
+            if (string.IsNullOrEmpty(horario))
             {
-                int k = i * 4;
-                string Horario1Inicio = Horas[k];
-                string Horario1Fin = Horas[k + 1];
-                string Horario2Inicio = Horas[k + 2];
-                string Horario2Fin = Horas[k + 3];
-
-                string HorarioCon1 = Horario1Inicio + " - " + Horario1Fin;
-                string HorarioCon2 = Horario2Inicio + " - " + Horario2Fin;
-
-                if (Horario1Inicio == "00:00" && Horario1Fin == "00:00")
-                    HorarioCon1 = "Sin Horario";
-                if (Horario2Inicio == "00:00" && Horario2Fin == "00:00")
-                    HorarioCon2 = "Sin Horario";
-
-                SepHorario.Add(new Dictionary<string, string>
+                // Retornar horarios vacíos para todos los días
+                foreach (var dia in diasSemana)
                 {
-                    { "Dia", Dias[i] },
-                    { "Horario1", HorarioCon1 },
-                    { "Horario2", HorarioCon2 }
-                });
+                    SepHorario.Add(new Dictionary<string, string>
+            {
+                { "Dia", dia },
+                { "Horario1", "Sin Horario" },
+                { "Horario2", "Sin Horario" }
+            });
+                }
+                return SepHorario;
+            }
+
+            string[] horas = horario.Split(';');
+
+            // Verificar que tenemos suficientes elementos
+            int elementosNecesarios = diasSemana.Length * 4;
+            if (horas.Length < elementosNecesarios)
+            {
+                // Si no hay suficientes elementos, completar con "00:00"
+                Array.Resize(ref horas, elementosNecesarios);
+                for (int i = 0; i < horas.Length; i++)
+                {
+                    if (string.IsNullOrEmpty(horas[i]))
+                        horas[i] = "00:00";
+                }
+            }
+
+            for (int i = 0; i < diasSemana.Length; i++)
+            {
+                try
+                {
+                    int k = i * 4;
+                    string horario1Inicio = horas.Length > k ? horas[k] : "00:00";
+                    string horario1Fin = horas.Length > k + 1 ? horas[k + 1] : "00:00";
+                    string horario2Inicio = horas.Length > k + 2 ? horas[k + 2] : "00:00";
+                    string horario2Fin = horas.Length > k + 3 ? horas[k + 3] : "00:00";
+
+                    string horarioCon1 = (horario1Inicio == "00:00" && horario1Fin == "00:00")
+                        ? "Sin Horario"
+                        : $"{horario1Inicio} - {horario1Fin}";
+
+                    string horarioCon2 = (horario2Inicio == "00:00" && horario2Fin == "00:00")
+                        ? "Sin Horario"
+                        : $"{horario2Inicio} - {horario2Fin}";
+
+                    SepHorario.Add(new Dictionary<string, string>
+            {
+                { "Dia", diasSemana[i] },
+                { "Horario1", horarioCon1 },
+                { "Horario2", horarioCon2 }
+            });
+                }
+                catch (Exception ex)
+                {
+                    // Si hay error con un día específico, continuar con los demás
+                    Console.WriteLine($"Error procesando horario para {diasSemana[i]}: {ex.Message}");
+                }
             }
 
             return SepHorario;
         }
 
-        [HttpGet]
-        public IActionResult VerOferta(int id_ofertaempleo)
+
+
+        [HttpGet("{id}")]
+        public IActionResult VerOferta(int id)
         {
+            Console.WriteLine($"ID recibido: {id}");
+            if (id <= 0) return BadRequest("ID inválido");
+
             if (HttpContext.Session.GetString("tipo_usuario") != "P")
             {
                 return RedirectToAction("Index", "Home");
@@ -120,30 +163,30 @@ namespace SisEmpleo.Controllers
                               from pro in provJoin.DefaultIfEmpty()
                               join e in _EmpleoContext.Empresa on o.id_empresa equals e.id_empresa into empJoin
                               from e in empJoin.DefaultIfEmpty()
-                              where o.id_ofertaempleo == id_ofertaempleo && o.estado == true
+                              where o.id_ofertaempleo == id && o.estado == true
                               select new
                               {
                                   Id = o.id_ofertaempleo,
                                   Titulo = o.titulo,
                                   Descripcion = o.descripcion,
                                   Vacantes = o.vacante,
-                                  Salario = o.salario, // double
+                                  Salario = o.salario,
                                   Duracion_Contrato = o.duracion_contrato,
                                   Fecha_Publicacion = o.fecha_publicacion,
                                   Nombre_Empresa = e != null ? e.nombre : "Desconocida",
                                   Ubi_Pais = p != null ? p.nombre : "Desconocido",
                                   Ubi_Pro = pro != null ? pro.nombre : "Desconocido",
-                                  Horario = o.horario
+                                  Horario = o.horario ?? "" // Asegurar que no sea nulo
                               }).FirstOrDefault();
 
                 if (oferta == null)
                 {
-                    return NotFound();
+                    return NotFound("La oferta solicitada no existe o no está disponible");
                 }
 
                 var requisitos = (from r in _EmpleoContext.RequisitoOferta
                                   join h in _EmpleoContext.Habilidad on r.id_habilidad equals h.id_habilidad
-                                  where r.id_ofertaempleo == id_ofertaempleo
+                                  where r.id_ofertaempleo == id
                                   select h.nombre).ToList();
 
                 ViewBag.Oferta = oferta;
@@ -152,14 +195,16 @@ namespace SisEmpleo.Controllers
 
                 var id_usuario = HttpContext.Session.GetInt32("id_usuario");
                 var hasApplied = _EmpleoContext.OfertaCandidatos
-                    .Any(oc => oc.id_ofertaempleo == id_ofertaempleo && oc.id_usuario == id_usuario);
+                    .Any(oc => oc.id_ofertaempleo == id && oc.id_usuario == id_usuario);
                 ViewBag.HasApplied = hasApplied;
 
                 return View();
             }
             catch (Exception ex)
             {
-                return NotFound();
+                // Log del error completo
+                Console.WriteLine($"Error en VerOferta: {ex}");
+                return StatusCode(500, "Ocurrió un error al cargar la oferta. Por favor, intente nuevamente.");
             }
         }
 
@@ -372,6 +417,58 @@ namespace SisEmpleo.Controllers
                 ViewBag.ofertas = new List<object>();
                 ViewBag.SearchQuery = query;
                 return View("Listar");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult OfertasPorCategoria(int idCategoria)
+        {
+            var tipoUsuario = HttpContext.Session.GetString("tipo_usuario");
+            if (tipoUsuario != "P")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            try
+            {
+                // Obtener el nombre de la categoría para mostrar en la vista
+                var categoria = _EmpleoContext.CategoriaProfesional
+                                .FirstOrDefault(c => c.id_categoriaprofesional == idCategoria);
+
+                ViewBag.CategoriaNombre = categoria?.nombre ?? "Categoría Desconocida";
+
+                // Consulta para obtener ofertas filtradas por categoría
+                var ofertas = (from oc in _EmpleoContext.OfertaCategoria
+                               join o in _EmpleoContext.OfertaEmpleo on oc.id_ofertaempleo equals o.id_ofertaempleo
+                               join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
+                               join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
+                               join e in _EmpleoContext.Empresa on o.id_empresa equals e.id_empresa
+                               where oc.id_categoriaprofesional == idCategoria && o.estado == true
+                               orderby o.fecha_publicacion descending
+                               select new
+                               {
+                                   Id = o.id_ofertaempleo,
+                                   Titulo = o.titulo,
+                                   Vacantes = o.vacante,
+                                   Salario = o.salario,
+                                   Duracion_Contrato = o.duracion_contrato,
+                                   Fecha_Publicacion = o.fecha_publicacion,
+                                   Nombre_Empresa = e.nombre,
+                                   Ubi_Pais = p.nombre,
+                                   Ubi_Pro = pro.nombre
+                               }).ToList();
+
+                ViewBag.ofertas = ofertas;
+                ViewBag.TipoUsuario = tipoUsuario;
+
+                return View("Listar"); // Reutilizamos la misma vista
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Ocurrió un error al cargar las ofertas: " + ex.Message;
+                ViewBag.ofertas = new List<object>();
+                ViewBag.TipoUsuario = tipoUsuario;
+                return View("ListarOfertasPorCategoria");
             }
         }
     }
