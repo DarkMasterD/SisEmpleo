@@ -1,86 +1,198 @@
 ﻿@model SisEmpleo.Models.Viewmodels.PostulanteViewModel
 
-@if (Model == null)
-{
-    <div class="alert alert-warning">
-        No hay datos para mostrar. Por favor completa tu perfil.
-    </div>
+@{
+    ViewData["Title"] = Model != null ? $"{Model.Nombre} {Model.Apellidos}" : "Mi Perfil";
+    // Avatar dinámico usando UI Avatars con el esquema de color naranja
+    string nombreCompletoAvatar = Model != null ? $"{Model.Nombre} {Model.Apellidos}" : "Usuario";
+    string nombreUrlAvatar = System.Net.WebUtility.UrlEncode(nombreCompletoAvatar);
+    string fotoPerfilUrl = $"https://ui-avatars.com/api/?name={nombreUrlAvatar}&size=180&rounded=true&background=ff6600&color=ffffff&font-size=0.33&bold=true";
+    // Paleta de colores (ejemplos, ajústalos a tu gusto)
+    string colorPrimario = "#0d6efd"; // Azul Bootstrap por defecto
+    string colorAcento = "#ff6600";  // Naranja
+    string colorTextoCabecera = "#ffffff";
+    string colorFondoCabeceraTarjeta = "#f8f9fa"; // Gris claro
+    string colorTextoTarjeta = "#212529"; // Negro suave
 }
-else
-{
-    var camposFaltantes = new List<string>();
-    if (string.IsNullOrWhiteSpace(Model.Telefono)) { camposFaltantes.Add("Teléfono"); }
-    if (string.IsNullOrWhiteSpace(Model.Pais)) { camposFaltantes.Add("País"); }
-    if (string.IsNullOrWhiteSpace(Model.Provincia)) { camposFaltantes.Add("Provincia"); }
-    if (Model.Idiomas == null || !Model.Idiomas.Any()) { camposFaltantes.Add("Idiomas"); }
-    if (Model.Habilidades == null || !Model.Habilidades.Any()) { camposFaltantes.Add("Habilidades"); }
 
-    if (camposFaltantes.Any())
-    {
-        <div class="alert alert-info">
-            <strong>¡Tu perfil está incompleto!</strong>
-            <br />
-            Faltan los siguientes campos: @string.Join(", ", camposFaltantes).
-            <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-sm btn-primary ml-2">Completa tu perfil aquí</a>
-        </div>
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, @colorPrimario 0%, @colorAcento 100%);
+        color: @colorTextoCabecera;
+        padding: 2rem 1rem;
+        margin-bottom: 2rem;
+        border-radius: .5rem;
     }
 
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white">
-            <h2>@Model.Nombre @Model.Apellidos</h2>
-        </div>
-        <div class="card-body">
-            <p><strong>Email:</strong> @Model.Email</p>
-            <p><strong>Teléfono:</strong> @(string.IsNullOrWhiteSpace(Model.Telefono) ? "No especificado" : Model.Telefono)</p>
-            <p><strong>País:</strong> @(string.IsNullOrWhiteSpace(Model.Pais) ? "No especificado" : Model.Pais)</p>
-            <p><strong>Provincia:</strong> @(string.IsNullOrWhiteSpace(Model.Provincia) ? "No especificado" : Model.Provincia)</p>
-        </div>
-    </div>
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border: 4px solid @colorTextoCabecera;
+    }
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h4>Idiomas</h4>
-                </div>
-                <div class="card-body">
-                    @if (Model.Idiomas != null && Model.Idiomas.Any())
-                    {
+    .card-profile-details .list-group-item {
+        border-left: 0;
+        border-right: 0;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+        .card-profile-details .list-group-item i {
+            color: @colorAcento;
+            width: 20px; /* Para alinear los iconos */
+        }
+
+    .badge-skill {
+        background-color: #6c757d; /* Gris Bootstrap para habilidades */
+        color: white;
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+
+    .badge-language {
+        background-color: @colorAcento; /* Naranja para idiomas */
+        color: white;
+        font-size: 0.9em;
+        padding: 0.5em 0.75em;
+    }
+
+    .section-card .card-header {
+        background-color: @colorFondoCabeceraTarjeta;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .section-card .card-title-icon {
+        color: @colorAcento; /* Iconos de título de sección en naranja */
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+
+    @if (Model == null)
+    {
+        <div class="alert alert-warning text-center shadow-sm" role="alert">
+            <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Perfil no Disponible</h4>
+            <p>No se encontró información del perfil. Si este es tu perfil, por favor complétalo.</p>
+            <hr>
+            <a href="@Url.Action("EditarPerfil", "Perfil")" class="btn btn-primary">
+                <i class="bi bi-pencil-fill me-2"></i>Ir a Editar/Crear Perfil
+            </a>
+        </div>
+    }
+    else
+    {
+        <header class="profile-header text-center shadow-lg rounded-3 mb-5">
+            <img src="@fotoPerfilUrl" alt="Foto de @nombreCompletoAvatar" class="rounded-circle profile-avatar mb-3">
+            <h1 class="display-5 fw-bold">@Model.Nombre @Model.Apellidos</h1>
+            <p class="lead mb-0">@Model.Email</p>
+            <a asp-action="EditarPerfil" asp-controller="Perfil" class="btn btn-light mt-4 px-4 py-2">
+                <i class="bi bi-pencil-square me-2"></i>Editar Mi Perfil
+            </a>
+        </header>
+
+        var camposFaltantes = new List<string>();
+        if (string.IsNullOrWhiteSpace(Model.Telefono)) { camposFaltantes.Add("Teléfono"); }
+        if (string.IsNullOrWhiteSpace(Model.Pais)) { camposFaltantes.Add("País"); }
+        if (string.IsNullOrWhiteSpace(Model.Provincia)) { camposFaltantes.Add("Provincia"); }
+        if (Model.Idiomas == null || !Model.Idiomas.Any()) { camposFaltantes.Add("Idiomas"); }
+        if (Model.Habilidades == null || !Model.Habilidades.Any()) { camposFaltantes.Add("Habilidades"); }
+
+        @if (camposFaltantes.Any())
+        {
+            <div class="alert alert-info alert-dismissible fade show shadow-sm mb-4" role="alert">
+                <h5 class="alert-heading"><i class="bi bi-info-circle-fill me-2"></i>¡Perfil casi completo!</h5>
+                <p>Te recomendamos completar: <strong>@string.Join(", ", camposFaltantes).</strong></p>
+                <a asp-action="EditarPerfil" asp-controller="Perfil" class="btn btn-light border btn-sm fw-bold stretched-link">
+                    <i class="bi bi-pencil me-1"></i>Completar ahora
+                </a>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row g-4">
+            <div class="col-lg-5 col-xl-4">
+                <div class="card shadow-sm border-light section-card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-person-vcard fs-4 me-2 section-card-title-icon"></i>
+                        <h5 class="mb-0 text-dark">Detalles de Contacto y Ubicación</h5>
+                    </div>
+                    <div class="card-body card-profile-details">
                         <ul class="list-group list-group-flush">
-                            @foreach (var idioma in Model.Idiomas)
+                            <li class="list-group-item">
+                                <i class="bi bi-telephone-fill me-2"></i>
+                                <strong class="text-secondary">Teléfono:</strong>
+                                <span class="float-end">@(string.IsNullOrWhiteSpace(Model.Telefono) ? "No especificado" : Model.Telefono)</span>
+                            </li>
+                            @if (Model.Fecha_Nacimiento.HasValue)
                             {
-                                <li class="list-group-item">@idioma</li>
+                                <li class="list-group-item">
+                                    <i class="bi bi-calendar-event-fill me-2"></i>
+                                    <strong class="text-secondary">Nacimiento:</strong>
+                                    <span class="float-end">@Model.Fecha_Nacimiento.Value.ToString("dd MMM, yyyy")</span>
+                                </li>
                             }
+                            <li class="list-group-item">
+                                <i class="bi bi-flag-fill me-2"></i>
+                                <strong class="text-secondary">País:</strong>
+                                <span class="float-end">@(string.IsNullOrWhiteSpace(Model.Pais) ? "No especificado" : Model.Pais)</span>
+                            </li>
+                            <li class="list-group-item">
+                                <i class="bi bi-map-fill me-2"></i>
+                                <strong class="text-secondary">Provincia:</strong>
+                                <span class="float-end">@(string.IsNullOrWhiteSpace(Model.Provincia) ? "No especificado" : Model.Provincia)</span>
+                            </li>
                         </ul>
-                    }
-                    else
-                    {
-                        <span class="text-danger">No especificado</span>
-                    }
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h4>Habilidades</h4>
-                </div>
-                <div class="card-body">
-                    @if (Model.Habilidades != null && Model.Habilidades.Any())
-                    {
-                        <ul class="list-group list-group-flush">
-                            @foreach (var habilidad in Model.Habilidades)
+
+            <div class="col-lg-7 col-xl-8">
+                <div class="card shadow-sm mb-4 border-light section-card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-translate fs-4 me-2 section-card-title-icon"></i>
+                        <h5 class="mb-0 text-dark">Idiomas</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Idiomas != null && Model.Idiomas.Any())
+                        {
+                            foreach (var idioma in Model.Idiomas)
                             {
-                                <li class="list-group-item">@habilidad</li>
+                                <span class="badge badge-language me-2 mb-2">@idioma</span>
                             }
-                        </ul>
-                    }
-                    else
-                    {
-                        <span class="text-danger">No especificado</span>
-                    }
+                        }
+                        else
+                        {
+
+                            <p class="text-muted fst-italic mb-0">No hay idiomas especificados.</p>
+                        }
+                    </div>
                 </div>
+
+                <div class="card shadow-sm mb-4 border-light section-card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-award-fill fs-4 me-2 section-card-title-icon"></i>
+                        <h5 class="mb-0 text-dark">Habilidades</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Habilidades != null && Model.Habilidades.Any())
+                        {
+                            foreach (var habilidad in Model.Habilidades)
+                            {
+                                <span class="badge badge-skill me-2 mb-2">@habilidad</span>
+                            }
+                        }
+                        else
+                        {
+
+                            <p class="text-muted fst-italic mb-0">No hay habilidades especificadas.</p>
+                        }
+                    </div>
+                </div>
+
+                @* Aquí puedes añadir más tarjetas para Formación Académica, Experiencia, etc. con un estilo similar *@
             </div>
         </div>
-    </div>
-}
+    }
+</div>
+
+@* Asegúrate de tener Bootstrap y Bootstrap Icons en tu _Layout.cshtml *@

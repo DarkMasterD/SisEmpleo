@@ -14,6 +14,9 @@ public class Idioma_Curriculum
     [ForeignKey("id_curriculum")]
     public virtual Curriculum Curriculum { get; set; }
 
+    [ForeignKey("id_institucion")] // Añade esta propiedad de navegación
+    public virtual Institucion Institucion { get; set; }
+
     [ForeignKey("id_idioma")]
     public virtual Idioma Idioma { get; set; }
 }

@@ -1,31 +1,257 @@
 ﻿@{
     ViewData["Title"] = "Distribución de Ofertas por País";
+    Layout = null;
 }
 
-<div class="container py-3">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h2 class="h5 mb-0">
-                <i class="fas fa-chart-bar me-2"></i> @ViewData["Title"]
-            </h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - SisEmpleo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: var(--card-shadow);
+            flex-shrink: 0;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .data-summary {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            min-width: 160px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
+            flex: 1;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-top: 5px solid var(--primary-color);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .chart-actions .btn {
+            margin-left: 0.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        #barChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .no-data-alert {
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff8e1;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+            margin: auto;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .back-button:hover {
+                transform: scale(1.1);
+                background-color: #2980b9;
+            }
+
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.3rem;
+            }
+
+            .summary-card {
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+
+            .summary-value {
+                font-size: 1.2rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header text-center">
+        <div class="container">
+            <h1 class="dashboard-title"><i class="fas fa-globe-americas me-2"></i>Distribución por País</h1>
+            <p class="dashboard-subtitle">Análisis de ofertas laborales por país de origen</p>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="data-summary">
+            <div class="summary-card">
+                <div class="summary-label">Total Ofertas</div>
+                <div class="summary-value" id="totalOfertas">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Países Registrados</div>
+                <div class="summary-value" id="totalPaises">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Promedio por País</div>
+                <div class="summary-value" id="promedioOfertas">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">País con Más Ofertas</div>
+                <div class="summary-value" id="paisTop" style="font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">N/A</div>
+            </div>
         </div>
 
-        <div class="card-body">
-            <div id="chartContainer">
-                <div id="barChart" style="height: 60vh;"></div>
-                <div class="text-end small text-muted mt-2">
-                    Actualizado: <span id="lastUpdate"></span>
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">Distribución de Ofertas por País</h2>
+                <div class="chart-actions">
+                    <button class="btn btn-outline-primary" onclick="downloadChart()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
                 </div>
+            </div>
+
+            <div class="chart-container">
+                <div id="barChart"></div>
+            </div>
+
+            <div class="text-end small text-muted mt-2">
+                Actualizado: <span id="lastUpdate"></span>
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    <!-- librerías esenciales -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/es.min.js"></script>
+    <div class="back-button" onclick="window.history.back()">
+        <i class="fas fa-arrow-left fa-lg"></i>
+    </div>
 
     <script>
         $(document).ready(function () {
@@ -33,68 +259,156 @@
         });
 
         function loadData() {
+            // Mostrar estado de carga
+            $('#barChart').html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Cargando datos...</p></div>');
+
             $.ajax({
-                url: '@Url.Action("GetOfertasPorPaisData", "OfertaEmpleos")',
+                url: '@Url.Action("GetOfertasPorPaisData", "Graficos")',
                 type: 'GET',
                 dataType: 'json',
                 success: function (response) {
                     if (response && Array.isArray(response)) {
                         renderChart(response);
                     } else if (response && response.warning) {
-                        // Mostrar mensaje si no hay datos
-                        $('#barChart').html(`<div class="alert alert-warning">${response.warning}</div>`);
+                        showNoDataMessage(response.warning);
+                    } else if (response && response.error) {
+                        showErrorMessage(response.error, response.details);
                     }
                 },
                 error: function (xhr) {
-                    console.error("Error al cargar datos:", xhr.statusText);
-                    $('#barChart').html('<div class="alert alert-danger">Error al cargar los datos</div>');
+                    showErrorMessage("Error al cargar datos", xhr.statusText);
                 }
             });
         }
 
         function renderChart(data) {
-            // Ordenar datos por porcentaje descendente
-            data.sort((a, b) => b.porcentaje - a.porcentaje);
+            // Calcular métricas para el resumen
+            const totalOfertas = data.reduce((sum, item) => sum + item.cantidad, 0);
+            const totalPaises = data.length;
+            const promedio = totalPaises > 0 ? (totalOfertas / totalPaises).toFixed(1) : 0;
+            const paisTop = totalPaises > 0 ? data[0].pais : "N/A";
+
+            // Actualizar tarjetas de resumen
+            $('#totalOfertas').text(totalOfertas);
+            $('#totalPaises').text(totalPaises);
+            $('#promedioOfertas').text(promedio);
+            $('#paisTop').text(paisTop).attr('title', paisTop);
+
+            // Ordenar datos por cantidad descendente
+            data.sort((a, b) => b.cantidad - a.cantidad);
 
             const paises = data.map(item => item.pais);
-            const porcentajes = data.map(item => item.porcentaje);
             const cantidades = data.map(item => item.cantidad);
 
             // Texto para hover
             const hoverText = data.map(item =>
-                `${item.pais}<br>${item.porcentaje.toFixed(1)}% (${item.cantidad} ofertas)`);
+                `<b>${item.pais}</b><br>${item.cantidad} ofertas (${item.porcentaje.toFixed(1)}%)`);
 
             const trace = {
                 x: paises,
-                y: porcentajes,
+                y: cantidades,
                 text: hoverText,
+                hoverinfo: 'text',
                 type: 'bar',
                 marker: {
-                    color: 'rgba(66, 133, 244, 0.7)',
+                    color: generateColorGradient(data.length, [52, 152, 219], [23, 165, 230]),
                     line: {
-                        color: 'rgba(66, 133, 244, 1)',
+                        color: 'rgba(52, 152, 219, 1)',
                         width: 1.5
                     }
                 }
             };
 
             const layout = {
-                title: 'Porcentaje de Ofertas por País',
                 xaxis: {
                     title: 'País',
-                    tickangle: -45
+                    tickangle: -45,
+                    tickfont: { size: 12 }
                 },
                 yaxis: {
-                    title: 'Porcentaje (%)',
-                    ticksuffix: '%'
+                    title: 'Número de Ofertas',
+                    tickformat: ',d',
+                    gridcolor: 'rgba(0,0,0,0.05)'
                 },
-                margin: { t: 40, l: 60, r: 30, b: 100 }
+                margin: { t: 10, l: 60, r: 30, b: 120 },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: {
+                    family: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+                },
+                hoverlabel: {
+                    bgcolor: 'rgba(0,0,0,0.8)',
+                    font: { color: 'white' }
+                }
             };
 
-            Plotly.newPlot('barChart', [trace], layout);
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['toImage'],
+                displaylogo: false
+            };
 
-            // Actualizar marca de tiempo
-            $('#lastUpdate').text(moment().format('LLL'));
+            // Limpiar el contenedor antes de renderizar
+            $('#barChart').empty();
+
+            Plotly.newPlot('barChart', [trace], layout, config)
+                .then(function() {
+                    $('#lastUpdate').text(moment().format('LL [a las] h:mm a'));
+                })
+                .catch(function(err) {
+                    console.error("Error al renderizar gráfico:", err);
+                    showErrorMessage("Error al mostrar el gráfico", err.message);
+                });
+        }
+
+        function generateColorGradient(count, startRGB, endRGB) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                const ratio = i / Math.max(1, count - 1);
+                const r = Math.floor(startRGB[0] * (1 - ratio) + endRGB[0] * ratio);
+                const g = Math.floor(startRGB[1] * (1 - ratio) + endRGB[1] * ratio);
+                const b = Math.floor(startRGB[2] * (1 - ratio) + endRGB[2] * ratio);
+                colors.push(`rgba(${r}, ${g}, ${b}, 0.7)`);
+            }
+            return colors;
+        }
+
+        function showNoDataMessage(message) {
+            $('#barChart').html(`<div class="no-data-alert">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #ffc107;"></i>
+                <h4>No hay datos disponibles</h4>
+                <p>${message}</p>
+            </div>`);
+            $('#lastUpdate').text(moment().format('LL [a las] h:mm a'));
+        }
+
+        function showErrorMessage(error, details) {
+            $('#barChart').html(`<div class="alert alert-danger">
+                <i class="fas fa-times-circle fa-2x mb-3"></i>
+                <h4>${error}</h4>
+                ${details ? `<p class="small">${details}</p>` : ''}
+            </div>`);
+            $('#lastUpdate').text(moment().format('LL [a las] h:mm a'));
+        }
+
+        function downloadChart() {
+            Plotly.toImage('barChart', {
+                format: 'png',
+                width: 1200,
+                height: 800,
+                scale: 2
+            }).then(function(dataUrl) {
+                const link = document.createElement('a');
+                link.download = 'Ofertas-por-Pais-' + moment().format('YYYY-MM-DD') + '.png';
+                link.href = dataUrl;
+                link.click();
+            }).catch(function(err) {
+                console.error("Error al exportar:", err);
+                alert("Error al generar la imagen. Consulte la consola para más detalles.");
+            });
         }
     </script>
-}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

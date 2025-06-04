@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var tipoUsuario = ViewBag.TipoUsuario ?? Model?.TipoUsuario as string;
+}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -81,6 +84,21 @@
                 transform: translateY(-2px);
             }
 
+        .btn-analisis {
+            background-color: #10B981; /* Verde esmeralda */
+            border: none;
+            color: #FFFFFF;
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+            .btn-analisis:hover {
+                background-color: #0F9E6A; /* Un tono más oscuro al pasar el mouse */
+                transform: translateY(-2px);
+            }
+
         .notification-badge {
             position: relative;
             display: inline-block;
@@ -151,7 +169,7 @@
                 <img src="/img/logo.png"> Workeen
             </a>
             <div class="d-flex align-items-center">
-                @if (Model != null && Model.TipoUsuario == "P")
+                @if (tipoUsuario == "P")
                 {
                     <a href="/Home/Notificaciones" class="notification-badge me-3">
                         <i class="bi bi-bell"></i>
@@ -160,10 +178,13 @@
                     <a href="/Perfil/Index" class="btn btn-profile me-2">Mi Perfil</a>
                     <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
                 }
-                else if (Model != null && Model.TipoUsuario == "E")
+                else if (tipoUsuario == "E")
                 {
                     <a href="/OfertaEmpleoEmpresa/NuevaOferta" class="btn btn-post-offer me-2">Publicar Oferta</a>
                     <a href="/Perfil/IndexEmpresa" class="btn btn-profile me-2">Mi Perfil</a>
+                    <a asp-controller="AnalisisEmpresarial" asp-action="AnalisisEmpresarial" class="btn btn-analisis me-2">
+                        Análisis Empresarial
+                    </a>
                     <a href="/Login/LogOut" class="btn btn-logout">Cerrar Sesión</a>
                 }
             </div>
@@ -175,9 +196,31 @@
         @RenderBody()
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            © 2025 - SisEmpleo - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="footer mt-auto border-top">
+        <div class="container py-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <a class="navbar-brand" href="/" style="color: #fff; font-size: 1.25rem;">
+                    </a>
+                    <p class="small mb-0 mt-2" style="color: rgba(255,255,255,0.7);">
+                        &copy; @DateTime.Now.Year Workeen. Todos los derechos reservados.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <ul class="list-inline mb-0">
+                        <li class="list-inline-item">
+                            <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footer-link">Política de Privacidad</a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="footer-link">Términos de Uso</a> 
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="footer-link">Contacto</a> 
+                        </li>
+                    </ul>
+                    
+                </div>
+            </div>
         </div>
     </footer>
 

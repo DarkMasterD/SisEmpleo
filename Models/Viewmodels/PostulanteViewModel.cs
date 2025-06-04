@@ -18,28 +18,27 @@
         public List<string> Idiomas { get; set; }
         public List<string> Habilidades { get; set; }
 
+
         public List<FormacionAcademicaViewModel> FormacionAcademica { get; set; }
         public List<ExperienciaViewModel> Experiencias { get; set; }
         public List<CertificacionViewModel> Certificaciones { get; set; }
 
-        public double AniosExperiencia { get; set; } // Nueva propiedad para filtrar
-       
-
-
+        public double AniosExperiencia { get; set; } // Nueva propiedad para filtra
 
         public List<string> Responsabilidades { get; set; } = new List<string>();
 
         [Newtonsoft.Json.JsonIgnore] // Para no serializar en otros casos
         public Dictionary<string, double> ExperienciaPorResponsabilidad { get; set; }
-
-
-
-
     }
 
     public class ResponsabilidadViewModel
     {
         public string Nombre { get; set; }
         public double DuracionTotalAnios { get; set; }
+
+        public List<FormacionAcademicaViewModel> FormacionesAcademicas { get; set; } = new List<FormacionAcademicaViewModel>();
+        public List<ExperienciaViewModel> Experiencias { get; set; } = new List<ExperienciaViewModel>();
+        public List<CertificacionViewModel> Certificaciones { get; set; } = new List<CertificacionViewModel>();
+
     }
 }

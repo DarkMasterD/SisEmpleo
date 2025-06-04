@@ -1,173 +1,265 @@
-﻿@model dynamic
+﻿@model dynamic 
 @{
-    ViewData["Title"] = "Detalles de la Oferta";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = ViewBag.Oferta != null ? ViewBag.Oferta.Titulo : "Detalle de Oferta";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Asumiendo que tienes tu layout principal aquí
+
+    var oferta = ViewBag.Oferta;
+    var horarioLista = ViewBag.Horario as List<Dictionary<string, string>>;
+    var requisitosLista = ViewBag.Requisitos as List<string>;
+    bool yaPostulado = ViewBag.HasApplied ?? false;
+
+    // Colores para consistencia
+    string colorPrimario = "#1E3A8A"; // Tu azul
+    string colorAcento = "#F97316";   // Tu naranja
 }
 
 @section Styles {
-    <style>
-        body {
-            background-color: #F4F6F9;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #333;
-        }
+<style>
+    .offer-details-page {
+        background-color: #f8f9fa; /* Un fondo gris muy claro para la página */
+        padding-bottom: 3rem;
+    }
 
-        .offer-section {
-            padding: 3rem 2rem;
-            background-color: #FFFFFF;
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            max-width: 800px;
-            margin: 2rem auto;
-        }
+    .offer-header {
+        background: linear-gradient(135deg, @(colorPrimario) 20%, @(colorAcento) 100%);
+        color: white;
+        padding: 2.5rem 1.5rem;
+        border-radius: .75rem;
+        margin-bottom: 2.5rem;
+        text-align: center;
+    }
 
-            .offer-section h2 {
-                color: #1E3A8A;
-                font-weight: 700;
-                margin-bottom: 1.5rem;
-                font-size: 2rem;
-            }
+    .offer-header h1 {
+        font-size: 2.8rem;
+        font-weight: 700;
+    }
 
-            .offer-section p {
-                color: #6B7280;
-                font-size: 1rem;
-                margin: 0.5rem 0;
-                line-height: 1.6;
-            }
+    .offer-header .empresa-name {
+        font-size: 1.5rem;
+        font-weight: 500;
+        opacity: 0.9;
+    }
+    .offer-header .publish-date {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
 
-                .offer-section p strong {
-                    color: #374151;
-                }
+    .offer-card {
+        background-color: white;
+        border-radius: .75rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.075);
+        margin-bottom: 2rem;
+        border: none;
+    }
+    .offer-card .card-header {
+        background-color: transparent;
+        border-bottom: 1px solid #e9ecef;
+        padding: 1rem 1.5rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: @colorPrimario;
+    }
+    .offer-card .card-header i {
+        color: @colorAcento;
+    }
+    .offer-card .card-body {
+        padding: 1.5rem;
+        color: #495057; /* Texto principal más oscuro */
+    }
+    .offer-card .card-body p, .offer-card .card-body li {
+        margin-bottom: 0.6rem;
+        line-height: 1.7;
+    }
+    .offer-card .card-body strong {
+        color: #343a40; /* Color para los 'strong' */
+    }
 
-            .offer-section .btn-apply {
-                background-color: #F97316;
-                border: none;
-                color: #FFFFFF;
-                padding: 0.8rem 2rem;
-                font-weight: 600;
-                border-radius: 8px;
-                font-size: 1rem;
-                transition: background-color 0.3s ease, transform 0.2s ease;
-                margin-top: 1.5rem;
-            }
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    .schedule-table th, .schedule-table td {
+        padding: .75rem; text-align: left; border-bottom: 1px solid #dee2e6;
+    }
+    .schedule-table th { background-color: #f8f9fa; font-weight: 600; }
 
-                .offer-section .btn-apply:hover {
-                    background-color: #E86100;
-                    transform: translateY(-2px);
-                }
-
-                .offer-section .btn-apply:disabled {
-                    background-color: #6B7280;
-                    cursor: not-allowed;
-                }
-
-            .offer-section .schedule-table {
-                width: 100%;
-                margin-top: 1rem;
-                border-collapse: collapse;
-            }
-
-                .offer-section .schedule-table th,
-                .offer-section .schedule-table td {
-                    padding: 0.75rem;
-                    text-align: left;
-                    border-bottom: 1px solid #E5E7EB;
-                }
-
-                .offer-section .schedule-table th {
-                    background-color: #F9FAFB;
-                    color: #374151;
-                    font-weight: 600;
-                }
-
-        .alert {
-            margin-top: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-        }
-
-        .alert-success {
-            background-color: #D1FAE5;
-            color: #065F46;
-        }
-
-        .alert-danger {
-            background-color: #FEE2E2;
-            color: #991B1B;
-        }
-    </style>
+    .btn-apply-offer {
+        background-color: @colorAcento;
+        border-color: @colorAcento;
+        color: white;
+        font-weight: 600;
+        padding: .75rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 50px; /* Botón más redondeado */
+        transition: all 0.3s ease;
+    }
+    .btn-apply-offer:hover {
+        background-color: darken(@colorAcento, 10%);
+        border-color: darken(@colorAcento, 10%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+     .btn-apply-offer:disabled {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+    }
+    #alertContainer .alert { margin-top: 1.5rem; }
+</style>
 }
 
-<section class="offer-section">
-    <h2>@ViewBag.Oferta.Titulo</h2>
-    <p><strong>Empresa:</strong> @ViewBag.Oferta.Nombre_Empresa</p>
-    <p><strong>Ubicación:</strong> @ViewBag.Oferta.Ubi_Pro, @ViewBag.Oferta.Ubi_Pais</p>
-    <p><strong>Salario:</strong> $@ViewBag.Oferta.Salario</p>
-    <p><strong>Vacantes:</strong> @ViewBag.Oferta.Vacantes</p>
-    <p><strong>Duración del Contrato:</strong> @ViewBag.Oferta.Duracion_Contrato</p>
-    <p><strong>Fecha de Publicación:</strong> @ViewBag.Oferta.Fecha_Publicacion.ToString("dd/MM/yyyy")</p>
-    <p><strong>Descripción:</strong> @ViewBag.Oferta.Descripcion</p>
-
-    <h3>Requisitos</h3>
-    <ul>
-        @foreach (var requisito in ViewBag.Requisitos)
+<div class="offer-details-page pt-4">
+    <div class="container">
+        @if (oferta == null)
         {
-            <li>@requisito</li>
+            <div class="alert alert-danger text-center">Oferta no encontrada o ya no está disponible.</div>
         }
-    </ul>
+        else
+        {
+            @Html.AntiForgeryToken()
+            <header class="offer-header">
+                <h1 class="mb-2">@oferta.Titulo</h1>
+                <p class="empresa-name mb-1"><i class="bi bi-building me-2"></i>@oferta.Nombre_Empresa</p>
+                <p class="publish-date">Publicado el: @oferta.Fecha_Publicacion.ToString("dd 'de' MMMM, yyyy")</p>
+            </header>
 
-    <h3>Horario</h3>
-    <table class="schedule-table">
-        <thead>
-            <tr>
-                <th>Día</th>
-                <th>Horario 1</th>
-                <th>Horario 2</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var horario in ViewBag.Horario)
-            {
-                <tr>
-                    <td>@horario["Dia"]</td>
-                    <td>@horario["Horario1"]</td>
-                    <td>@horario["Horario2"]</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+            <div id="alertContainer" class="mb-3"></div>
 
-    <div id="alertContainer"></div>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card offer-card">
+                        <div class="card-header"><i class="bi bi-file-text-fill me-2"></i>Descripción de la Oferta</div>
+                        <div class="card-body">
+                            <p>@Html.Raw(oferta.Descripcion?.Replace("\n", "<br />"))</p>
+                        </div>
+                    </div>
 
-    @if (ViewBag.HasApplied)
-    {
-        <button class="btn-apply" disabled>Ya te has postulado</button>
-    }
-    else
-    {
-        <button class="btn-apply" onclick="postularse(@ViewBag.Oferta.Id)">Postularse</button>
-    }
-</section>
+                    <div class="card offer-card">
+                        <div class="card-header"><i class="bi bi-list-check me-2"></i>Requisitos</div>
+                        <div class="card-body">
+                            @if (requisitosLista != null && requisitosLista.Any())
+                            {
+                                <ul class="list-unstyled">
+                                    @foreach (var requisito in requisitosLista)
+                                    {
+                                        <li><i class="bi bi-check-circle-fill text-success me-2"></i>@requisito</li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted fst-italic">No se especificaron requisitos de habilidades.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card offer-card">
+                         <div class="card-header"><i class="bi bi-briefcase-fill me-2"></i>Resumen del Puesto</div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item"><i class="bi bi-geo-alt-fill me-2"></i><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</li>
+                            <li class="list-group-item"><i class="bi bi-cash-coin me-2"></i><strong>Salario:</strong> $@oferta.Salario.ToString("N2")</li>
+                            <li class="list-group-item"><i class="bi bi-people-fill me-2"></i><strong>Vacantes:</strong> @oferta.Vacantes</li>
+                            <li class="list-group-item"><i class="bi bi-calendar-range-fill me-2"></i><strong>Contrato:</strong> @oferta.Duracion_Contrato</li>
+                        </ul>
+                        <div class="card-body text-center">
+                             @if (yaPostulado)
+                            {
+                                <button class="btn btn-apply-offer w-100" disabled><i class="bi bi-check-circle-fill me-2"></i>Ya Postulaste</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-apply-offer w-100" onclick="postularse(@oferta.Id)">
+                                    <i class="bi bi-send-check-fill me-2"></i>Postularme Ahora
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    
+                    @if (horarioLista != null && horarioLista.Any())
+                    {
+                        <div class="card offer-card mt-4">
+                            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Horario de Trabajo</div>
+                            <div class="card-body p-0"> @* Quitar padding para que la tabla ocupe todo *@
+                                <table class="table schedule-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Día</th>
+                                            <th>Turno 1</th>
+                                            <th>Turno 2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var horario in horarioLista)
+                                        {
+                                            <tr>
+                                                <td>@horario["Dia"]</td>
+                                                <td>@horario["Horario1"]</td>
+                                                <td>@horario["Horario2"]</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
 
 @section Scripts {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script>
         function postularse(id_ofertaempleo) {
+            var $btnPostular = $('.btn-apply-offer');
+            var $alertContainer = $('#alertContainer');
+            $alertContainer.empty(); // Limpiar alertas previas
+
+            $btnPostular.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Procesando...');
+
             $.ajax({
-                url: '/OfertaEmpleoPostulante/PostularseOferta',
+                url: '@Url.Action("PostularseOferta", "OfertaEmpleoPostulante")',
                 type: 'POST',
-                data: { id_ofertaempleo: id_ofertaempleo },
-                success: function (response) {
-                    var alertClass = response.success ? 'alert-success' : 'alert-danger';
-                    $('#alertContainer').html(`<div class="alert ${alertClass}">${response.message}</div>`);
-                    if (response.success) {
-                        $('.btn-apply').prop('disabled', true).text('Ya te has postulado');
-                    }
-                    setTimeout(() => $('#alertContainer').empty(), 5000);
+                data: {
+                    id_ofertaempleo: id_ofertaempleo,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val() // CORRECTO
                 },
-                error: function () {
-                    $('#alertContainer').html('<div class="alert alert-danger">Error al procesar la postulación.</div>');
-                    setTimeout(() => $('#alertContainer').empty(), 5000);
+                success: function (response) {
+                    var alertClass = response.success ? 'alert-success' : 'alert-warning'; // Usar warning para errores no críticos
+                    var icon = response.success ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+                    
+                    $alertContainer.html(
+                        `<div class="alert ${alertClass} alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="bi ${icon} me-2"></i>
+                            ${response.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    );
+
+                    if (response.success) {
+                        $btnPostular.html('<i class="bi bi-check-circle-fill me-2"></i>Ya Postulaste');
+                        // No deshabilitar si ya lo está, solo cambiar texto si es la primera vez.
+                    } else {
+                        $btnPostular.prop('disabled', false).html('<i class="bi bi-send-check-fill me-2"></i>Postularme Ahora');
+                        if (response.redirectTo) {
+                            // Opcional: Añadir un botón en la alerta para redirigir
+                            $alertContainer.find('.alert').append(
+                                `<hr class="my-2"><a href="${response.redirectTo}" class="btn btn-sm btn-primary">Ir a Mi Perfil</a>`
+                            );
+                        }
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("Error AJAX:", textStatus, errorThrown, jqXHR.responseText);
+                    $alertContainer.html(
+                         `<div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                            <i class="bi bi-shield-fill-exclamation me-2"></i>
+                            Error al procesar la postulación. Intente más tarde.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>`
+                    );
+                    $btnPostular.prop('disabled', false).html('<i class="bi bi-send-check-fill me-2"></i>Postularme Ahora');
                 }
             });
         }

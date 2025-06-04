@@ -7,5 +7,7 @@ namespace SisEmpleo.Models
         [Key]
         public int id_especialidad {  get; set; }
         public string? nombre { get; set; }
+
+        public virtual ICollection<Titulo> Titulos { get; set; } = new List<Titulo>();
     }
 }
