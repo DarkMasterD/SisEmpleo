@@ -47,7 +47,7 @@ namespace SisEmpleo.Models
             modelBuilder.Entity<ExperienciaProfesional>(entity =>
             {
                 entity.HasOne(e => e.Curriculum)
-                    .WithMany()
+                    .WithMany(c => c.ExperienciasProfesionales)
                     .HasForeignKey(e => e.id_curriculum);
 
                 entity.HasOne(e => e.Puesto)

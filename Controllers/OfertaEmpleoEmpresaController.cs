@@ -487,6 +487,12 @@ namespace SisEmpleo.Controllers
             {
                 ViewBag.Error = "Error al cargar los postulantes";
                 ViewBag.DebugInfo = ex.Message;
+
+                // Inicializa vacíos para evitar NullReferenceException en la vista
+                ViewBag.Habilidades = new SelectList(Enumerable.Empty<string>());
+                ViewBag.Responsabilidades = new SelectList(Enumerable.Empty<string>());
+                ViewBag.ExperienciaFiltro = new SelectList(Enumerable.Empty<string>());
+                ViewData["Postulantes"] = new List<PostulanteViewModel>();
                 return View();
             }
         }
