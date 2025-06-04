@@ -18,7 +18,7 @@
         public List<string> Idiomas { get; set; }
         public List<string> Habilidades { get; set; }
 
-
+        public List<FormacionAcademicaViewModel> FormacionesAcademicas { get; set; }
         public List<FormacionAcademicaViewModel> FormacionAcademica { get; set; }
         public List<ExperienciaViewModel> Experiencias { get; set; }
         public List<CertificacionViewModel> Certificaciones { get; set; }
