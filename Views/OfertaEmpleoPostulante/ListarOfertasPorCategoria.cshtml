@@ -6,156 +6,289 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-
 @section Styles {
     <style>
+        :root {
+            --primary-color: #1E3A8A;
+            --secondary-color: #F97316;
+            --light-gray: #F4F6F9;
+            --medium-gray: #E5E7EB;
+            --dark-gray: #6B7280;
+            --text-color: #374151;
+        }
+
         body {
-            background-color: #F4F6F9;
-            margin: 0;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            color: #333;
+            background-color: var(--light-gray);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         .jobs-section {
-            padding: 5rem 2rem;
-            background-color: #FFFFFF;
-            min-height: 100vh;
+            padding: 3rem 1.5rem;
+            background-color: white;
         }
 
-            .jobs-section h2 {
-                color: #1E3A8A;
-                font-weight: 700;
-                margin-bottom: 3rem;
-                text-align: center;
+        .jobs-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+            .jobs-header h2 {
+                color: var(--primary-color);
+                font-weight: 800;
                 font-size: 2.5rem;
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+                margin-bottom: 1rem;
+                background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
             }
 
+            .jobs-header p {
+                color: var(--dark-gray);
+                max-width: 700px;
+                margin: 0 auto;
+            }
+
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
         .job-card {
-            background-color: #FFFFFF;
-            border-radius: 15px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            padding: 1.8rem;
-            margin-bottom: 2rem;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid var(--medium-gray);
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            flex-direction: column;
         }
 
             .job-card:hover {
-                transform: translateY(-8px);
-                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+                border-color: var(--secondary-color);
             }
 
-            .job-card h3 {
-                color: #1E3A8A;
-                font-size: 1.4rem;
-                font-weight: 600;
-                margin-bottom: 0.75rem;
-            }
-
-                .job-card h3 a {
-                    color: #1E3A8A;
-                    text-decoration: none;
-                    transition: color 0.3s ease;
-                }
-
-                    .job-card h3 a:hover {
-                        color: #F97316;
-                        text-decoration: underline;
-                    }
-
-            .job-card p {
-                color: #6B7280;
-                font-size: 1rem;
-                margin: 0.3rem 0;
-                line-height: 1.5;
-            }
-
-                .job-card p strong {
-                    color: #374151;
-                }
-
-            .job-card .details span {
-                margin-right: 1.2rem;
-                color: #374151;
-                font-size: 0.95rem;
-            }
-
-            .job-card .btn-details {
-                background-color: #F97316;
-                border: none;
-                color: #FFFFFF;
-                padding: 0.6rem 1.8rem;
-                font-weight: 600;
-                border-radius: 8px;
-                text-decoration: none;
-                font-size: 0.95rem;
-                transition: background-color 0.3s ease, transform 0.2s ease;
-            }
-
-                .job-card .btn-details:hover {
-                    background-color: #E86100;
-                    transform: translateY(-2px);
-                }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .job-card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
+
+        .job-card-header {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--medium-gray);
+            padding-bottom: 1rem;
+        }
+
+        .job-card h3 {
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+
+            .job-card h3 a {
+                color: inherit;
+                text-decoration: none;
+                transition: color 0.2s;
+            }
+
+                .job-card h3 a:hover {
+                    color: var(--secondary-color);
+                }
+
+        .job-card-company {
+            color: var(--dark-gray);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+            .job-card-company i {
+                color: var(--secondary-color);
+            }
+
+        .job-card-location {
+            color: var(--dark-gray);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .job-card-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .job-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .job-detail i {
+                color: var(--secondary-color);
+                width: 1.25rem;
+                text-align: center;
+            }
+
+        .job-card-footer {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--medium-gray);
+        }
+
+        .job-date {
+            color: var(--dark-gray);
+            font-size: 0.85rem;
+        }
+
+        .btn-details {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+            .btn-details:hover {
+                background-color: #E86100;
+                transform: translateY(-2px);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
 
         .no-offers {
             text-align: center;
-            color: #6B7280;
-            font-size: 1.2rem;
-            margin-top: 2rem;
+            padding: 3rem;
+            color: var(--dark-gray);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
+
+            .no-offers i {
+                font-size: 2rem;
+                color: var(--secondary-color);
+                margin-bottom: 1rem;
+            }
 
         .alert-danger {
             background-color: #FEE2E2;
             color: #991B1B;
             padding: 1rem;
             border-radius: 8px;
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #DC2626;
+        }
+
+        @@media (max-width: 768px) {
+            .jobs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .jobs-header h2 {
+                font-size: 2rem;
+            }
         }
     </style>
 }
 
 <section class="jobs-section">
-    <h2>@(ViewBag.CategoriaNombre != null ? $"Ofertas en {ViewBag.CategoriaNombre}" : "Todas las Ofertas de Empleo")</h2>
     <div class="container">
+        <div class="jobs-header">
+            <h2>@(ViewBag.CategoriaNombre != null ? $"Ofertas en {ViewBag.CategoriaNombre}" : "Explora Oportunidades")</h2>
+            <p>Encuentra el trabajo perfecto para tu perfil profesional</p>
+        </div>
+
         @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
         {
             <div class="alert-danger">@ViewBag.ErrorMessage</div>
         }
+
         @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
         {
-            foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
-            {
-                <div class="job-card">
-                    <div>
-                        <h3>
-                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
-                                @oferta.Titulo
-                            </a>
-                        </h3>
-                        <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
-                        <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
-                        <div class="details">
-                            <span><strong>Salario:</strong> $@String.Format("{0:F2}", oferta.Salario)</span>
-                            <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
-                            <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
-                            <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion.ToString("dd/MM/yyyy")</span>
+            <div class="jobs-grid">
+                @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
+                {
+                    <div class="job-card">
+                        <div class="job-card-content">
+                            <div class="job-card-header">
+                                <h3>
+                                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id = oferta.Id })">
+                                        @oferta.Titulo
+                                    </a>
+                                </h3>
+                                <div class="job-card-company">
+                                    <i class="bi bi-building"></i>
+                                    @oferta.Nombre_Empresa
+                                </div>
+                                <div class="job-card-location">
+                                    <i class="bi bi-geo-alt"></i>
+                                    @oferta.Ubi_Pro, @oferta.Ubi_Pais
+                                </div>
+                            </div>
+
+                            <div class="job-card-details">
+                                <div class="job-detail">
+                                    <i class="bi bi-cash-coin"></i>
+                                    <span>$@String.Format("{0:F2}", oferta.Salario)</span>
+                                </div>
+                                <div class="job-detail">
+                                    <i class="bi bi-people"></i>
+                                    <span>@oferta.Vacantes vacante(s)</span>
+                                </div>
+                                <div class="job-detail">
+                                    <i class="bi bi-clock"></i>
+                                    <span>@oferta.Duracion_Contrato</span>
+                                </div>
+                                <div class="job-detail">
+                                    <i class="bi bi-calendar-check"></i>
+                                    <span>@oferta.Fecha_Publicacion.ToString("dd/MM/yyyy")</span>
+                                </div>
+                            </div>
+
+                            <div class="job-card-footer">
+                                <span class="job-date">Publicado hace @((DateTime.Now - oferta.Fecha_Publicacion).Days) días</span>
+                                <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id = oferta.Id })" class="btn-details">
+                                    <i class="bi bi-eye"></i> Ver detalles
+                                </a>
+                            </div>
                         </div>
                     </div>
-                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
-                </div>
-            }
+                }
+            </div>
         }
         else
         {
-            <p class="no-offers">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
+            <div class="no-offers">
+                <i class="bi bi-briefcase"></i>
+                <h3>No hay ofertas disponibles</h3>
+                <p>Actualmente no tenemos ofertas en esta categoría. ¡Vuelve a revisar más tarde!</p>
+            </div>
         }
     </div>
 </section>
