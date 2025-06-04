@@ -1,0 +1,188 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = ViewBag.CategoriaNombre != null ?
+                       $"Ofertas en {ViewBag.CategoriaNombre}" :
+                       "Lista de Ofertas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section Styles {
+    <style>
+        body {
+            background-color: #F4F6F9;
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #333;
+        }
+
+        .jobs-section {
+            padding: 5rem 2rem;
+            background-color: #FFFFFF;
+            min-height: 100vh;
+        }
+
+            .jobs-section h2 {
+                color: #1E3A8A;
+                font-weight: 700;
+                margin-bottom: 3rem;
+                text-align: center;
+                font-size: 2.5rem;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            }
+
+        .job-card {
+            background-color: #FFFFFF;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .job-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+            }
+
+            .job-card h3 {
+                color: #1E3A8A;
+                font-size: 1.4rem;
+                font-weight: 600;
+                margin-bottom: 0.75rem;
+            }
+
+                .job-card h3 a {
+                    color: #1E3A8A;
+                    text-decoration: none;
+                    transition: color 0.3s ease;
+                }
+
+                    .job-card h3 a:hover {
+                        color: #F97316;
+                        text-decoration: underline;
+                    }
+
+            .job-card p {
+                color: #6B7280;
+                font-size: 1rem;
+                margin: 0.3rem 0;
+                line-height: 1.5;
+            }
+
+                .job-card p strong {
+                    color: #374151;
+                }
+
+            .job-card .details span {
+                margin-right: 1.2rem;
+                color: #374151;
+                font-size: 0.95rem;
+            }
+
+            .job-card .btn-details {
+                background-color: #F97316;
+                border: none;
+                color: #FFFFFF;
+                padding: 0.6rem 1.8rem;
+                font-weight: 600;
+                border-radius: 8px;
+                text-decoration: none;
+                font-size: 0.95rem;
+                transition: background-color 0.3s ease, transform 0.2s ease;
+            }
+
+                .job-card .btn-details:hover {
+                    background-color: #E86100;
+                    transform: translateY(-2px);
+                }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .no-offers {
+            text-align: center;
+            color: #6B7280;
+            font-size: 1.2rem;
+            margin-top: 2rem;
+        }
+
+        .alert-danger {
+            background-color: #FEE2E2;
+            color: #991B1B;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+    </style>
+}
+
+<section class="jobs-section">
+    <h2>@(ViewBag.CategoriaNombre != null ? $"Ofertas en {ViewBag.CategoriaNombre}" : "Todas las Ofertas de Empleo")</h2>
+    <div class="container">
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert-danger">@ViewBag.ErrorMessage</div>
+        }
+        @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
+        {
+            foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
+            {
+                <div class="job-card">
+                    <div>
+                        <h3>
+                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
+                                @oferta.Titulo
+                            </a>
+                        </h3>
+                        <p><strong>Empresa:</strong> @oferta.Nombre_Empresa</p>
+                        <p><strong>Ubicación:</strong> @oferta.Ubi_Pro, @oferta.Ubi_Pais</p>
+                        <div class="details">
+                            <span><strong>Salario:</strong> $@String.Format("{0:F2}", oferta.Salario)</span>
+                            <span><strong>Vacantes:</strong> @oferta.Vacantes</span>
+                            <span><strong>Duración:</strong> @oferta.Duracion_Contrato</span>
+                            <span><strong>Publicado:</strong> @oferta.Fecha_Publicacion.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn-details">Ver Detalles</a>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="no-offers">No hay ofertas disponibles en este momento. Suscríbete a más categorías para ver más opciones.</p>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            VerNoti();
+        });
+
+        setInterval(function () {
+            VerNoti();
+        }, 300000);
+
+        function VerNoti() {
+            $.ajax({
+                url: '/Home/CantNotificaciones',
+                type: 'POST',
+                success: function (data) {
+                    $('#Notificaciones').text(data.cantidad);
+                },
+                error: function () {
+                    console.error("Error al obtener las notificaciones");
+                    $('#Notificaciones').text('0');
+                }
+            });
+        }
+    </script>
+}

@@ -374,5 +374,57 @@ namespace SisEmpleo.Controllers
                 return View("Listar");
             }
         }
+
+        [HttpGet]
+        public IActionResult OfertasPorCategoria(int idCategoria)
+        {
+            var tipoUsuario = HttpContext.Session.GetString("tipo_usuario");
+            if (tipoUsuario != "P")
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            try
+            {
+                // Obtener el nombre de la categoría para mostrar en la vista
+                var categoria = _EmpleoContext.CategoriaProfesional
+                                .FirstOrDefault(c => c.id_categoriaprofesional == idCategoria);
+
+                ViewBag.CategoriaNombre = categoria?.nombre ?? "Categoría Desconocida";
+
+                // Consulta para obtener ofertas filtradas por categoría
+                var ofertas = (from oc in _EmpleoContext.OfertaCategoria
+                               join o in _EmpleoContext.OfertaEmpleo on oc.id_ofertaempleo equals o.id_ofertaempleo
+                               join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
+                               join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
+                               join e in _EmpleoContext.Empresa on o.id_empresa equals e.id_empresa
+                               where oc.id_categoriaprofesional == idCategoria && o.estado == true
+                               orderby o.fecha_publicacion descending
+                               select new
+                               {
+                                   Id = o.id_ofertaempleo,
+                                   Titulo = o.titulo,
+                                   Vacantes = o.vacante,
+                                   Salario = o.salario,
+                                   Duracion_Contrato = o.duracion_contrato,
+                                   Fecha_Publicacion = o.fecha_publicacion,
+                                   Nombre_Empresa = e.nombre,
+                                   Ubi_Pais = p.nombre,
+                                   Ubi_Pro = pro.nombre
+                               }).ToList();
+
+                ViewBag.ofertas = ofertas;
+                ViewBag.TipoUsuario = tipoUsuario;
+
+                return View("Listar"); // Reutilizamos la misma vista
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "Ocurrió un error al cargar las ofertas: " + ex.Message;
+                ViewBag.ofertas = new List<object>();
+                ViewBag.TipoUsuario = tipoUsuario;
+                return View("ListarOfertasPorCategoria");
+            }
+        }
     }
 }
