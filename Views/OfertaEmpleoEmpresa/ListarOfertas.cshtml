@@ -1,7 +1,4 @@
-﻿@{
-}
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -15,8 +12,6 @@
             margin: 0;
             font-family: Arial, sans-serif;
         }
-
-        
 
         .btn-profile {
             background-color: #1E3A8A;
@@ -72,15 +67,6 @@
                     background-color: #152A66;
                 }
 
-            .action-buttons-top .btn-secondary {
-                background-color: #6B7280;
-                border: none;
-            }
-
-                .action-buttons-top .btn-secondary:hover {
-                    background-color: #4B5563;
-                }
-
             .action-buttons-top .btn-info {
                 background-color: #F97316;
                 border: none;
@@ -90,6 +76,116 @@
                     background-color: #E86100;
                 }
 
+        /* Estilos mejorados para el scroll de categorías */
+        .categories-scroll-container {
+            margin: 20px 0;
+            padding: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .categories-title {
+            color: #1E3A8A;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .categories-scroll {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            gap: 12px;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+            justify-content: center;
+            scrollbar-width: none;
+        }
+
+            .categories-scroll::-webkit-scrollbar {
+                display: none;
+            }
+
+        .category-card {
+            flex: 0 0 auto;
+            width: 180px;
+            background: #FFFFFF;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #E5E7EB;
+            text-align: center;
+        }
+
+            .category-card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+                border-color: #1E3A8A;
+            }
+
+            .category-card.active {
+                background-color: #1E3A8A;
+                color: white;
+            }
+
+            .category-card h5 {
+                margin: 0;
+                font-size: 14px;
+                color: inherit;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+        .category-count {
+            font-size: 12px;
+            color: #6B7280;
+            margin-top: 5px;
+        }
+
+        .category-card.active .category-count {
+            color: #E5E7EB;
+        }
+
+        .scroll-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 10;
+            border: none;
+            color: #1E3A8A;
+        }
+
+            .scroll-nav-btn.left {
+                left: -18px;
+            }
+
+            .scroll-nav-btn.right {
+                right: -18px;
+            }
+
+            .scroll-nav-btn:hover {
+                background: #1E3A8A;
+                color: white;
+            }
+
+            .scroll-nav-btn:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+            }
+
+        /* Estilos para el listado de ofertas */
         .ofertas-list-container {
             background: #FFFFFF;
             border-radius: 8px;
@@ -171,8 +267,6 @@
             .ofertas-scrollable::-webkit-scrollbar-thumb:hover {
                 background: #a8a8a8;
             }
-
-       
     </style>
 </head>
 <body>
@@ -183,9 +277,6 @@
             <button type="button" onclick="handleAction('editar')" class="btn btn-primary">
                 <i class="fas fa-edit"></i> Editar Oferta
             </button>
-            <button type="button" onclick="handleAction('categoria')" class="btn btn-secondary">
-                <i class="fas fa-tags"></i> Categoría
-            </button>
             <form id="postulantesForm" asp-action="VerPostulantesEmpresa" method="get">
                 <input type="hidden" name="id_ofertaempleo" id="postulantesOfertaId" />
                 <button type="button" onclick="handleAction('postulantes')" class="btn btn-info">
@@ -194,12 +285,39 @@
             </form>
         </div>
 
+        <!-- Scroll de Categorías Mejorado -->
+        <div class="categories-scroll-container">
+            <h4 class="categories-title">Mis Categorías</h4>
+            <button class="scroll-nav-btn left" onclick="scrollCategories(-1)" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="categories-scroll" id="categoriesScroll">
+                <!-- Categoría "Todas" -->
+                <div class="category-card active" data-category-id="all" onclick="filterByCategory(this, 'all')">
+                    <h5>Todas las ofertas</h5>
+                    <div class="category-count">@(((IEnumerable<dynamic>)ViewData["listOfertas"]).Count()) ofertas</div>
+                </div>
+
+                <!-- Categorías dinámicas -->
+                @foreach (var categoria in (IEnumerable<dynamic>)ViewData["categoriasEmpresa"])
+                {
+                    <div class="category-card" data-category-id="@categoria.Id" onclick="filterByCategory(this, '@categoria.Id')">
+                        <h5>@categoria.Nombre</h5>
+                        <div class="category-count">@categoria.CantidadOfertas ofertas</div>
+                    </div>
+                }
+            </div>
+            <button class="scroll-nav-btn right" onclick="scrollCategories(1)">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
         <div class="ofertas-list-container">
             <h4>Listado de Ofertas</h4>
-            <div class="ofertas-scrollable">
+            <div class="ofertas-scrollable" id="ofertasList">
                 @foreach (var oferta in (IEnumerable<dynamic>)ViewData["listOfertas"])
                 {
-                    <div class="oferta-item" data-oferta-id="@oferta.Id" onclick="selectOferta(this)">
+                    <div class="oferta-item" data-oferta-id="@oferta.Id" data-category-id="@oferta.CategoriaId" onclick="selectOferta(this)">
                         <div class="oferta-header">
                             <h5>@oferta.Titulo</h5>
                             <span class="badge bg-primary">@oferta.Vacantes vacante(s)</span>
@@ -221,10 +339,6 @@
         <input type="hidden" name="id_ofertaempleo" id="editarOfertaId" />
     </form>
 
-    <form id="categoriaForm" asp-action="CategoriaOferta" method="get">
-        <input type="hidden" name="id_ofertaempleo" id="categoriaOfertaId" />
-    </form>
-
     <form id="postulantesForm" asp-action="VerPostulantesEmpresa" method="get">
         <input type="hidden" name="id_ofertaempleo" id="postulantesOfertaId" />
     </form>
@@ -233,6 +347,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let selectedOfertaId = null;
+        let currentCategory = 'all';
 
         function selectOferta(element) {
             // Remover selección previa
@@ -256,16 +371,88 @@
                     document.getElementById('editarOfertaId').value = selectedOfertaId;
                     document.getElementById('editarForm').submit();
                     break;
-                case 'categoria':
-                    document.getElementById('categoriaOfertaId').value = selectedOfertaId;
-                    document.getElementById('categoriaForm').submit();
-                    break;
                 case 'postulantes':
                     document.getElementById('postulantesOfertaId').value = selectedOfertaId;
                     document.getElementById('postulantesForm').submit();
                     break;
             }
         }
+
+        // Funcionalidad del scroll de categorías
+        function scrollCategories(direction) {
+            const container = document.getElementById('categoriesScroll');
+            const scrollAmount = 300; // Cantidad de scroll en píxeles
+            container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+
+            // Actualizar estado de los botones de navegación
+            updateScrollButtons();
+        }
+
+        function updateScrollButtons() {
+            const container = document.getElementById('categoriesScroll');
+            const leftBtn = document.querySelector('.scroll-nav-btn.left');
+            const rightBtn = document.querySelector('.scroll-nav-btn.right');
+
+            leftBtn.disabled = container.scrollLeft <= 10;
+            rightBtn.disabled = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 10);
+        }
+
+        // Función para centrar las categorías cuando caben todas
+        function centerCategoriesIfNeeded() {
+            const container = document.getElementById('categoriesScroll');
+            const cards = container.querySelectorAll('.category-card');
+            const cardWidth = cards.length > 0 ? cards[0].offsetWidth : 180; // Ancho de cada tarjeta
+            const gap = 12; // Espacio entre tarjetas
+            const containerWidth = container.clientWidth;
+            const totalCardsWidth = (cardWidth + gap) * cards.length - gap;
+
+            // Si todas las tarjetas caben en el contenedor, las centramos
+            if (totalCardsWidth <= containerWidth) {
+                container.style.justifyContent = 'center';
+                // Ocultamos los botones de navegación
+                document.querySelector('.scroll-nav-btn.left').style.display = 'none';
+                document.querySelector('.scroll-nav-btn.right').style.display = 'none';
+            } else {
+                container.style.justifyContent = 'flex-start';
+                // Mostramos los botones de navegación
+                document.querySelector('.scroll-nav-btn.left').style.display = 'flex';
+                document.querySelector('.scroll-nav-btn.right').style.display = 'flex';
+            }
+        }
+
+        // Filtrado por categoría
+        function filterByCategory(element, categoryId) {
+            // Actualizar categoría activa
+            document.querySelectorAll('.category-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+            currentCategory = categoryId;
+
+            // Filtrar ofertas
+            const ofertas = document.querySelectorAll('.oferta-item');
+            ofertas.forEach(oferta => {
+                if (categoryId === 'all' || oferta.getAttribute('data-category-id') === categoryId) {
+                    oferta.style.display = 'block';
+                } else {
+                    oferta.style.display = 'none';
+                    oferta.classList.remove('selected');
+                }
+            });
+        }
+
+        // Event listeners
+        document.getElementById('categoriesScroll').addEventListener('scroll', updateScrollButtons);
+        window.addEventListener('resize', () => {
+            updateScrollButtons();
+            centerCategoriesIfNeeded();
+        });
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            updateScrollButtons();
+            centerCategoriesIfNeeded();
+        });
     </script>
 </body>
 </html>

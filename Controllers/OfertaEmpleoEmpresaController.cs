@@ -158,6 +158,7 @@ namespace SisEmpleo.Controllers
         {
             int id_empresa = Convert.ToInt32(HttpContext.Session.GetInt32("id_empresa"));
 
+            // Obtener todas las ofertas de la empresa con sus categorías
             var ofertas = (from o in _EmpleoContext.OfertaEmpleo
                            join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
                            join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
@@ -173,15 +174,29 @@ namespace SisEmpleo.Controllers
                                Fecha_Publicacion = o.fecha_publicacion,
                                Ubi_Pais = p.nombre,
                                Ubi_Pro = pro.nombre,
-                              
+                               CategoriaId = (from oc in _EmpleoContext.OfertaCategoria
+                                              where oc.id_ofertaempleo == o.id_ofertaempleo
+                                              select oc.id_categoriaprofesional).FirstOrDefault()
                            }).ToList();
 
+            // Obtener todas las categorías profesionales disponibles
+            var categorias = _EmpleoContext.CategoriaProfesional.ToList();
+
+            // Preparar las categorías de la empresa con conteo de ofertas
+            var categoriasEmpresa = categorias.Select(c => new
+            {
+                Id = c.id_categoriaprofesional,
+                Nombre = c.nombre,
+                CantidadOfertas = ofertas.Count(o => o.CategoriaId == c.id_categoriaprofesional)
+            }).Where(c => c.CantidadOfertas > 0).ToList();
+
             ViewData["listOfertas"] = ofertas;
+            ViewData["categoriasEmpresa"] = categoriasEmpresa;
 
             return View();
         }
 
-        
+
 
         [HttpGet]
         public async Task<IActionResult> EditarOferta(int id_ofertaempleo) // Cambia IActionResult por Task<IActionResult>
