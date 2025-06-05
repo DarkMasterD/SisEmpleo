@@ -1,62 +1,287 @@
 ﻿@model List<SisEmpleo.Models.Graficos.SuscripcionCategoriaViewModel>
+@{
+    Layout = null;
+    var totalSuscripciones = Model?.Sum(m => m.Porcentaje) ?? 0;
+    var categoriaMasPopular = Model?.OrderByDescending(m => m.Porcentaje).FirstOrDefault()?.Categoria ?? "N/A";
+    var promedioPorCategoria = Model?.Count > 0 ? Math.Round(Model.Average(m => m.Porcentaje), 1) : 0;
+}
 
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Porcentaje de Candidatos Suscritos por Categoría</title>
+    <title>Porcentaje de Candidatos Suscritos por Categoría - SisEmpleo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <style>
-        body {
-            background-color: #f4f7fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e74c3c;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
 
-        .chart-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: var(--card-shadow);
+            flex-shrink: 0;
+        }
+
+        .dashboard-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .dashboard-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .data-summary {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            gap: 1rem;
+        }
+
+        .summary-card {
+            background: white;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            text-align: center;
+            min-width: 160px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 4px solid #FF9800;
+            flex: 1;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FF9800;
+            margin: 0.5rem 0;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-top: 5px solid #FF9800;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             min-height: 400px;
         }
 
-        h2 {
-            color: #333;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 1rem;
+            flex-shrink: 0;
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
+        .chart-actions .btn {
+            margin-left: 0.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin-top: 1.5rem;
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
         }
 
         #myChart {
             width: 100% !important;
-            height: 400px !important;
+            height: 100% !important;
+        }
+
+        .no-data-alert {
+            text-align: center;
+            padding: 2rem;
+            background-color: #fff8e1;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+            margin: auto;
+        }
+
+        .back-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #FF9800;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .back-button:hover {
+                transform: scale(1.1);
+                background-color: #F57C00;
+            }
+
+        @@media (max-width: 768px) {
+            .dashboard-title {
+                font-size: 1.3rem;
+            }
+
+            .summary-card {
+                min-width: 120px;
+                padding: 0.75rem;
+            }
+
+            .summary-value {
+                font-size: 1.2rem;
+            }
+
+            .chart-card {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="chart-container">
-            <h2>Porcentaje de Candidatos Suscritos por Categoría</h2>
-            <canvas id="myChart"></canvas>
+    <div class="dashboard-header text-center">
+        <div class="container">
+            <h1 class="dashboard-title"><i class="fas fa-tags me-2"></i>Suscripciones por Categoría</h1>
+            <p class="dashboard-subtitle">Porcentaje de candidatos suscritos a cada categoría profesional</p>
         </div>
+    </div>
+
+    <div class="main-content">
+        <div class="data-summary">
+            <div class="summary-card">
+                <div class="summary-label">Total Categorías</div>
+                <div class="summary-value">@Model?.Count</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Suscripción Promedio</div>
+                <div class="summary-value">@promedioPorCategoria%</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Categoría Más Popular</div>
+                <div class="summary-value" style="font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@categoriaMasPopular">@categoriaMasPopular</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Máxima Suscripción</div>
+                <div class="summary-value">@(Model?.Max(m => m.Porcentaje) ?? 0)%</div>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">Porcentaje de Candidatos Suscritos por Categoría</h2>
+                <div class="chart-actions">
+                    <button class="btn btn-outline-primary" onclick="downloadChart()">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </button>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                @if (Model == null || !Model.Any())
+                {
+                    <div class="no-data-alert">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #ffc107;"></i>
+                        <h4>No hay datos disponibles</h4>
+                        <p>No se encontraron registros de suscripciones por categoría para mostrar el gráfico.</p>
+                    </div>
+                }
+                else
+                {
+                    <canvas id="myChart"></canvas>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="back-button" onclick="window.history.back()">
+        <i class="fas fa-arrow-left fa-lg"></i>
     </div>
 
     <script>
         const labels = @Html.Raw(Json.Serialize(Model?.Select(m => m.Categoria) ?? new string[] { }));
         const data = @Html.Raw(Json.Serialize(Model?.Select(m => m.Porcentaje) ?? new double[] { }));
 
+        // Función para generar colores en gradiente naranja
+        function generateOrangeGradientColors(count) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                const ratio = i / Math.max(1, count - 1);
+                const r = Math.floor(255 * (1 - ratio) + 245 * ratio);
+                const g = Math.floor(152 * (1 - ratio) + 124 * ratio);
+                const b = Math.floor(0 * (1 - ratio) + 0 * ratio);
+                colors.push(`rgba(${r}, ${g}, ${b}, 0.7)`);
+            }
+            return colors;
+        }
+
         if (!labels || labels.length === 0 || !data || data.length === 0) {
             console.error('No hay datos para mostrar en el gráfico.');
-            document.getElementById('myChart').style.display = 'none';
-            const container = document.querySelector('.chart-container');
-            container.innerHTML += '<p class="text-center text-danger">No hay datos disponibles para mostrar el gráfico.</p>';
+            if (document.getElementById('myChart')) {
+                document.getElementById('myChart').style.display = 'none';
+            }
         } else {
             const ctx = document.getElementById('myChart').getContext('2d');
             new Chart(ctx, {
@@ -66,53 +291,87 @@
                     datasets: [{
                         label: 'Porcentaje de Candidatos',
                         data: data,
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.6)',
-                            'rgba(255, 99, 132, 0.6)',
-                            'rgba(75, 192, 75, 0.6)',
-                            'rgba(255, 206, 86, 0.6)'
-                        ],
-                        borderColor: [
-                            'rgba(54, 162, 235, 1)',
-                            'rgba(255, 99, 132, 1)',
-                            'rgba(75, 192, 75, 1)',
-                            'rgba(255, 206, 86, 1)'
-                        ],
-                        borderWidth: 2,
-                        hoverBackgroundColor: [
-                            'rgba(54, 162, 235, 0.8)',
-                            'rgba(255, 99, 132, 0.8)',
-                            'rgba(75, 192, 75, 0.8)',
-                            'rgba(255, 206, 86, 0.8)'
-                        ]
+                        backgroundColor: generateOrangeGradientColors(labels.length),
+                        borderColor: generateOrangeGradientColors(labels.length).map(color => color.replace('0.7', '1')),
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        hoverBackgroundColor: generateOrangeGradientColors(labels.length).map(color => color.replace('0.7', '0.9'))
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 14 } } },
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 14 },
+                                boxWidth: 20,
+                                padding: 20
+                            }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                                    return ` ${context.raw.toFixed(2)}%`;
                                 }
-                            }
+                            },
+                            displayColors: true,
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: { size: 14 },
+                            bodyFont: { size: 14 },
+                            padding: 12
                         }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             max: 100,
-                            title: { display: true, text: 'Porcentaje (%)', font: { size: 16 } },
-                            ticks: { callback: function(value) { return value + '%'; } }
+                            title: {
+                                display: true,
+                                text: 'Porcentaje (%)',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                callback: function(value) { return value + '%'; },
+                                font: { size: 12 }
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
                         },
                         x: {
-                            title: { display: true, text: 'Categorías Profesionales', font: { size: 16 } }
+                            title: {
+                                display: true,
+                                text: 'Categorías Profesionales',
+                                font: { size: 14, weight: 'bold' }
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                callback: function(value) {
+                                    return this.getLabelForValue(value).length > 20 ?
+                                        this.getLabelForValue(value).substring(0, 20) + '...' :
+                                        this.getLabelForValue(value);
+                                }
+                            },
+                            grid: {
+                                display: false
+                            }
                         }
+                    },
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeInOutQuad'
                     }
                 }
             });
+        }
+
+        function downloadChart() {
+            const link = document.createElement('a');
+            link.download = 'Suscripciones-por-Categoria.png';
+            link.href = document.getElementById('myChart').toDataURL('image/png');
+            link.click();
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
