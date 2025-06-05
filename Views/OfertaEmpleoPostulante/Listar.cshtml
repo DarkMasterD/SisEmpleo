@@ -39,6 +39,37 @@
                 margin-bottom: 0.5rem;
             }
 
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+            position: relative;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.75rem 1.25rem;
+            border: 2px solid var(--medium-gray);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            padding-right: 3rem;
+        }
+
+            .search-bar:focus {
+                outline: none;
+                border-color: var(--secondary-color);
+                box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+            }
+
+        .search-icon {
+            position: absolute;
+            right: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-gray);
+            cursor: pointer;
+        }
+
         .jobs-list {
             max-width: 1000px;
             margin: 0 auto;
@@ -194,6 +225,12 @@
             <h2>@(ViewBag.CategoriaNombre != null ? $"Ofertas en {ViewBag.CategoriaNombre}" : "Todas las Ofertas")</h2>
         </div>
 
+        <!-- Barra de búsqueda -->
+        <div class="search-container">
+            <input type="text" class="search-bar" id="searchInput" placeholder="Buscar ofertas por nombre..." />
+            <i class="bi bi-search search-icon" id="searchButton"></i>
+        </div>
+
         @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
         {
             <div class="alert-danger">@ViewBag.ErrorMessage</div>
@@ -201,10 +238,10 @@
 
         @if (ViewBag.ofertas != null && ((IEnumerable<dynamic>)ViewBag.ofertas).Any())
         {
-            <div class="jobs-list">
+            <div class="jobs-list" id="jobsListContainer">
                 @foreach (var oferta in (IEnumerable<dynamic>)ViewBag.ofertas)
                 {
-                    <div class="job-item">
+                    <div class="job-item" data-job-title="@oferta.Titulo.ToLower()">
                         <div class="job-info">
                             <h3 class="job-title">
                                 <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id = oferta.Id })">
@@ -266,6 +303,32 @@
     <script>
         $(document).ready(function () {
             VerNoti();
+
+            // Función para filtrar ofertas
+            function filterJobs() {
+                const searchTerm = $('#searchInput').val().toLowerCase();
+                $('.job-item').each(function () {
+                    const jobTitle = $(this).data('job-title');
+                    if (jobTitle.includes(searchTerm)) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+            }
+
+            // Evento al escribir en la barra de búsqueda
+            $('#searchInput').on('input', filterJobs);
+
+            // Evento al hacer clic en el icono de búsqueda
+            $('#searchButton').click(filterJobs);
+
+            // Evento al presionar Enter en la barra de búsqueda
+            $('#searchInput').keypress(function (e) {
+                if (e.which === 13) {
+                    filterJobs();
+                }
+            });
         });
 
         setInterval(function () {
