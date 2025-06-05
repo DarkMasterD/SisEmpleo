@@ -12,7 +12,7 @@ namespace SisEmpleo.Models
         [Key]
         public int id_experiencia_profesional { get; set; }
 
-        [ForeignKey("Curriculum")]
+        [Column("id_curriculum")] // Esto es crucial
         public int id_curriculum { get; set; }
 
         [ForeignKey("TrabajoEmpresa")]
@@ -28,6 +28,8 @@ namespace SisEmpleo.Models
         // Propiedades de navegación
         public virtual TrabajoEmpresa TrabajoEmpresa { get; set; }
         public virtual Puesto Puesto { get; set; }
+
+        [ForeignKey("id_curriculum")]
         public virtual Curriculum Curriculum { get; set; }
     }
 }
