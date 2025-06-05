@@ -774,8 +774,7 @@ namespace SisEmpleo.Controllers
                 .Include(ic => ic.Idioma)
                 .Include(ic => ic.Institucion) 
                 .FirstOrDefaultAsync(ic => ic.id_idioma_curriculum == idIdiomaCurriculum &&
-                                            ic.Curriculum.Postulante.id_usuario == idUsuario.Value &&
-                                            ic.Institucion.nombre != "Autodidacta");
+                                            ic.Curriculum.Postulante.id_usuario == idUsuario.Value);
 
             if (idiomaCvAEliminar != null)
             {
