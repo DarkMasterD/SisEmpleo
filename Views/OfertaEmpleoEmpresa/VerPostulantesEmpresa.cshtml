@@ -70,6 +70,19 @@
             padding: 0.5rem 1.5rem;
             font-weight: 600;
         }
+
+        .scroll-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+            .scroll-container .form-check {
+                margin-bottom: 5px;
+            }
     </style>
 </head>
 <body>
@@ -110,7 +123,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Habilidades</label>
-                        <div id="filtroHabilidad">
+                        <div class="scroll-container" id="filtroHabilidad">
                             @foreach (var item in ViewBag.Habilidades)
                             {
                                 <div class="form-check">
@@ -123,7 +136,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label">Responsabilidades</label>
-                        <div id="filtroResponsabilidad">
+                        <div class="scroll-container" id="filtroResponsabilidad">
                             @foreach (var item in ViewBag.Responsabilidades)
                             {
                                 <div class="form-check">
@@ -168,7 +181,7 @@
                         <th>Nombre</th>
                         <th>Email</th>
                         <th>Teléfono</th>
-                        <th>Acciones</th>
+                       
                     </tr>
                 </thead>
                 <tbody>
@@ -184,10 +197,10 @@
                                 <td class="postulante-email">@postulante.Email</td>
                                 <td class="postulante-telefono">@postulante.Telefono</td>
                                 <td>
-                                    <a href="@Url.Action("VerCurriculum", "Postulante", new { idPostulante = postulante.IdPostulante })"
+                                    @* <a href="@Url.Action("VerCurriculum", "Postulante", new { idPostulante = postulante.IdPostulante })"
                                        class="btn btn-sm btn-info">
                                         <i class="fas fa-file-alt"></i> Ver CV
-                                    </a>
+                                    </a> *@
                                 </td>
                             </tr>
                         }
