@@ -127,7 +127,7 @@ namespace SisEmpleo.Controllers
                                   Titulo = o.titulo,
                                   Descripcion = o.descripcion,
                                   Vacantes = o.vacante,
-                                  Salario = o.salario, // double
+                                  Salario = o.salario,
                                   Duracion_Contrato = o.duracion_contrato,
                                   Fecha_Publicacion = o.fecha_publicacion,
                                   Nombre_Empresa = e != null ? e.nombre : "Desconocida",
@@ -150,7 +150,7 @@ namespace SisEmpleo.Controllers
                 ViewBag.Horario = SepararHorario(oferta.Horario);
                 ViewBag.Requisitos = requisitos;
 
-                var id_usuario = HttpContext.Session.GetInt32("id_usuario");
+                var id_usuario = HttpContext.Session.GetInt32("idUsuario");
                 var hasApplied = _EmpleoContext.OfertaCandidatos
                     .Any(oc => oc.id_ofertaempleo == id_ofertaempleo && oc.id_usuario == id_usuario);
                 ViewBag.HasApplied = hasApplied;
@@ -162,8 +162,6 @@ namespace SisEmpleo.Controllers
                 return NotFound();
             }
         }
-
-        // En SisEmpleo/Controllers/OfertaEmpleoPostulanteController.cs
 
         [HttpPost]
         [ValidateAntiForgeryToken]
