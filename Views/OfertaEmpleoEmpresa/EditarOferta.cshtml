@@ -1,6 +1,5 @@
 ﻿@model SisEmpleo.Models.OfertaEmpleo
 
-
 @{
     var ofertaEmp = ViewBag.Oferta as OfertaEmpleo ?? new OfertaEmpleo();
     string[] horario;
@@ -12,6 +11,11 @@
     {
         horario = Enumerable.Repeat("", 28).ToArray();
     }
+
+    // Obtener habilidades, prestaciones y categoría actuales de la oferta
+    var habilidadesActuales = ViewBag.HabilidadesSeleccionadas as List<int> ?? new List<int>();
+    var prestacionesActuales = ViewBag.PrestacionesSeleccionadas as List<int> ?? new List<int>();
+    var categoriaActual = ViewBag.CategoriaSeleccionada as int? ?? 0;
 }
 
 <!DOCTYPE html>
@@ -28,32 +32,6 @@
             margin: 0;
             padding: 0;
         }
-
-
-
-        .btn-profile {
-            background-color: #1E3A8A;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
-        }
-
-            .btn-profile:hover {
-                background-color: #152A66;
-            }
-
-        .btn-logout {
-            background-color: #F97316;
-            border: none;
-            color: #FFFFFF;
-            padding: 0.5rem 1.5rem;
-            font-weight: 600;
-        }
-
-            .btn-logout:hover {
-                background-color: #E86100;
-            }
 
         .edit-container {
             max-width: 800px;
@@ -73,6 +51,11 @@
 
         .form-group {
             margin-bottom: 1rem;
+        }
+
+        .form-label {
+            color: #374151;
+            font-weight: 600;
         }
 
         .form-control {
@@ -120,195 +103,217 @@
                 color: #374151;
                 margin-bottom: 0.5rem;
             }
+
+        .alert {
+            margin-bottom: 1rem;
+        }
+
+        .section-box {
+            border: 1px solid #D1D5DB;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            color: #1E3A8A;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
-
-
-    <!-- Formulario de Edición -->
     <div class="edit-container">
         <h2>Editar Oferta de Empleo</h2>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <li>@error.ErrorMessage</li>
+                    }
+                </ul>
+            </div>
+        }
+
         <form asp-action="EditarOferta" method="post">
+            <!-- Hidden fields -->
+            <input type="hidden" name="id_ofertaempleo" value="@ofertaEmp.id_ofertaempleo" />
+            <input type="hidden" name="id_empresa" value="@ViewBag.id_empresa" />
+            <input asp-for="PaisNombre" type="hidden" id="PaisNombre" />
+            <input asp-for="ProvinciaNombre" type="hidden" id="ProvinciaNombre" />
+            <input asp-for="EmpresaNombre" type="hidden" id="EmpresaNombre" value="@ViewBag.EmpresaNombre" />
+            <input type="hidden" id="horario" name="horario" value="@string.Join(";", horario)" />
+
+            <!-- Estado -->
             <div class="form-group">
-                <label for="estado">Estado</label>
+                <label for="estado" class="form-label">Estado</label>
                 <select name="estado" id="estado" class="form-control" required>
                     <option value="">Seleccione...</option>
-                    <option value="1" selected="@(ofertaEmp.estado == true)">Activo</option>
-                    <option value="0" selected="@(ofertaEmp.estado == false)">Inactivo</option>
+                    @foreach (var opcion in ViewBag.OpcEstado as List<SelectListItem>)
+                    {
+                        <option value="@opcion.Value" selected="@(opcion.Selected)">@opcion.Text</option>
+                    }
                 </select>
                 <span asp-validation-for="estado" class="text-danger"></span>
             </div>
+
+            <!-- País -->
             <div class="form-group">
-                <label for="id_pais">País</label>
-                @Html.DropDownList("id_pais", ViewBag.Pais as IEnumerable<SelectListItem>, "Seleccione un país", new { @class = "form-control", id = "cboPais" })
+                <label asp-for="id_pais" class="form-label">País</label>
+                <select asp-for="id_pais" asp-items="@(ViewBag.Pais as SelectList)" class="form-control" id="cboPais" required>
+                    <option value="">Seleccione un país</option>
+                </select>
+                <span asp-validation-for="id_pais" class="text-danger"></span>
             </div>
+
+            <!-- Provincia -->
             <div class="form-group">
-                <label for="id_provincia">Provincia</label>
-                @Html.DropDownList("id_provincia", ViewBag.Provincia as SelectList, "Seleccione una provincia", new { @class = "form-control", id = "cboProvincia" })
+                <label asp-for="id_provincia" class="form-label">Provincia</label>
+                <select asp-for="id_provincia" id="cboProvincia" name="id_provincia" class="form-control" required>
+                    <option value="">Seleccione una provincia</option>
+                    @foreach (var provincia in ViewBag.Provincia as SelectList)
+                    {
+                        <option value="@provincia.Value" selected="@(provincia.Selected)">@provincia.Text</option>
+                    }
+                </select>
+                <span asp-validation-for="id_provincia" class="text-danger"></span>
             </div>
+
+            <!-- Título -->
             <div class="form-group">
-                <label for="titulo">Título</label>
-                @Html.TextBox("titulo", ofertaEmp.titulo, new { @class = "form-control", required = "required" })
+                <label asp-for="titulo" class="form-label">Título</label>
+                <input asp-for="titulo" class="form-control" required value="@ofertaEmp.titulo" />
+                <span asp-validation-for="titulo" class="text-danger"></span>
             </div>
+
+            <!-- Descripción -->
             <div class="form-group">
-                <label for="descripcion">Descripción</label>
-                @Html.TextArea("descripcion", ofertaEmp.descripcion, new { @class = "form-control", id = "direccion", rows = "4", required = "required" })
+                <label asp-for="descripcion" class="form-label">Descripción</label>
+                <textarea asp-for="descripcion" class="form-control" rows="4" required>@ofertaEmp.descripcion</textarea>
+                <span asp-validation-for="descripcion" class="text-danger"></span>
             </div>
+
+            <!-- Vacantes -->
             <div class="form-group">
-                <label for="vacantes">Vacantes</label>
-                @Html.TextBox("vacante", ofertaEmp.vacante, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+                <label asp-for="vacante" class="form-label">Vacantes</label>
+                <input asp-for="vacante" class="form-control" type="number" step="1" min="0" required value="@ofertaEmp.vacante" />
+                <span asp-validation-for="vacante" class="text-danger"></span>
             </div>
+
+            <!-- Salario -->
             <div class="form-group">
-                <label for="salario">Salario</label>
-                @Html.TextBox("salario", ofertaEmp.salario, new { @class = "form-control", type = "number", step = "1", min = "0", required = "required" })
+                <label asp-for="salario" class="form-label">Salario</label>
+                <input asp-for="salario" class="form-control" type="number" step="0.01" min="0" required value="@ofertaEmp.salario" />
+                <span asp-validation-for="salario" class="text-danger"></span>
             </div>
+
+            <!-- Duración del Contrato -->
             <div class="form-group">
-                <label for="duracion_contrato">Duración del Contrato</label>
-                @Html.TextBox("duracion_contrato", ofertaEmp.duracion_contrato, new { @class = "form-control", required = "required" })
+                <label asp-for="duracion_contrato" class="form-label">Duración del Contrato</label>
+                <input asp-for="duracion_contrato" class="form-control" required value="@ofertaEmp.duracion_contrato" />
+                <span asp-validation-for="duracion_contrato" class="text-danger"></span>
+            </div>
+
+            <!-- Sección: Categoría de la Oferta -->
+            <div class="section-box">
+                <h3 class="section-title">Categoría de la Oferta</h3>
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select id="categoria" name="id_categoriaprofesional" class="form-control" required>
+                        <option value="">Seleccione una categoría</option>
+                        @if (ViewBag.Categorias != null)
+                        {
+                            foreach (var categoria in (List<SisEmpleo.Models.CategoriaProfesional>)ViewBag.Categorias)
+                            {
+                                <option value="@categoria.id_categoriaprofesional" selected="@(categoria.id_categoriaprofesional == categoriaActual)">@categoria.nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sección: Prestaciones de Ley -->
+            <div class="section-box">
+                <h3 class="section-title">Prestaciones de Ley</h3>
+                @if (ViewBag.Prestaciones != null)
+                {
+                    <div class="row">
+                        @{
+                            int prestacionesCount = ((List<SisEmpleo.Models.PrestacionLey>)ViewBag.Prestaciones).Count;
+                            int columnCount = prestacionesCount > 10 ? 3 : (prestacionesCount > 5 ? 2 : 1);
+                            int itemsPerColumn = (int)Math.Ceiling((double)prestacionesCount / columnCount);
+                            int currentItem = 0;
+                        }
+
+                        @for (int col = 0; col < columnCount; col++)
+                        {
+                            <div class="col-md-@(12 / columnCount)">
+                                @foreach (var prestacion in ((List<SisEmpleo.Models.PrestacionLey>)ViewBag.Prestaciones).Skip(col * itemsPerColumn).Take(itemsPerColumn))
+                                {
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="PrestacionesSeleccionadas"
+                                               value="@prestacion.id_prestacionley" id="prest_@prestacion.id_prestacionley"
+                                               checked="@(prestacionesActuales.Contains(prestacion.id_prestacionley))" />
+                                        <label class="form-check-label" for="prest_@prestacion.id_prestacionley">@prestacion.nombre</label>
+                                    </div>
+                                    currentItem++;
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p>No hay prestaciones configuradas</p>
+                }
+            </div>
+
+            <!-- Habilidades -->
+            <div class="form-group">
+                <label class="form-label">Requisitos (Habilidades)</label>
+                @if (ViewBag.Habilidades != null)
+                {
+                    foreach (var habilidad in (List<SisEmpleo.Models.Habilidad>)ViewBag.Habilidades)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="HabilidadesSeleccionadas" value="@habilidad.id_habilidad"
+                                   id="hab_@habilidad.id_habilidad" checked="@(habilidadesActuales.Contains(habilidad.id_habilidad))" />
+                            <label class="form-check-label" for="hab_@habilidad.id_habilidad">@habilidad.nombre</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No hay habilidades disponibles.</p>
+                }
             </div>
 
             <!-- Horario -->
             <h3 class="mt-4">Horario</h3>
-            <div class="day-schedule">
-                <h4>Lunes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="lunes1" value="@(horario.Length > 0 ? horario[0] : "")" class="form-control" />
+            @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" })
+            {
+                <div class="day-schedule">
+                    <h4>@dia</h4>
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())1" name="@(dia.ToLower())1" class="form-control" value="@(horario[Array.IndexOf(new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" }, dia) * 4])" />
+                        </div>
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())2" name="@(dia.ToLower())2" class="form-control" value="@(horario[Array.IndexOf(new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" }, dia) * 4 + 1])" />
+                        </div>
                     </div>
-                    <div class="col-6">
-                        <input type="time" name="lunes2" value="@(horario.Length > 1 ? horario[1] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="lunes3" value="@(horario.Length > 2 ? horario[2] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="lunes4" value="@(horario.Length > 3 ? horario[3] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Martes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="martes1" value="@(horario.Length > 0 ? horario[4] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="martes2" value="@(horario.Length > 1 ? horario[5] : "")" class="form-control" />
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())3" name="@(dia.ToLower())3" class="form-control" value="@(horario[Array.IndexOf(new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" }, dia) * 4 + 2])" />
+                        </div>
+                        <div class="col-6">
+                            <input type="time" id="@(dia.ToLower())4" name="@(dia.ToLower())4" class="form-control" value="@(horario[Array.IndexOf(new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" }, dia) * 4 + 3])" />
+                        </div>
                     </div>
                 </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="martes3" value="@(horario.Length > 2 ? horario[6] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="martes4" value="@(horario.Length > 3 ? horario[7] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Miercoles</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="miercoles1" value="@(horario.Length > 0 ? horario[8] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="miercoles2" value="@(horario.Length > 1 ? horario[9] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="miercoles3" value="@(horario.Length > 2 ? horario[10] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="miercoles4" value="@(horario.Length > 3 ? horario[11] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Jueves</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="jueves1" value="@(horario.Length > 0 ? horario[12] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="jueves2" value="@(horario.Length > 1 ? horario[13] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="jueves3" value="@(horario.Length > 2 ? horario[14] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="jueves4" value="@(horario.Length > 3 ? horario[15] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Viernes</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="viernes1" value="@(horario.Length > 0 ? horario[16] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="viernes2" value="@(horario.Length > 1 ? horario[17] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="viernes3" value="@(horario.Length > 2 ? horario[18] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="viernes4" value="@(horario.Length > 3 ? horario[19] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Sábado</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="sabado1" value="@(horario.Length > 0 ? horario[20] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="sabado2" value="@(horario.Length > 1 ? horario[21] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="sabado3" value="@(horario.Length > 2 ? horario[22] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="sabado4" value="@(horario.Length > 3 ? horario[23] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-            <div class="day-schedule">
-                <h4>Domingo</h4>
-                <div class="row">
-                    <div class="col-6">
-                        <input type="time" name="domingo1" value="@(horario.Length > 0 ? horario[24] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="domingo2" value="@(horario.Length > 1 ? horario[25] : "")" class="form-control" />
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-6">
-                        <input type="time" name="domingo3" value="@(horario.Length > 2 ? horario[26] : "")" class="form-control" />
-                    </div>
-                    <div class="col-6">
-                        <input type="time" name="domingo4" value="@(horario.Length > 3 ? horario[27] : "")" class="form-control" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Campos ocultos -->
-            <input type="hidden" id="horario" name="horario" value="@string.Join(";", horario)" />
-            <input type="hidden" value="@ofertaEmp.id_ofertaempleo" name="id_ofertaempleo" />
-            <input type="hidden" name="PaisNombre" value="" />
-            <input type="hidden" name="EmpresaNombre" value="" />
-            <input type="hidden" name="ProvinciaNombre" value="" />
+            }
 
             <!-- Botones -->
             <div class="row mt-4">
@@ -316,25 +321,21 @@
                     <button type="submit" class="btn btn-primary">Guardar Cambios</button>
                 </div>
                 <div class="col-6">
-                    <a href="/Home/Index" class="btn btn-secondary">Cancelar</a>
+                    <a href="/OfertaEmpleoEmpresa/ListarOfertas" class="btn btn-secondary">Cancelar</a>
                 </div>
+                </ problemas
             </div>
         </form>
     </div>
 
     <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Scripts -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function () {
             console.log("jQuery cargado");
 
-            // Solo se usará al inicio para seleccionar la provincia original
+            // Cargar provincias al iniciar
             var provinciaInicial = '@(ofertaEmp?.id_provincia ?? 0)';
             var paisInicial = '@(ofertaEmp?.id_pais ?? 0)';
             var primerCarga = true;
@@ -365,6 +366,7 @@
                             }
 
                             primerCarga = false;
+                            $("#ProvinciaNombre").val($("#cboProvincia option:selected").text());
                         } else {
                             $('#cboProvincia').html('<option value="">No hay provincias para este país</option>');
                         }
@@ -379,118 +381,59 @@
             $('#cboPais').change(function () {
                 var idPais = $(this).val();
                 cargarProvincias(idPais);
+                $("#PaisNombre").val($("#cboPais option:selected").text());
+            });
+
+            // Actualizar ProvinciaNombre
+            $("#cboProvincia").change(function () {
+                $("#ProvinciaNombre").val($("#cboProvincia option:selected").text());
             });
 
             // Primera carga si hay país preseleccionado
-            if ($('#cboPais').val()) {
+            if ($ ('#cboPais').val()) {
                 cargarProvincias($('#cboPais').val());
             }
 
-            // Manejo del envío del formulario
-            $('form').on('submit', function (e) {
-                let hasErrors = false;
+            // Procesar horario al enviar formulario
+            $('form').on('submit', function () {
+                const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+                let horario = '';
+                dias.forEach(dia => {
+                    for (let i = 1; i <= 4; i++) {
+                        const time = $(`#${dia}${i}`).val() || "";
+                        horario += time + ';';
+                    }
+                });
+                $("#horario").val(horario);
+                console.log('Horario a enviar:', $("#horario").val());
 
+                // Validación de campos requeridos
+                let hasErrors = false;
                 $('[required]').each(function () {
                     const $field = $(this);
-                    const fieldValue = $field.val();
-
-                    if (!fieldValue) {
-                        markFieldAsInvalid($field, 'Este campo es requerido');
+                    if (!$field.val()) {
+                        $field.addClass('is-invalid');
+                        if ($field.next('.text-danger').length === 0) {
+                            $field.after('<span class="text-danger">Este campo es requerido</span>');
+                        }
                         hasErrors = true;
                     } else {
-                        markFieldAsValid($field);
+                        $field.removeClass('is-invalid');
+                        $field.next('.text-danger').remove();
                     }
                 });
-
-                // Validación específica del estado (1/0)
-                const $estadoField = $('[name="estado"]');
-                const estadoValue = $estadoField.val();
-
-                if (estadoValue !== "1" && estadoValue !== "0") {
-                    markFieldAsInvalid($estadoField, 'Seleccione un estado válido');
-                    hasErrors = true;
-                } else {
-                    markFieldAsValid($estadoField);
-                    // NO modificar el valor (dejar como "1" o "0")
-                }
 
                 if (hasErrors) {
-                    e.preventDefault();
-                    scrollToFirstError();
-                    return;
-                }
-
-                buildHorarioString();
-            });
-
-            function buildHorarioString() {
-                const days = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
-                const timeSlots = [];
-
-                days.forEach(day => {
-                    for (let i = 1; i <= 4; i++) {
-                        const timeValue = $(`[name="${day}${i}"]`).val() || '';
-                        timeSlots.push(timeValue);
+                    event.preventDefault();
+                    const $firstError = $('.is-invalid').first();
+                    if ($firstError.length) {
+                        $('html, body').animate({
+                            scrollTop: $firstError.offset().top - 100
+                        }, 500);
                     }
-                });
-
-                while (timeSlots.length < 28) {
-                    timeSlots.push('');
-                }
-
-                $('#horario').val(timeSlots.join(';'));
-                console.log('Horario a enviar:', $('#horario').val());
-            }
-
-            // Función para marcar campo como inválido
-            function markFieldAsInvalid($field, message) {
-                $field.addClass('is-invalid');
-                if ($field.next('.field-error').length === 0) {
-                    $field.after(`<span class="text-danger field-error">${message}</span>`);
-                }
-            }
-
-            // Función para marcar campo como válido
-            function markFieldAsValid($field) {
-                $field.removeClass('is-invalid');
-                $field.next('.field-error').remove();
-            }
-
-            // Función para desplazarse al primer error
-            function scrollToFirstError() {
-                const $firstError = $('.is-invalid').first();
-                if ($firstError.length) {
-                    $('html, body').animate({
-                        scrollTop: $firstError.offset().top - 100
-                    }, 500);
-                }
-            }
-
-            // Validación en tiempo real para campos requeridos
-            $('[required]').on('blur change', function () {
-                const $field = $(this);
-                if (!$field.val()) {
-                    markFieldAsInvalid($field, 'Este campo es requerido');
-                } else {
-                    markFieldAsValid($field);
-                }
-            });
-
-            // Validación especial para el campo estado
-            $('[name="estado"]').on('change', function () {
-                const value = $(this).val();
-                if (value === "1" || value === "0") {
-                    markFieldAsValid($(this));
-                } else {
-                    markFieldAsInvalid($(this), 'Seleccione un estado válido');
                 }
             });
         });
     </script>
-
-
-
-
-
 </body>
 </html>

@@ -377,9 +377,9 @@ namespace SisEmpleo.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> EditarOferta(int id_ofertaempleo) // Cambia IActionResult por Task<IActionResult>
+        public async Task<IActionResult> EditarOferta(int id_ofertaempleo)
         {
-            var oferta = await _EmpleoContext.OfertaEmpleo // Agrega await
+            var oferta = await _EmpleoContext.OfertaEmpleo
                 .FirstOrDefaultAsync(o => o.id_ofertaempleo == id_ofertaempleo);
 
             if (oferta == null) return NotFound();
@@ -400,10 +400,14 @@ namespace SisEmpleo.Controllers
     };
 
             // Cargar datos asíncronos
-            var paises = await _EmpleoContext.Pais.ToListAsync(); // Cambia a ToListAsync
+            var paises = await _EmpleoContext.Pais.ToListAsync();
             var provincias = await _EmpleoContext.Provincia
                 .Where(p => p.id_pais == oferta.id_pais)
                 .ToListAsync();
+
+            // Cargar categorías, prestaciones y habilidades
+            var idEmpresa = HttpContext.Session.GetInt32("id_empresa");
+            var empresa = idEmpresa != null ? await _EmpleoContext.Empresa.FirstOrDefaultAsync(e => e.id_empresa == idEmpresa.Value) : null;
 
             ViewBag.Pais = new SelectList(paises, "id_pais", "nombre", oferta.id_pais);
             ViewBag.Provincia = new SelectList(provincias, "id_provincia", "nombre", oferta.id_provincia);
@@ -411,58 +415,53 @@ namespace SisEmpleo.Controllers
             ViewBag.Oferta = oferta;
             ViewBag.OpcEstado = opcionesEstado;
             ViewBag.TipoUsuario = "E";
+            ViewBag.id_empresa = empresa?.id_empresa;
+            ViewBag.EmpresaNombre = empresa?.nombre;
+
+            // Cargar categorías profesionales
+            ViewBag.Categorias = await _EmpleoContext.CategoriaProfesional.ToListAsync();
+
+            // Cargar prestaciones de ley
+            ViewBag.Prestaciones = await _EmpleoContext.PrestacionLey.ToListAsync();
+
+            // Cargar habilidades
+            ViewBag.Habilidades = await _EmpleoContext.Habilidad.ToListAsync();
+
+            // Cargar habilidades seleccionadas
+            var habilidadesSeleccionadas = await _EmpleoContext.RequisitoOferta
+                .Where(ro => ro.id_ofertaempleo == id_ofertaempleo)
+                .Select(ro => ro.id_habilidad)
+                .ToListAsync();
+            ViewBag.HabilidadesSeleccionadas = habilidadesSeleccionadas;
+
+            // Cargar prestaciones seleccionadas
+            var prestacionesSeleccionadas = await _EmpleoContext.OfertaEmpleoPrestacion
+                .Where(op => op.id_ofertaempleo == id_ofertaempleo)
+                .Select(op => op.id_prestacionley)
+                .ToListAsync();
+            ViewBag.PrestacionesSeleccionadas = prestacionesSeleccionadas;
+
+            // Cargar categoría seleccionada
+            var categoriaSeleccionada = await _EmpleoContext.OfertaCategoria
+                .Where(oc => oc.id_ofertaempleo == id_ofertaempleo)
+                .Select(oc => oc.id_categoriaprofesional)
+                .FirstOrDefaultAsync();
+            ViewBag.CategoriaSeleccionada = categoriaSeleccionada;
 
             return View();
         }
+
         [HttpPost]
-        public async Task<IActionResult> EditarOferta(OfertaEmpleo ofertaMod)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditarOferta(OfertaEmpleo ofertaMod, List<int> HabilidadesSeleccionadas, List<int> PrestacionesSeleccionadas, int id_categoriaprofesional)
         {
             ModelState.Remove("estado");
-
-            var estadoForm = Request.Form["estado"].ToString();
-            ofertaMod.estado = Request.Form["estado"] == "1";
-
-            var vacanteOriginal = Request.Form["vacante"].ToString();
-            Console.WriteLine($"Valor ORIGINAL del form: {vacanteOriginal}");
-            Console.WriteLine($"Valor en el modelo: {ofertaMod.vacante}");
-
-            // Fuerza el valor original (bypass cualquier modificación)
-            if (int.TryParse(vacanteOriginal, out int vacante))
-            {
-                ofertaMod.vacante = vacante;
-            }
-
-            ViewBag.TipoUsuario = "E";
-
             ModelState.Remove("PaisNombre");
             ModelState.Remove("EmpresaNombre");
             ModelState.Remove("ProvinciaNombre");
 
-            // 1. Procesar el horario del formulario
-            var horarioForm = Request.Form["horario"].ToString();
-            var horarioParts = horarioForm.Split(';', StringSplitOptions.RemoveEmptyEntries);
-            var horarioCompleto = new string[28];
+            ofertaMod.estado = Request.Form["estado"] == "1";
 
-            // Rellenar con los valores recibidos o con strings vacíos
-            for (int i = 0; i < 28; i++)
-            {
-                horarioCompleto[i] = i < horarioParts.Length ? horarioParts[i] : "";
-            }
-
-            ofertaMod.horario = string.Join(";", horarioCompleto);
-            Console.WriteLine($"Horario procesado: {ofertaMod.horario}");
-
-            // 2. Procesar el estado
-            if (bool.TryParse(Request.Form["estado"], out var estado))
-            {
-                ofertaMod.estado = estado;
-            }
-            else
-            {
-                ofertaMod.estado = Request.Form["estado"] == "1";
-            }
-
-            // 3. Validar el modelo
             if (!ModelState.IsValid)
             {
                 Console.WriteLine("Modelo inválido. Errores:");
@@ -470,7 +469,6 @@ namespace SisEmpleo.Controllers
                 {
                     Console.WriteLine(error.ErrorMessage);
                 }
-
                 RecargarViewBags(ofertaMod);
                 return View(ofertaMod);
             }
@@ -486,11 +484,7 @@ namespace SisEmpleo.Controllers
                     return NotFound();
                 }
 
-
-                Console.WriteLine($"ANTES de actualizar: {JsonSerializer.Serialize(ofertaActual)}");
-
-
-                // 4. Actualizar propiedades
+                // Actualizar propiedades
                 ofertaActual.id_pais = ofertaMod.id_pais;
                 ofertaActual.id_provincia = ofertaMod.id_provincia;
                 ofertaActual.titulo = ofertaMod.titulo;
@@ -501,19 +495,74 @@ namespace SisEmpleo.Controllers
                 ofertaActual.duracion_contrato = ofertaMod.duracion_contrato;
                 ofertaActual.estado = ofertaMod.estado;
 
-                Console.WriteLine($"VALORES NUEVOS: {JsonSerializer.Serialize(ofertaActual)}");
-                Console.WriteLine($"Vacantes a guardar: {ofertaActual.vacante}");
+                // Actualizar habilidades
+                var habilidadesActuales = await _EmpleoContext.RequisitoOferta
+                    .Where(ro => ro.id_ofertaempleo == ofertaMod.id_ofertaempleo)
+                    .ToListAsync();
+                _EmpleoContext.RequisitoOferta.RemoveRange(habilidadesActuales);
 
+                if (HabilidadesSeleccionadas != null && HabilidadesSeleccionadas.Any())
+                {
+                    foreach (var idHabilidad in HabilidadesSeleccionadas)
+                    {
+                        _EmpleoContext.RequisitoOferta.Add(new RequisitoOferta
+                        {
+                            id_ofertaempleo = ofertaMod.id_ofertaempleo,
+                            id_habilidad = idHabilidad
+                        });
+                    }
+                }
 
+                // Actualizar prestaciones
+                var prestacionesActuales = await _EmpleoContext.OfertaEmpleoPrestacion
+                    .Where(op => op.id_ofertaempleo == ofertaMod.id_ofertaempleo)
+                    .ToListAsync();
+                _EmpleoContext.OfertaEmpleoPrestacion.RemoveRange(prestacionesActuales);
 
-                // 5. Guardar cambios
+                if (PrestacionesSeleccionadas != null && PrestacionesSeleccionadas.Any())
+                {
+                    var prestaciones = await _EmpleoContext.PrestacionLey
+                        .Where(p => PrestacionesSeleccionadas.Contains(p.id_prestacionley))
+                        .ToListAsync();
+
+                    foreach (var prestacion in prestaciones)
+                    {
+                        _EmpleoContext.OfertaEmpleoPrestacion.Add(new OfertaEmpleoPrestacion
+                        {
+                            id_ofertaempleo = ofertaMod.id_ofertaempleo,
+                            id_prestacionley = prestacion.id_prestacionley,
+                            descripcion = prestacion.nombre
+                        });
+                    }
+                }
+
+                // Actualizar categoría
+                var categoriaActual = await _EmpleoContext.OfertaCategoria
+                    .FirstOrDefaultAsync(oc => oc.id_ofertaempleo == ofertaMod.id_ofertaempleo);
+                if (categoriaActual != null)
+                {
+                    _EmpleoContext.OfertaCategoria.Remove(categoriaActual);
+                }
+
+                if (id_categoriaprofesional > 0)
+                {
+                    var primeraSubcategoria = await _EmpleoContext.SubcategoriaProfesional
+                        .FirstOrDefaultAsync(s => s.id_categoriaprofesional == id_categoriaprofesional);
+
+                    if (primeraSubcategoria != null)
+                    {
+                        _EmpleoContext.OfertaCategoria.Add(new OfertaCategoria
+                        {
+                            id_ofertaempleo = ofertaMod.id_ofertaempleo,
+                            id_categoriaprofesional = id_categoriaprofesional,
+                            id_subcategoriaprofesional = primeraSubcategoria.id_subcategoriaprofesional
+                        });
+                    }
+                }
+
+                // Guardar cambios
                 _EmpleoContext.Update(ofertaActual);
                 await _EmpleoContext.SaveChangesAsync();
-
-                Console.WriteLine($"DESPUÉS de guardar: {JsonSerializer.Serialize(ofertaActual)}");
-                Console.WriteLine($"Vacantes después de guardar: {ofertaActual.vacante}");
-
-
 
                 Console.WriteLine("Oferta actualizada exitosamente");
                 return RedirectToAction("ListarOfertas", "OfertaEmpleoEmpresa");
