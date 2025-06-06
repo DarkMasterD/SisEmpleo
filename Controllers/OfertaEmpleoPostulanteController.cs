@@ -143,7 +143,7 @@ namespace SisEmpleo.Controllers
 
 
 
-        [HttpGet("{id}")]
+        //[HttpGet("{id}")]
         public async Task<IActionResult> VerOferta(int id)
         {
             Console.WriteLine($"ID recibido: {id}");
