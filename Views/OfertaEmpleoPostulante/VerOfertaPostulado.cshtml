@@ -124,13 +124,13 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h4>
-                                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })">
+                                    <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id = oferta.Id })">
                                         @oferta.Titulo
                                     </a>
                                 </h4>
                                 <div class="company">@oferta.Nombre_Empresa</div>
                             </div>
-                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id_ofertaempleo = oferta.Id })" class="btn btn-details">Ver Detalles</a>
+                            <a href="@Url.Action("VerOferta", "OfertaEmpleoPostulante", new { id= oferta.Id })" class="btn btn-details">Ver Detalles</a>
                         </div>
                         <div class="details">
                             <span><strong>Salario:</strong> S/ @oferta.Salario</span>
