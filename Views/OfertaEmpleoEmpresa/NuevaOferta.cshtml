@@ -93,6 +93,19 @@
         .alert {
             margin-bottom: 1rem;
         }
+
+        /* Estilos para secciones adicionales */
+        .section-box {
+            border: 1px solid #D1D5DB;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            color: #1E3A8A;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -158,6 +171,43 @@
                 <span asp-validation-for="duracion_contrato" class="text-danger"></span>
             </div>
 
+            <!-- Sección: Categoría de la Oferta -->
+            <div class="section-box">
+                <h3 class="section-title">Categoría de la Oferta</h3>
+                <div class="form-group">
+                    <label class="form-label">Categoría</label>
+                    <select id="categoria" name="id_categoriaprofesional" class="form-control" required>
+                        <option value="">Seleccione una categoría</option>
+                        @if (ViewBag.Categorias != null)
+                        {
+                            foreach (var categoria in (List<SisEmpleo.Models.CategoriaProfesional>)ViewBag.Categorias)
+                            {
+                                <option value="@categoria.id_categoriaprofesional">@categoria.nombre</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sección: Prestaciones de Ley -->
+            <div class="section-box">
+                <h3 class="section-title">Prestaciones de Ley</h3>
+                @if (ViewBag.Prestaciones != null)
+                {
+                    foreach (var prestacion in (List<SisEmpleo.Models.PrestacionLey>)ViewBag.Prestaciones)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="PrestacionesSeleccionadas" value="@prestacion.id_prestacionley" id="prest_@prestacion.id_prestacionley" />
+                            <label class="form-check-label" for="prest_@prestacion.id_prestacionley">@prestacion.nombre</label>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>No hay prestaciones configuradas</p>
+                }
+            </div>
+
             <!-- Habilidades -->
             <div class="form-group">
                 <label class="form-label">Requisitos (Habilidades)</label>
@@ -204,6 +254,12 @@
 
             <!-- Campo oculto para horario -->
             <input asp-for="horario" type="hidden" id="horario" />
+
+            <!-- Duración de la oferta -->
+            <div class="form-group">
+                <label class="form-label">Duración de la Oferta (días)</label>
+                <input type="number" name="duracionOferta" class="form-control" min="1" value="30" required />
+            </div>
 
             <!-- Botones -->
             <div class="row mt-4">
