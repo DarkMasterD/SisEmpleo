@@ -8,6 +8,8 @@ namespace SisEmpleo.Models
         {
         }
 
+
+
         public DbSet<CategoriaProfesional> CategoriaProfesional { get; set; }
         public DbSet<Contacto> Contacto { get; set; }
         public DbSet<Habilidad> Habilidad { get; set; }
@@ -36,6 +38,28 @@ namespace SisEmpleo.Models
         public DbSet<TrabajoEmpresa> TrabajoEmpresa { get; set; } 
         public DbSet<PrestacionLey> PrestacionLey { get; set; } 
         public DbSet<OfertaEmpleoPrestacion> OfertaEmpleoPrestacion { get; set; } 
-        public DbSet<Certificacion_Curriculum> Certificacion_Curriculum { get; set; } 
+        public DbSet<Certificacion_Curriculum> Certificacion_Curriculum { get; set; }
+
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Configuración SOLO para las relaciones problemáticas
+            modelBuilder.Entity<ExperienciaProfesional>(entity =>
+            {
+                entity.HasOne(e => e.Curriculum)
+                    .WithMany(c => c.ExperienciasProfesionales)
+                    .HasForeignKey(e => e.id_curriculum);
+
+                entity.HasOne(e => e.Puesto)
+                    .WithMany()
+                    .HasForeignKey(e => e.id_puesto);
+
+                entity.HasOne(e => e.TrabajoEmpresa)
+                    .WithMany()
+                    .HasForeignKey(e => e.id_trabajoempresa);
+            });
+        }
     }
+
+
 }

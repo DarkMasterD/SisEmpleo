@@ -189,6 +189,49 @@
                     </div>
                 </div>
 
+                @* --- INICIO: Bloque de Formación Académica --- *@
+                <div class="card shadow-sm mb-4 border-light section-card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-mortarboard-fill fs-4 me-2 section-card-title-icon"></i>
+                        <h5 class="mb-0 text-dark">Formación Académica</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.FormacionesAcademicas != null && Model.FormacionesAcademicas.Any())
+                        {
+                            <ul class="list-group list-group-flush">
+                                @foreach (var formacion in Model.FormacionesAcademicas)
+                                {
+                                    <li class="list-group-item px-0 py-3">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold" style="color: #333;">@formacion.NombreTitulo</h6>
+                                            @if (!string.IsNullOrWhiteSpace(formacion.TipoTitulo))
+                                            {
+                                                <small class="text-muted">@formacion.TipoTitulo</small>
+                                            }
+                                        </div>
+                                        <p class="mb-1 text-secondary">
+                                            <i class="bi bi-building me-1"></i>
+                                            @formacion.NombreInstitucion
+                                        </p>
+                                        @if (!string.IsNullOrWhiteSpace(formacion.NombreEspecialidad))
+                                        {
+                                            <small class="text-muted">
+                                                <i class="bi bi-bookmark-star-fill me-1"></i>
+                                                Especialidad: @formacion.NombreEspecialidad
+                                            </small>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <p class="text-muted fst-italic mb-0">No hay formación académica especificada.</p>
+                        }
+                    </div>
+                </div>
+                @* --- FIN: Bloque de Formación Académica --- *@
+
                 @* Aquí puedes añadir más tarjetas para Formación Académica, Experiencia, etc. con un estilo similar *@
             </div>
         </div>
