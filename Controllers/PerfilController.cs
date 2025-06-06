@@ -109,13 +109,16 @@ namespace SisEmpleo.Controllers
         }
         public async Task<IActionResult> Index()
         {
+            // 1. Validar Usuario y Postulante (sin cambios)
             int? idUsuario = HttpContext.Session.GetInt32("id_usuario");
             if (idUsuario == null) return RedirectToAction("Login", "Account");
-            var usuario = await _context.Usuario.FindAsync(idUsuario.Value);
+
+            var usuario = await _context.Usuario.AsNoTracking().FirstOrDefaultAsync(u => u.id_usuario == idUsuario.Value);
             if (usuario == null) return RedirectToAction("Login", "Account");
 
-            var postulante = await _context.Postulante
-                .Include(p => p.Pais).Include(p => p.Provincia)
+            var postulante = await _context.Postulante.AsNoTracking()
+                .Include(p => p.Pais)
+                .Include(p => p.Provincia)
                 .FirstOrDefaultAsync(p => p.id_usuario == idUsuario.Value);
 
             if (postulante == null)
@@ -124,15 +127,8 @@ namespace SisEmpleo.Controllers
                 return RedirectToAction(nameof(EditarPerfil));
             }
 
+            // 2. Crear el Modelo de Vista con datos básicos y listas vacías
             var contacto = await _context.Contacto.AsNoTracking().FirstOrDefaultAsync(c => c.id_usuario == idUsuario.Value);
-            var curriculum = await _context.Curriculum.AsNoTracking()
-                .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Idioma)
-                .Include(c => c.IdiomaCurriculums).ThenInclude(ic => ic.Institucion)
-                .Include(c => c.HabilidadCurriculums).ThenInclude(hc => hc.Habilidad)
-                .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
-                .Include(c => c.FormacionesAcademicas).ThenInclude(fa => fa.Institucion)
-                .FirstOrDefaultAsync(c => c.id_postulante == postulante.id_postulante);
-
             var model = new PostulanteViewModel
             {
                 Nombre = postulante.nombre,
@@ -143,26 +139,67 @@ namespace SisEmpleo.Controllers
                 Pais = postulante.Pais?.nombre,
                 Provincia = postulante.Provincia?.nombre,
                 TipoUsuario = usuario.tipo_usuario.ToString(),
-                Idiomas = curriculum?.IdiomaCurriculums?
-                            .OrderBy(ic => ic.Institucion?.nombre == "Autodidacta" ? 0 : 1)
-                            .ThenBy(ic => ic.Idioma?.nombre)
-                            .Select(ic => ic.Idioma?.nombre).Where(n => n != null).Distinct().ToList() ?? new List<string>(),
-                Habilidades = curriculum?.HabilidadCurriculums?
-                                .OrderBy(hc => hc.Habilidad?.nombre)
-                                .Select(hc => hc.Habilidad?.nombre).Where(n => n != null).Distinct().ToList() ?? new List<string>(),
-                FormacionesAcademicas = curriculum?.FormacionesAcademicas?
-                                        .Select(fa => new FormacionAcademicaViewModel
-                                        {
-                                            NombreTitulo = fa.Titulo?.nombre,
-                                            TipoTitulo = fa.Titulo?.tipo,
-                                            NombreInstitucion = fa.Institucion?.nombre,
-                                            NombreEspecialidad = fa.Titulo?.Especialidad?.nombre
-                                        }).OrderBy(fa => fa.NombreTitulo).ToList() ?? new List<FormacionAcademicaViewModel>()
+                // Inicializar listas para evitar errores
+                Idiomas = new List<string>(),
+                Habilidades = new List<string>(),
+                FormacionesAcademicas = new List<FormacionAcademicaViewModel>()
             };
+
+            // 3. Obtener el currículum de forma segura
+            var curriculum = await _context.Curriculum.AsNoTracking()
+                                     .FirstOrDefaultAsync(c => c.id_postulante == postulante.id_postulante);
+
+            // 4. SOLO si existe un currículum, cargar los datos relacionados
+            if (curriculum != null)
+            {
+                // Carga de Idiomas de forma segura
+                var idiomasCv = await _context.Idioma_Curriculum.AsNoTracking()
+                    .Include(ic => ic.Idioma)
+                    .Include(ic => ic.Institucion)
+                    .Where(ic => ic.id_curriculum == curriculum.id_curriculum && ic.Idioma != null && ic.Institucion != null)
+                    .ToListAsync();
+
+                model.Idiomas = idiomasCv
+                    .OrderBy(ic => ic.Institucion.nombre == "Autodidacta" ? 0 : 1)
+                    .ThenBy(ic => ic.Idioma.nombre)
+                    .Select(ic => ic.Idioma.nombre)
+                    .Distinct()
+                    .ToList();
+
+                // Carga de Habilidades de forma segura
+                var habilidadesCv = await _context.Habilidad_Curriculum.AsNoTracking()
+                    .Include(hc => hc.Habilidad)
+                    .Where(hc => hc.id_curriculum == curriculum.id_curriculum && hc.Habilidad != null)
+                    .ToListAsync();
+
+                model.Habilidades = habilidadesCv
+                    .OrderBy(hc => hc.Habilidad.nombre)
+                    .Select(hc => hc.Habilidad.nombre)
+                    .Distinct()
+                    .ToList();
+
+                // Carga de Formación Académica de forma segura
+                var formacionesCv = await _context.FormacionAcademica.AsNoTracking()
+                    .Include(fa => fa.Titulo).ThenInclude(t => t.Especialidad)
+                    .Include(fa => fa.Institucion)
+                    .Where(fa => fa.id_curriculum == curriculum.id_curriculum && fa.Titulo != null && fa.Institucion != null)
+                    .ToListAsync();
+
+                model.FormacionesAcademicas = formacionesCv
+                    .Select(fa => new FormacionAcademicaViewModel
+                    {
+                        NombreTitulo = fa.Titulo.nombre,
+                        TipoTitulo = fa.Titulo.tipo,
+                        NombreInstitucion = fa.Institucion.nombre,
+                        NombreEspecialidad = fa.Titulo.Especialidad?.nombre
+                    })
+                    .OrderBy(fa => fa.NombreTitulo)
+                    .ToList();
+            }
+
+            // 5. Devolver la vista con el modelo (ya sea con datos o con listas vacías)
             return View(model);
         }
-
-
         [HttpGet]
         public async Task<IActionResult> EditarPerfil()
         {
@@ -774,8 +811,7 @@ namespace SisEmpleo.Controllers
                 .Include(ic => ic.Idioma)
                 .Include(ic => ic.Institucion) 
                 .FirstOrDefaultAsync(ic => ic.id_idioma_curriculum == idIdiomaCurriculum &&
-                                            ic.Curriculum.Postulante.id_usuario == idUsuario.Value &&
-                                            ic.Institucion.nombre != "Autodidacta");
+                                            ic.Curriculum.Postulante.id_usuario == idUsuario.Value);
 
             if (idiomaCvAEliminar != null)
             {
