@@ -21,46 +21,169 @@ namespace SisEmpleo.Controllers
             _EmpleoContext = context;
         }
 
-
         // GET: Mostrar formulario para crear nueva oferta
         [HttpGet]
         public IActionResult NuevaOferta()
         {
-            // Populate ViewBag.Pais with SelectList
-            ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
-            {
-                Value = p.id_pais.ToString(),
-                Text = p.nombre
-            }).ToList();
-
-            // Populate ViewBag.Habilidades
-            ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
-
-            // Get id_empresa and EmpresaNombre from session
+            // Obtener id_empresa de la sesión
             var idEmpresa = HttpContext.Session.GetInt32("id_empresa");
             if (idEmpresa == null)
             {
-                ModelState.AddModelError("", "No se ha identificado la empresa.");
-                return View(new OfertaEmpleo());
+                return RedirectToAction("Login", "Account");
             }
 
+            // Obtener datos de la empresa
             var empresa = _EmpleoContext.Empresa.FirstOrDefault(e => e.id_empresa == idEmpresa.Value);
             if (empresa == null)
             {
-                ModelState.AddModelError("", "Empresa no encontrada.");
-                return View(new OfertaEmpleo());
+                return NotFound();
             }
 
+            // Cargar datos para los dropdowns
+            ViewBag.Pais = _EmpleoContext.Pais
+                .Select(p => new SelectListItem
+                {
+                    Value = p.id_pais.ToString(),
+                    Text = p.nombre
+                }).ToList();
+
+            // Cargar categorías profesionales de la empresa
+            ViewBag.Categorias = _EmpleoContext.CategoriaProfesional
+                .ToList();
+
+            // Cargar subcategorías profesionales de la empresa
+            ViewBag.Subcategorias = _EmpleoContext.SubcategoriaProfesional
+                .Where(s => s.id_empresa == idEmpresa.Value)
+                .ToList();
+
+            // Cargar prestaciones de ley de la empresa
+            ViewBag.Prestaciones = _EmpleoContext.PrestacionLey
+                .ToList();
+
+            // Cargar habilidades
+            ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
+
+            // Pasar datos de la empresa a la vista
             ViewBag.id_empresa = empresa.id_empresa;
             ViewBag.EmpresaNombre = empresa.nombre;
 
             return View(new OfertaEmpleo());
         }
 
-        // Fix for CS0136: Renamed the inner variable 'idEmpresa' to 'empresaId' to avoid conflict with the outer variable.
+        //ORIGINAL
+
+        //// GET: Mostrar formulario para crear nueva oferta
+        //[HttpGet]
+        //public IActionResult NuevaOferta()
+        //{
+        //    // Populate ViewBag.Pais with SelectList
+        //    ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
+        //    {
+        //        Value = p.id_pais.ToString(),
+        //        Text = p.nombre
+        //    }).ToList();
+
+        //    // Populate ViewBag.Habilidades
+        //    ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
+
+        //    // Get id_empresa and EmpresaNombre from session
+        //    var idEmpresa = HttpContext.Session.GetInt32("id_empresa");
+        //    if (idEmpresa == null)
+        //    {
+        //        ModelState.AddModelError("", "No se ha identificado la empresa.");
+        //        return View(new OfertaEmpleo());
+        //    }
+
+        //    var empresa = _EmpleoContext.Empresa.FirstOrDefault(e => e.id_empresa == idEmpresa.Value);
+        //    if (empresa == null)
+        //    {
+        //        ModelState.AddModelError("", "Empresa no encontrada.");
+        //        return View(new OfertaEmpleo());
+        //    }
+
+        //    ViewBag.id_empresa = empresa.id_empresa;
+        //    ViewBag.EmpresaNombre = empresa.nombre;
+
+        //    return View(new OfertaEmpleo());
+        //}
+
+
+        //ORIGINAL
+
+        //// Fix for CS0136: Renamed the inner variable 'idEmpresa' to 'empresaId' to avoid conflict with the outer variable.
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public IActionResult NuevaOferta(OfertaEmpleo oferta, List<int> HabilidadesSeleccionadas)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        try
+        //        {
+        //            // Set server-side fields
+        //            oferta.fecha_publicacion = DateTime.Now;
+        //            oferta.estado = true;
+
+        //            // Assign id_empresa from session
+        //            var empresaId = HttpContext.Session.GetInt32("id_empresa"); // Renamed variable
+        //            if (empresaId == null)
+        //            {
+        //                ModelState.AddModelError("", "No se ha identificado la empresa.");
+        //                // Repopulate ViewBag for error view
+        //                ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
+        //                {
+        //                    Value = p.id_pais.ToString(),
+        //                    Text = p.nombre
+        //                }).ToList();
+        //                ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
+        //                return View(oferta);
+        //            }
+        //            oferta.id_empresa = empresaId.Value; // Updated to use 'empresaId'
+
+        //            // Save oferta
+        //            _EmpleoContext.OfertaEmpleo.Add(oferta);
+        //            _EmpleoContext.SaveChanges();
+
+        //            // Save selected habilidades to RequisitoOferta
+        //            if (HabilidadesSeleccionadas != null && HabilidadesSeleccionadas.Any())
+        //            {
+        //                foreach (var idHabilidad in HabilidadesSeleccionadas)
+        //                {
+        //                    var requisito = new RequisitoOferta
+        //                    {
+        //                        id_ofertaempleo = oferta.id_ofertaempleo,
+        //                        id_habilidad = idHabilidad
+        //                    };
+        //                    _EmpleoContext.RequisitoOferta.Add(requisito);
+        //                }
+        //                _EmpleoContext.SaveChanges();
+        //            }
+
+        //            return RedirectToAction("Index", "Home");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            ModelState.AddModelError("", "Error al guardar la oferta: " + ex.Message);
+        //        }
+        //    }
+
+        //    // Repopulate ViewBag on validation failure
+        //    ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
+        //    {
+        //        Value = p.id_pais.ToString(),
+        //        Text = p.nombre
+        //    }).ToList();
+        //    ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
+        //    var empresaIdForViewBag = HttpContext.Session.GetInt32("id_empresa");
+        //    var empresa = empresaIdForViewBag != null ? _EmpleoContext.Empresa.FirstOrDefault(e => e.id_empresa == empresaIdForViewBag.Value) : null;
+        //    ViewBag.id_empresa = empresa?.id_empresa;
+        //    ViewBag.EmpresaNombre = empresa?.nombre;
+
+        //    return View(oferta);
+        //}
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult NuevaOferta(OfertaEmpleo oferta, List<int> HabilidadesSeleccionadas)
+        public IActionResult NuevaOferta(OfertaEmpleo oferta, List<int> HabilidadesSeleccionadas, List<int> PrestacionesSeleccionadas, int id_categoriaprofesional)
         {
             if (ModelState.IsValid)
             {
@@ -71,20 +194,13 @@ namespace SisEmpleo.Controllers
                     oferta.estado = true;
 
                     // Assign id_empresa from session
-                    var empresaId = HttpContext.Session.GetInt32("id_empresa"); // Renamed variable
+                    var empresaId = HttpContext.Session.GetInt32("id_empresa");
                     if (empresaId == null)
                     {
                         ModelState.AddModelError("", "No se ha identificado la empresa.");
-                        // Repopulate ViewBag for error view
-                        ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
-                        {
-                            Value = p.id_pais.ToString(),
-                            Text = p.nombre
-                        }).ToList();
-                        ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
-                        return View(oferta);
+                        return View(RepoblarViewBags(oferta));
                     }
-                    oferta.id_empresa = empresaId.Value; // Updated to use 'empresaId'
+                    oferta.id_empresa = empresaId.Value;
 
                     // Save oferta
                     _EmpleoContext.OfertaEmpleo.Add(oferta);
@@ -95,37 +211,99 @@ namespace SisEmpleo.Controllers
                     {
                         foreach (var idHabilidad in HabilidadesSeleccionadas)
                         {
-                            var requisito = new RequisitoOferta
+                            _EmpleoContext.RequisitoOferta.Add(new RequisitoOferta
                             {
                                 id_ofertaempleo = oferta.id_ofertaempleo,
                                 id_habilidad = idHabilidad
-                            };
-                            _EmpleoContext.RequisitoOferta.Add(requisito);
+                            });
                         }
-                        _EmpleoContext.SaveChanges();
                     }
+
+                    if (PrestacionesSeleccionadas != null && PrestacionesSeleccionadas.Any())
+                    {
+                        // Obtener todas las prestaciones de una vez para mejor performance
+                        var prestaciones = _EmpleoContext.PrestacionLey
+                            .Where(p => PrestacionesSeleccionadas.Contains(p.id_prestacionley))
+                            .ToList();
+
+                        foreach (var prestacion in prestaciones)
+                        {
+                            _EmpleoContext.OfertaEmpleoPrestacion.Add(new OfertaEmpleoPrestacion
+                            {
+                                id_ofertaempleo = oferta.id_ofertaempleo,
+                                id_prestacionley = prestacion.id_prestacionley,
+                                descripcion = prestacion.nombre // Usamos el nombre de la prestación como descripción
+                            });
+                        }
+                    }
+
+                    // Guardar la categoría después de tener el id_ofertaempleo
+                    if (id_categoriaprofesional > 0)
+                    {
+                        // Necesitas también el id_subcategoriaprofesional
+                        // Asumo que puedes obtenerlo de alguna forma, aquí un ejemplo:
+                        var primeraSubcategoria = _EmpleoContext.SubcategoriaProfesional
+                            .FirstOrDefault(s => s.id_categoriaprofesional == id_categoriaprofesional);
+
+                        if (primeraSubcategoria != null)
+                        {
+                            _EmpleoContext.OfertaCategoria.Add(new OfertaCategoria
+                            {
+                                id_ofertaempleo = oferta.id_ofertaempleo,
+                                id_categoriaprofesional = id_categoriaprofesional,
+                                id_subcategoriaprofesional = primeraSubcategoria.id_subcategoriaprofesional
+                            });
+                        }
+                    }
+
+                    // Guardar todos los cambios juntos
+                    _EmpleoContext.SaveChanges();
 
                     return RedirectToAction("Index", "Home");
                 }
                 catch (Exception ex)
                 {
-                    ModelState.AddModelError("", "Error al guardar la oferta: " + ex.Message);
+                    // Obtener el mensaje de error interno
+                    string errorMessage = ex.Message;
+                    if (ex.InnerException != null)
+                    {
+                        errorMessage += " | Inner Exception: " + ex.InnerException.Message;
+
+                        // Si es un error de SQL, podemos obtener aún más detalles
+                        if (ex.InnerException.InnerException != null)
+                        {
+                            errorMessage += " | " + ex.InnerException.InnerException.Message;
+                        }
+                    }
+
+                    ModelState.AddModelError("", "Error al guardar la oferta: " + errorMessage);
+                    return View(RepoblarViewBags(oferta));
                 }
             }
 
-            // Repopulate ViewBag on validation failure
+            return View(RepoblarViewBags(oferta));
+        }
+
+        // Método auxiliar para repoblar ViewBags
+        private OfertaEmpleo RepoblarViewBags(OfertaEmpleo oferta)
+        {
             ViewBag.Pais = _EmpleoContext.Pais.Select(p => new SelectListItem
             {
                 Value = p.id_pais.ToString(),
                 Text = p.nombre
             }).ToList();
+
             ViewBag.Habilidades = _EmpleoContext.Habilidad.ToList();
-            var empresaIdForViewBag = HttpContext.Session.GetInt32("id_empresa");
-            var empresa = empresaIdForViewBag != null ? _EmpleoContext.Empresa.FirstOrDefault(e => e.id_empresa == empresaIdForViewBag.Value) : null;
+            ViewBag.Prestaciones = _EmpleoContext.PrestacionLey.ToList(); // Añadir esto
+
+            ViewBag.Categorias = _EmpleoContext.CategoriaProfesional.ToList(); // También faltaba esto
+
+            var empresaId = HttpContext.Session.GetInt32("id_empresa");
+            var empresa = empresaId != null ? _EmpleoContext.Empresa.FirstOrDefault(e => e.id_empresa == empresaId.Value) : null;
             ViewBag.id_empresa = empresa?.id_empresa;
             ViewBag.EmpresaNombre = empresa?.nombre;
 
-            return View(oferta);
+            return oferta;
         }
 
         [HttpGet]
@@ -158,6 +336,7 @@ namespace SisEmpleo.Controllers
         {
             int id_empresa = Convert.ToInt32(HttpContext.Session.GetInt32("id_empresa"));
 
+            // Obtener todas las ofertas de la empresa con sus categorías
             var ofertas = (from o in _EmpleoContext.OfertaEmpleo
                            join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais
                            join pro in _EmpleoContext.Provincia on o.id_provincia equals pro.id_provincia
@@ -173,15 +352,29 @@ namespace SisEmpleo.Controllers
                                Fecha_Publicacion = o.fecha_publicacion,
                                Ubi_Pais = p.nombre,
                                Ubi_Pro = pro.nombre,
-                              
+                               CategoriaId = (from oc in _EmpleoContext.OfertaCategoria
+                                              where oc.id_ofertaempleo == o.id_ofertaempleo
+                                              select oc.id_categoriaprofesional).FirstOrDefault()
                            }).ToList();
 
+            // Obtener todas las categorías profesionales disponibles
+            var categorias = _EmpleoContext.CategoriaProfesional.ToList();
+
+            // Preparar las categorías de la empresa con conteo de ofertas
+            var categoriasEmpresa = categorias.Select(c => new
+            {
+                Id = c.id_categoriaprofesional,
+                Nombre = c.nombre,
+                CantidadOfertas = ofertas.Count(o => o.CategoriaId == c.id_categoriaprofesional)
+            }).Where(c => c.CantidadOfertas > 0).ToList();
+
             ViewData["listOfertas"] = ofertas;
+            ViewData["categoriasEmpresa"] = categoriasEmpresa;
 
             return View();
         }
 
-        
+
 
         [HttpGet]
         public async Task<IActionResult> EditarOferta(int id_ofertaempleo) // Cambia IActionResult por Task<IActionResult>

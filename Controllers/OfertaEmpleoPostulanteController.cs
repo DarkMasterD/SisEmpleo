@@ -143,12 +143,13 @@ namespace SisEmpleo.Controllers
 
 
 
-        [HttpGet("{id}")]
-        public IActionResult VerOferta(int id)
+        //[HttpGet("{id}")]
+        public async Task<IActionResult> VerOferta(int id)
         {
             Console.WriteLine($"ID recibido: {id}");
             if (id <= 0) return BadRequest("ID inválido");
 
+            // Verificar que el usuario sea postulante
             if (HttpContext.Session.GetString("tipo_usuario") != "P")
             {
                 return RedirectToAction("Index", "Home");
@@ -156,6 +157,7 @@ namespace SisEmpleo.Controllers
 
             try
             {
+                // Obtener información de la oferta
                 var oferta = (from o in _EmpleoContext.OfertaEmpleo
                               join p in _EmpleoContext.Pais on o.id_pais equals p.id_pais into paisJoin
                               from p in paisJoin.DefaultIfEmpty()
@@ -176,7 +178,7 @@ namespace SisEmpleo.Controllers
                                   Nombre_Empresa = e != null ? e.nombre : "Desconocida",
                                   Ubi_Pais = p != null ? p.nombre : "Desconocido",
                                   Ubi_Pro = pro != null ? pro.nombre : "Desconocido",
-                                  Horario = o.horario ?? "" // Asegurar que no sea nulo
+                                  Horario = o.horario ?? ""
                               }).FirstOrDefault();
 
                 if (oferta == null)
@@ -184,6 +186,7 @@ namespace SisEmpleo.Controllers
                     return NotFound("La oferta solicitada no existe o no está disponible");
                 }
 
+                // Obtener requisitos de la oferta
                 var requisitos = (from r in _EmpleoContext.RequisitoOferta
                                   join h in _EmpleoContext.Habilidad on r.id_habilidad equals h.id_habilidad
                                   where r.id_ofertaempleo == id
@@ -193,19 +196,86 @@ namespace SisEmpleo.Controllers
                 ViewBag.Horario = SepararHorario(oferta.Horario);
                 ViewBag.Requisitos = requisitos;
 
-                var id_usuario = HttpContext.Session.GetInt32("id_usuario");
+                // Verificar si ya está postulado
+                var idUsuario = HttpContext.Session.GetInt32("id_usuario");
+                var idPostulante = HttpContext.Session.GetInt32("id_postulante");
                 var hasApplied = _EmpleoContext.OfertaCandidatos
-                    .Any(oc => oc.id_ofertaempleo == id && oc.id_usuario == id_usuario);
+                    .Any(oc => oc.id_ofertaempleo == id && oc.id_usuario == idUsuario);
                 ViewBag.HasApplied = hasApplied;
+
+                // Verificar requisitos solo si no está postulado
+                if (!hasApplied && idUsuario.HasValue && idPostulante.HasValue)
+                {
+                    var verificacion = await VerificarRequisitosPostulante(id, idPostulante.Value, idUsuario.Value);
+                    ViewBag.CumpleRequisitos = verificacion.Cumple;
+                    ViewBag.MensajeRequisitos = verificacion.Mensaje;
+                }
 
                 return View();
             }
             catch (Exception ex)
             {
-                // Log del error completo
                 Console.WriteLine($"Error en VerOferta: {ex}");
                 return StatusCode(500, "Ocurrió un error al cargar la oferta. Por favor, intente nuevamente.");
             }
+        }
+
+        private async Task<(bool Cumple, string Mensaje)> VerificarRequisitosPostulante(int idOferta, int idPostulante, int idUsuario)
+        {
+            // Verificar información de contacto
+            var contactoPostulante = await _EmpleoContext.Contacto.AsNoTracking()
+                .FirstOrDefaultAsync(c => c.id_usuario == idUsuario);
+
+            if (contactoPostulante == null || string.IsNullOrWhiteSpace(contactoPostulante.telefono))
+            {
+                return (false, "Completa tu información de contacto (teléfono) en tu perfil antes de postularte.");
+            }
+
+            // Verificar currículum y formación académica
+            var curriculumPostulante = await _EmpleoContext.Curriculum.AsNoTracking()
+                .Include(c => c.FormacionesAcademicas)
+                .Include(c => c.HabilidadCurriculums)
+                .FirstOrDefaultAsync(c => c.id_postulante == idPostulante);
+
+            if (curriculumPostulante == null)
+            {
+                return (false, "Completa tu currículum en tu perfil antes de postularte.");
+            }
+
+            if (curriculumPostulante.FormacionesAcademicas == null || !curriculumPostulante.FormacionesAcademicas.Any())
+            {
+                return (false, "Añade al menos una formación académica a tu currículum antes de postularte.");
+            }
+
+            // Verificar habilidades requeridas
+            var habilidadesRequeridasIds = await _EmpleoContext.RequisitoOferta
+                .Where(r => r.id_ofertaempleo == idOferta)
+                .Select(r => r.id_habilidad)
+                .ToListAsync();
+
+            if (habilidadesRequeridasIds.Any())
+            {
+                var habilidadesCandidatoIds = curriculumPostulante.HabilidadCurriculums?
+                    .Select(hc => hc.id_habilidad).ToList() ?? new List<int>();
+
+                bool cumpleHabilidades = habilidadesRequeridasIds.All(reqId => habilidadesCandidatoIds.Contains(reqId));
+                if (!cumpleHabilidades)
+                {
+                    var nombresHabilidadesFaltantes = await _EmpleoContext.Habilidad
+                        .Where(h => habilidadesRequeridasIds.Except(habilidadesCandidatoIds).Contains(h.id_habilidad))
+                        .Select(h => h.nombre)
+                        .ToListAsync();
+
+                    string mensaje = "No cumples con todas las habilidades requeridas para esta oferta.";
+                    if (nombresHabilidadesFaltantes.Any())
+                    {
+                        mensaje += $" Te faltan: {string.Join(", ", nombresHabilidadesFaltantes)}.";
+                    }
+                    return (false, mensaje);
+                }
+            }
+
+            return (true, null);
         }
 
         // En SisEmpleo/Controllers/OfertaEmpleoPostulanteController.cs
@@ -319,6 +389,64 @@ namespace SisEmpleo.Controllers
                 return Json(new { success = false, message = "Ocurrió un error inesperado al procesar tu postulación. Por favor, inténtalo de nuevo más tarde." });
             }
         }
+
+        //private async Task<(bool Cumple, string Mensaje)> VerificarRequisitosPostulante(int idOferta, int idPostulante, int idUsuario)
+        //{
+        //    // Verificar información de contacto
+        //    var contactoPostulante = await _EmpleoContext.Contacto.AsNoTracking()
+        //        .FirstOrDefaultAsync(c => c.id_usuario == idUsuario);
+
+        //    if (contactoPostulante == null || string.IsNullOrWhiteSpace(contactoPostulante.telefono))
+        //    {
+        //        return (false, "Completa tu información de contacto (teléfono) en tu perfil antes de postularte.");
+        //    }
+
+        //    // Verificar currículum y formación académica
+        //    var curriculumPostulante = await _EmpleoContext.Curriculum.AsNoTracking()
+        //        .Include(c => c.FormacionesAcademicas)
+        //        .Include(c => c.HabilidadCurriculums)
+        //        .FirstOrDefaultAsync(c => c.id_postulante == idPostulante);
+
+        //    if (curriculumPostulante == null)
+        //    {
+        //        return (false, "Completa tu currículum en tu perfil antes de postularte.");
+        //    }
+
+        //    if (curriculumPostulante.FormacionesAcademicas == null || !curriculumPostulante.FormacionesAcademicas.Any())
+        //    {
+        //        return (false, "Añade al menos una formación académica a tu currículum antes de postularte.");
+        //    }
+
+        //    // Verificar habilidades requeridas
+        //    var habilidadesRequeridasIds = await _EmpleoContext.RequisitoOferta
+        //        .Where(r => r.id_ofertaempleo == idOferta)
+        //        .Select(r => r.id_habilidad)
+        //        .ToListAsync();
+
+        //    if (habilidadesRequeridasIds.Any())
+        //    {
+        //        var habilidadesCandidatoIds = curriculumPostulante.HabilidadCurriculums?
+        //            .Select(hc => hc.id_habilidad).ToList() ?? new List<int>();
+
+        //        bool cumpleHabilidades = habilidadesRequeridasIds.All(reqId => habilidadesCandidatoIds.Contains(reqId));
+        //        if (!cumpleHabilidades)
+        //        {
+        //            var nombresHabilidadesFaltantes = await _EmpleoContext.Habilidad
+        //                .Where(h => habilidadesRequeridasIds.Except(habilidadesCandidatoIds).Contains(h.id_habilidad))
+        //                .Select(h => h.nombre)
+        //                .ToListAsync();
+
+        //            string mensaje = "No cumples con todas las habilidades requeridas para esta oferta.";
+        //            if (nombresHabilidadesFaltantes.Any())
+        //            {
+        //                mensaje += $" Te faltan: {string.Join(", ", nombresHabilidadesFaltantes)}.";
+        //            }
+        //            return (false, mensaje);
+        //        }
+        //    }
+
+        //    return (true, null);
+        //}
 
 
         [HttpGet]
